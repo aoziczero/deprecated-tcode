@@ -13,57 +13,66 @@ OBJS_DIR  = ./build/debug
 DBG_FLAGS = -DDEBUG -g
 endif
 
-TARGET_NAME=tcode
-TARGET_OBJS_DIR=$(OBJS_DIR)/$(TARGET_NAME)
-TARGET_CPPFLAGS=-std=c++11 -I./tcode -I./ $(DBG_FLAGS) -fpermissive
-TARGET_DEPEND_FILE = $(TARGET_OBJS_DIR)/$(DEPEND_FILE)
-TARGET_SRCS=
+TARGET_COMMON_NAME=tcode.common
+TARGET_COMMON_OBJS_DIR=$(OBJS_DIR)/$(TARGET_COMMON_NAME)
+TARGET_COMMON_CPPFLAGS=-std=c++11 -I./ $(DBG_FLAGS) -fpermissive
+TARGET_COMMON_DEPEND_FILE = $(TARGET_COMMON_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_COMMON_OBJS=$(TARGET_COMMON_SRCS:%.cpp=$(TARGET_COMMON_OBJS_DIR)/%.o)
+TARGET_COMMON=$(TARGET_COMMON_OBJS_DIR)/lib$(TARGET_COMMON_NAME).a
 
-TARGET_OBJS=$(TARGET_SRCS:%.cpp=$(TARGET_OBJS_DIR)/%.o)
+TARGET_COMMON_SRCS=common/lib_allocator.cpp\
+common/time_span.cpp\
+common/time_stamp.cpp\
+common/time_util.cpp\
+common/rtti.cpp\
 
-TARGET=$(TARGET_OBJS_DIR)/lib$(TARGET_NAME).a
 
-$(TARGET_OBJS_DIR)/%.o : %.cpp
+$(TARGET_COMMON_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
-	$(CXX) $(TARGET_CPPFLAGS) -c $< -o $@
+	$(CXX) $(TARGET_COMMON_CPPFLAGS) -c $< -o $@
 
 
-TEST_NAME=testtcode
-TEST_OBJS_DIR=$(OBJS_DIR)/$(TEST_NAME)
-TEST_CPPFLAGS=-std=c++11 -I./gtest/include -I./ -I./testtcode $(DBG_FLAGS)
-TEST_LDFLAGS= -L./gtest/lib -lgtest -L$(TARGET_OBJS_DIR) -ltcode -lpthread
-TEST_DEPEND_FILE = $(TEST_OBJS_DIR)/$(DEPEND_FILE)
-TEST_SRCS=
 
-TEST_OBJS=$(TEST_SRCS:%.cpp=$(TEST_OBJS_DIR)/%.o)
+TARGET_TEST_NAME=tcode.test
+TARGET_TEST_OBJS_DIR=$(OBJS_DIR)/$(TARGET_TEST_NAME)
+TARGET_TEST_CPPFLAGS=-std=c++11 -I./gtest/include -I./ $(DBG_FLAGS)
+TARGET_TEST_LDFLAGS= -L./gtest/lib -lgtest -lpthread\
+	-L$(TARGET_COMMON_OBJS_DIR) -ltcode.common
 
-TEST=$(TEST_OBJS_DIR)/$(TEST_NAME).exe
+TARGET_TEST_DEPEND_FILE = $(TARGET_TEST_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_TEST_OBJS=$(TARGET_TEST_SRCS:%.cpp=$(TARGET_TEST_OBJS_DIR)/%.o)
+TARGET_TEST=$(TARGET_TEST_OBJS_DIR)/$(TARGET_TEST_NAME).out
 
-$(TEST_OBJS_DIR)/%.o : %.cpp
+TARGET_TEST_SRCS=tests/tests.cpp
+
+$(TARGET_TEST_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
-	$(CXX) $(TEST_CPPFLAGS) -c $< -o $@
+	$(CXX) $(TARGET_TEST_CPPFLAGS) -c $< -o $@
 
 
-all: $(TARGET)
 
-$(TARGET): $(TARGET_OBJS)
-	@echo "archive=$(TARGET)"
-	$(AR) rvs $@ $(TARGET_OBJS)
+all: common test
+
+common: $(TARGET_COMMON)
+
+$(TARGET_COMMON): $(TARGET_COMMON_OBJS)
+	@echo "archive=$(TARGET_COMMON)"
+	$(AR) rvs $@ $(TARGET_COMMON_OBJS)
 	$(RANLIB) $@
 	@echo ""
 
 
-test: $(TEST)
+test: $(TARGET_TEST)
 
-$(TEST): $(TEST_OBJS)
+$(TARGET_TEST): $(TARGET_TEST_OBJS)
 	@echo "ld=$(TEST)"
-	$(CXX) -o $@ $(TEST_OBJS) $(TEST_CPPFLAGS) $(TEST_LDFLAGS) 
+	$(CXX) -o $@ $(TARGET_TEST_OBJS) $(TARGET_TEST_CPPFLAGS) $(TARGET_TEST_LDFLAGS) 
 	@echo ""
 
 clean:
-	rm -rf $(TARGET_OBJS) $(TARGET) $(TEST_OBJS) $(TEST)
+	rm -rf $(TARGET_COMMON_OBJS) $(TARGET_COMMON) $(TARGET_TEST_OBJS) $(TARGET_TEST)
 	
 test_clean:
 	rm -rf $(TEST_OBJS) $(TEST)
