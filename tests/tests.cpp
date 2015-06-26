@@ -6,7 +6,7 @@
 #if defined ( TCODE_TARGET_WINDOWS )
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "gtestd-mtdd")
-#pragma comment(lib, "tcode.common")
+#pragma comment(lib, "tcode.common.lib")
 
 
 int _tmain(int argc, _TCHAR* argv[])

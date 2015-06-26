@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "time_util.hpp"
+#include "time_stamp.hpp"
 
 namespace tcode {
+namespace time {
 namespace {
 
 static const int MONTH_TABLE [2][12] = {
@@ -11,7 +13,7 @@ static const int MONTH_TABLE [2][12] = {
 
 }
 
-bool time_util::is_leap_year( int year ) {
+bool is_leap_year( int year ) {
 	if ( (year%4) == 0 ) {
 		if ( (year%100) == 0 ) {
 			if ( (year%400) == 0 ) {
@@ -24,7 +26,7 @@ bool time_util::is_leap_year( int year ) {
 	return false;
 }
 
-int  time_util::number_of_days_between( int year_start , int year_end ) {
+int  number_of_days_between( int year_start , int year_end ) {
 	if ( year_end < year_start )
 		return 0;
 	int year = year_start;
@@ -36,7 +38,7 @@ int  time_util::number_of_days_between( int year_start , int year_end ) {
 	return tot;
 }
 
-int  time_util::number_of_days_between( int year , int mon_start , int mon_end  ) {
+int  number_of_days_between( int year , int mon_start , int mon_end  ) {
 	if ( mon_end < mon_start )
 		return 0;
 	int idx = is_leap_year(year) ? 1 : 0;
@@ -49,56 +51,86 @@ int  time_util::number_of_days_between( int year , int mon_start , int mon_end  
 	return tot;
 }
 
-int time_util::number_of_days( int year , int month ) {
+int number_of_days( int year , int month ) {
 	return MONTH_TABLE[ is_leap_year(year) ? 1 : 0][month-1];
 }
 
-/*
-time_t ctime::convert( const tm& aTm ) {
-	time_t t = 0;
-	t += aTm.tm_sec;
-	t += aTm.tm_min  * 60;
-	t += aTm.tm_hour * 60 * 60;
-	t += aTm.tm_yday * 60 * 60 * 24;
-	//[1970 , aT.tm_year + 1900) 이내의 날짜수 이므로 -1 해야한다.
-	t += daycount( 1970 , ( aTm.tm_year + 1900 - 1 ) ) * (60 * 60 * 24);	
-	//t -= ( 9 * 60 * 60 );
-	return t;
-}
+void convert_to( const time_t t , struct tm& tm ){
+	tm.tm_sec  = ( t % 60 );
+	tm.tm_min  = ( t % ( 60 * 60 ) ) / 60;
+	tm.tm_hour = ( t % ( 60 * 60 * 24 )) / ( 60 * 60 );
+	tm.tm_wday = ((t / ( 60 * 60 * 24 )) + 4 ) % 7; // 0 day thursday
 
-struct tm ctime::convert( const time_t& aTime ) {
-	struct tm aTm;
-	aTm.tm_sec  = ( aTime % 60 );
-	aTm.tm_min  = ( aTime % ( 60 * 60 ) ) / 60;
-	aTm.tm_hour = ( aTime % ( 60 * 60 * 24 )) / ( 60 * 60 );
-	aTm.tm_wday = ((aTime / ( 60 * 60 * 24 )) + 4 ) % 7; // 0 day thursday
-
-	int32_t daycount = static_cast< int32_t >( aTime / ( 60 * 60 * 24 ));
+	int32_t daycount = static_cast< int32_t >( t / ( 60 * 60 * 24 ));
 	int32_t year     = 1970;
 
 	for(;;) {
-		int32_t dayPerYear = ctime::daycount( year );
+		int32_t dayPerYear = is_leap_year( year ) ? 366 : 365;
 		if ( daycount < dayPerYear )
 			break;
 		++year;
 		daycount -= dayPerYear;
 	}
 
-	aTm.tm_year = static_cast< int > (year - 1900);
-	aTm.tm_yday = static_cast< int > (daycount);
+	tm.tm_year = static_cast< int > (year - 1900);
+	tm.tm_yday = static_cast< int > (daycount);
 	int32_t month = 0;
-	int monthTableIndex =  ctime::isleapyear( year ) ? 1 : 0;
+	int monthTableIndex =  is_leap_year( year ) ? 1 : 0;
 	for(;;) {
-		if ( daycount < DAY_PER_MONTH_TABLE[ monthTableIndex ][ month ] ){
+		if ( daycount < MONTH_TABLE[ monthTableIndex ][ month ] ){
 			break;
 		}
-		daycount -= DAY_PER_MONTH_TABLE[ monthTableIndex ][ month ];
+		daycount -= MONTH_TABLE[ monthTableIndex ][ month ];
 		++month;
 	}
-	aTm.tm_mon  = static_cast< int > (month);
-	aTm.tm_mday = static_cast< int > (daycount + 1);
-	aTm.tm_isdst = 0;
-	return aTm;
+	tm.tm_mon  = static_cast< int > (month);
+	tm.tm_mday = static_cast< int > (daycount + 1);
+	tm.tm_isdst = 0;
 }
-*/
+
+
+void convert_to( const tcode::time_stamp& st , time_t& out){
+	out = static_cast< time_t >( st.tick() / ( 1000 * 1000 ));
 }
+
+void convert_to( const tcode::time_stamp& st , tm& out){
+	convert_to( static_cast< time_t >( st.tick() / ( 1000 * 1000 )) , out );
+}
+
+void convert_to( const tcode::time_stamp& st , timeval& out){
+	out.tv_sec = static_cast< long >( st.tick() / ( 1000 * 1000 ));
+	out.tv_usec = st.tick() % ( 1000 * 1000 );
+}
+
+void convert_to( const tcode::time_stamp& st , timespec& out){
+	out.tv_nsec =( st.tick() %  ( 1000 * 1000 ) ) * 1000;
+	out.tv_sec  = static_cast< long >( st.tick()  /  ( 1000 * 1000 ) );
+}
+
+void convert_to( const tcode::time_stamp& st , systemtime& out){
+#if defined(TCODE_TARGET_WINDOWS)
+		filetime ft;
+		convert_to( st , ft );
+		FileTimeToSystemTime( &ft , &out );
+#else
+		struct tm tm_date;
+		convert_to( st , tm_date );
+		out.wHour     = tm_date.tm_hour;
+		out.wMinute   = tm_date.tm_min ;
+		out.wDay      = tm_date.tm_mday;
+		out.wMonth    = tm_date.tm_mon + 1;
+		out.wSecond   = tm_date.tm_sec ;
+		out.wYear     = tm_date.tm_year + 1900;
+		out.wMilliseconds = ( st.tick() % (1000 * 1000)) / 1000 ;		
+#endif
+}
+
+void convert_to( const tcode::time_stamp& st , filetime& out){
+	uint64_t tv = st.tick();
+	tv -= time_stamp::TICK_OFFSET;
+	tv *= 10;
+	out.dwHighDateTime = ( tv & 0xFFFFFFFF00000000 ) >> 32;
+	out.dwLowDateTime  = ( tv & 0xFFFFFFFF		   );
+}
+	
+}}

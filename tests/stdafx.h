@@ -34,3 +34,56 @@
 #include <common/define.hpp>
 
 #include <gtest/gtest.h>
+
+
+namespace testing
+{
+ namespace internal
+ {
+  enum GTestColor {
+      COLOR_DEFAULT,
+      COLOR_RED,
+      COLOR_GREEN,
+      COLOR_YELLOW
+  };
+  extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
+ }
+}
+#define gprintf(...)  do {\
+testing::internal::ColoredPrintf(\
+	testing::internal::COLOR_GREEN, "[   USER   ] "); \
+testing::internal::ColoredPrintf(\
+	testing::internal::COLOR_YELLOW, __VA_ARGS__); } while(0)
+
+class gendl_impl {
+};
+
+class gout_impl{
+public:
+	gout_impl& operator<< ( const std::string& msg ) {
+		_message += msg;
+		return *this;
+	}
+
+	gout_impl& operator<< ( const int& val ) {
+		_message += std::to_string(val);
+		return *this;
+	}
+
+	gout_impl& operator<< ( const std::size_t& val ) {
+		_message += std::to_string(val);
+		return *this;
+	}
+	gout_impl& operator<< ( const gendl_impl& ) {
+		testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[   USER   ] ");
+		testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, _message.c_str());
+		testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, "\n"); 
+		_message.clear();
+		return *this;
+	}
+private:
+	std::string _message;
+};
+
+static gout_impl gout;
+static gendl_impl gendl;

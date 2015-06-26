@@ -80,10 +80,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aligned_storage.hpp" />
+    <ClInclude Include="closure.hpp" />
     <ClInclude Include="container_of.h" />
     <ClInclude Include="rtti.hpp" />
     <ClInclude Include="string.hpp" />
-    <ClInclude Include="time_util.hpp" />
     <ClInclude Include="lib_allocator.hpp" />
     <ClInclude Include="compile_time_error.hpp" />
     <ClInclude Include="define.hpp" />
@@ -91,6 +91,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="time_span.hpp" />
     <ClInclude Include="time_stamp.hpp" />
+    <ClInclude Include="time_util.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib_allocator.cpp" />

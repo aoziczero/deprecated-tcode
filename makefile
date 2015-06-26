@@ -42,9 +42,10 @@ TARGET_TEST_LDFLAGS= -L./gtest/lib -lgtest -lpthread\
 
 TARGET_TEST_DEPEND_FILE = $(TARGET_TEST_OBJS_DIR)/$(DEPEND_FILE)
 TARGET_TEST_OBJS=$(TARGET_TEST_SRCS:%.cpp=$(TARGET_TEST_OBJS_DIR)/%.o)
-TARGET_TEST=$(TARGET_TEST_OBJS_DIR)/$(TARGET_TEST_NAME).out
+TARGET_TEST=tests.out
 
-TARGET_TEST_SRCS=tests/tests.cpp
+TARGET_TEST_SRCS=tests/tests.cpp\
+tests/test_common_closure.cpp
 
 $(TARGET_TEST_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"

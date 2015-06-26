@@ -42,13 +42,16 @@
     <ClInclude Include="time_stamp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="time_util.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="rtti.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="string.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="time_util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="closure.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -65,13 +68,13 @@
     <ClCompile Include="time_stamp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="time_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rtti.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="string.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="time_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
