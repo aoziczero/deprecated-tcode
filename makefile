@@ -33,6 +33,23 @@ $(TARGET_COMMON_OBJS_DIR)/%.o : %.cpp
 	$(CXX) $(TARGET_COMMON_CPPFLAGS) -c $< -o $@
 
 
+	
+
+TARGET_BUFFER_NAME=tcode.common
+TARGET_BUFFER_OBJS_DIR=$(OBJS_DIR)/$(TARGET_BUFFER_NAME)
+TARGET_BUFFER_CPPFLAGS=-std=c++11 -I./ $(DBG_FLAGS) -fpermissive
+TARGET_BUFFER_DEPEND_FILE = $(TARGET_BUFFER_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_BUFFER_OBJS=$(TARGET_BUFFER_SRCS:%.cpp=$(TARGET_BUFFER_OBJS_DIR)/%.o)
+TARGET_BUFFER=$(TARGET_BUFFER_OBJS_DIR)/lib$(TARGET_BUFFER_NAME).a
+
+TARGET_BUFFER_SRCS=
+
+
+$(TARGET_BUFFER_OBJS_DIR)/%.o : %.cpp
+	@echo "Compile=$(dir $@)"
+	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
+	$(CXX) $(TARGET_BUFFER_CPPFLAGS) -c $< -o $@
+
 
 TARGET_TEST_NAME=tcode.test
 TARGET_TEST_OBJS_DIR=$(OBJS_DIR)/$(TARGET_TEST_NAME)
@@ -54,13 +71,21 @@ $(TARGET_TEST_OBJS_DIR)/%.o : %.cpp
 
 
 
-all: common test
+all: common buffer test
 
 common: $(TARGET_COMMON)
 
 $(TARGET_COMMON): $(TARGET_COMMON_OBJS)
 	@echo "archive=$(TARGET_COMMON)"
 	$(AR) rvs $@ $(TARGET_COMMON_OBJS)
+	$(RANLIB) $@
+	@echo ""
+
+buffer: $(TARGET_BUFFER)
+
+$(TARGET_BUFFER): $(TARGET_BUFFER_OBJS)
+	@echo "archive=$(TARGET_BUFFER)"
+	$(AR) rvs $@ $(TARGET_BUFFER_OBJS)
 	$(RANLIB) $@
 	@echo ""
 

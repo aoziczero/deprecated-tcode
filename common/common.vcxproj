@@ -82,28 +82,43 @@
     <ClInclude Include="aligned_storage.hpp" />
     <ClInclude Include="closure.hpp" />
     <ClInclude Include="container_of.h" />
+    <ClInclude Include="posix_category_impl.hpp" />
     <ClInclude Include="rtti.hpp" />
+    <ClInclude Include="spin_lock.hpp" />
     <ClInclude Include="string.hpp" />
     <ClInclude Include="lib_allocator.hpp" />
     <ClInclude Include="compile_time_error.hpp" />
     <ClInclude Include="define.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="tcode_category_impl.hpp" />
+    <ClInclude Include="tcode_error_code.hpp" />
+    <ClInclude Include="tls.hpp" />
     <ClInclude Include="time_span.hpp" />
     <ClInclude Include="time_stamp.hpp" />
     <ClInclude Include="time_util.hpp" />
+    <ClInclude Include="tls_data.hpp" />
+    <ClInclude Include="windows_category_impl.hpp" />
+    <ClInclude Include="wrapped_handler.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib_allocator.cpp" />
+    <ClCompile Include="posix_category_impl.cpp" />
     <ClCompile Include="rtti.cpp" />
+    <ClCompile Include="spin_lock.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="string.cpp" />
+    <ClCompile Include="tcode_category_impl.cpp" />
+    <ClCompile Include="tcode_error_code.cpp" />
+    <ClCompile Include="tls.cpp" />
     <ClCompile Include="time_span.cpp" />
     <ClCompile Include="time_stamp.cpp" />
     <ClCompile Include="time_util.cpp" />
+    <ClCompile Include="tls_data.cpp" />
+    <ClCompile Include="windows_category_impl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="threading">
+      <UniqueIdentifier>{07b9e714-34d2-4239-ac7d-ac8b47ce4f54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="diagnostics">
+      <UniqueIdentifier>{328f5766-e560-4a28-b281-256d8eb71c9a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -54,6 +60,30 @@
     <ClInclude Include="closure.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="spin_lock.hpp">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="tcode_error_code.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="windows_category_impl.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="posix_category_impl.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="tcode_category_impl.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="tls.hpp">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="tls_data.hpp">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapped_handler.hpp">
+      <Filter>threading</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -76,6 +106,27 @@
     </ClCompile>
     <ClCompile Include="time_util.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spin_lock.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="windows_category_impl.cpp">
+      <Filter>diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="posix_category_impl.cpp">
+      <Filter>diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="tcode_category_impl.cpp">
+      <Filter>diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="tcode_error_code.cpp">
+      <Filter>diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="tls.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="tls_data.cpp">
+      <Filter>threading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
