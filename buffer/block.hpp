@@ -10,6 +10,7 @@ typedef struct _handle{
 handle		alloc( const std::size_t sz );
 void		free( handle b );
 handle      realloc( handle b , const std::size_t nsz );
+
 std::size_t capacity( handle b );
 
 int			refcount( handle b );
