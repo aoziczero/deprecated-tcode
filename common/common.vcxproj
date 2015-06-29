@@ -82,6 +82,7 @@
     <ClInclude Include="aligned_storage.hpp" />
     <ClInclude Include="closure.hpp" />
     <ClInclude Include="container_of.h" />
+    <ClInclude Include="object_factory.hpp" />
     <ClInclude Include="rc_ptr.hpp" />
     <ClInclude Include="rtti.hpp" />
     <ClInclude Include="slist.hpp" />

@@ -10,11 +10,9 @@ class object_factory {
 public:
 	typedef handler< Object* ( ) > create_handler;
 	object_factory( void ) {
-
 	}
 
 	~object_factory( void ) {
-
 	}
 	
 	template < typename Handler >

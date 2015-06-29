@@ -47,6 +47,9 @@
     <ClInclude Include="slist.hpp">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="object_factory.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib_allocator.cpp">
