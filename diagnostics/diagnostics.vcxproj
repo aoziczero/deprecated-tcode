@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{3B8A99C6-9671-40B1-9157-7ECEC83906E7}</ProjectGuid>
+    <ProjectGuid>{C8414D2E-ED9E-498B-943B-DB95C70BB572}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>common</RootNamespace>
+    <RootNamespace>diagnostics</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -76,36 +76,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="README" />
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aligned_storage.hpp" />
-    <ClInclude Include="closure.hpp" />
-    <ClInclude Include="container_of.h" />
-    <ClInclude Include="rc_ptr.hpp" />
-    <ClInclude Include="rtti.hpp" />
-    <ClInclude Include="slist.hpp" />
-    <ClInclude Include="string.hpp" />
-    <ClInclude Include="lib_allocator.hpp" />
-    <ClInclude Include="compile_time_error.hpp" />
-    <ClInclude Include="define.hpp" />
+    <ClInclude Include="last_error.hpp" />
+    <ClInclude Include="posix_category_impl.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="time_span.hpp" />
-    <ClInclude Include="time_stamp.hpp" />
-    <ClInclude Include="time_util.hpp" />
+    <ClInclude Include="tcode_category_impl.hpp" />
+    <ClInclude Include="tcode_error_code.hpp" />
+    <ClInclude Include="windows_category_impl.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lib_allocator.cpp" />
-    <ClCompile Include="rtti.cpp" />
+    <ClCompile Include="last_error.cpp" />
+    <ClCompile Include="posix_category_impl.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="string.cpp" />
-    <ClCompile Include="time_span.cpp" />
-    <ClCompile Include="time_stamp.cpp" />
-    <ClCompile Include="time_util.cpp" />
+    <ClCompile Include="tcode_category_impl.cpp" />
+    <ClCompile Include="tcode_error_code.cpp" />
+    <ClCompile Include="windows_category_impl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

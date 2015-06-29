@@ -5,7 +5,7 @@
 #ifndef __tcode_category_impl_h__
 #define __tcode_category_impl_h__
 
-#include <common/tcode_error_code.hpp>
+#include <diagnostics/tcode_error_code.hpp>
 
 namespace tcode{
 namespace diagnostics{
@@ -16,8 +16,7 @@ namespace diagnostics{
 //! \author	tk aoziczero@gmail.com
 //! \date	2015 05 06
 //! 
-class tcode_category_impl 
-: public std::error_category {
+class tcode_category_impl : public error_category {
 public:
 	//! construct
 	tcode_category_impl();
@@ -34,9 +33,9 @@ public:
 	virtual std::string message( int condition ) const;
 
 	//! \brief error_code 와 동등성 비교
-	//! \param errcode   [in] std::error_code
+	//! \param errcode   [in] tcode::diagnostics::error_code
 	//! \param condition [in] tcode::diagnostics::code
-	virtual bool equivalent(const std::error_code& errcode,
+	virtual bool equivalent(const tcode::diagnostics::error_code& errcode,
 		int condition) const _NOEXCEPT;
 
 };
@@ -50,7 +49,7 @@ std::error_category& tcode_category();
 namespace std{
 
 //! error_condition 생성함수
-error_condition make_error_condition( tcode::diagnostics::error_code condition );
+error_condition make_error_condition( tcode::diagnostics::errc condition );
 //error_code make_error_code( tcode::diagnostics::code code );
 
 //!
@@ -58,7 +57,7 @@ error_condition make_error_condition( tcode::diagnostics::error_code condition )
 //! \n
 //! 실제 비교 코드가\n
 //! \n
-//! std::error_code success;\n
+//! tcode::diagnostics::error_code success;\n
 //! if(success == tcode::diagnostics::code::success){\n
 //! }\n
 //! \n
@@ -76,7 +75,7 @@ error_condition make_error_condition( tcode::diagnostics::error_code condition )
 //! error_condtion 으로 변환시키는 용도
 //!
 template <>
-  struct is_error_condition_enum<tcode::diagnostics::error_code>
+  struct is_error_condition_enum<tcode::diagnostics::errc>
     : public true_type {};
 
 /*

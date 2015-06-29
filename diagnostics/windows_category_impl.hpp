@@ -14,8 +14,7 @@ namespace diagnostics{
 //! \author	tk aoziczero@gmail.com
 //! \date	2015 05 06
 //! 
-class windows_category_impl 
-: public std::error_category {
+class windows_category_impl : public error_category {
 public:
 	//! construct
 	windows_category_impl();

@@ -42,7 +42,10 @@
 
 	#endif
 	#define TCODE_ALIGN( n ) __declspec(align(n))
-	
+	#if _MSC_VER >= 1800
+	#define TCODE_CPP_0x11_SUPPORT	
+	#endif
+
 
 #elif defined(__APPLE__)
 	#define TCODE_TARGET_MACOSX
@@ -60,6 +63,9 @@
     #define TCODE_TARGET_LINUX
 	#define _NOEXCEPT noexcept
 	#define TCODE_ALIGN( n ) __attribute__ ((aligned(x)))
+	#if __cplusplus > 199711L
+	#define TCODE_CPP_0x11_SUPPORT		
+	#endif
 #elif defined(__unix) // all unices not caught above
     #define TCODE_TARGET_UNIX
 #elif defined(__posix)
@@ -69,3 +75,19 @@
 #endif
 
 #endif
+
+
+/*
+
+MSVC++ 14.0 _MSC_VER == 1900 (Visual Studio 2015)
+MSVC++ 12.0 _MSC_VER == 1800 (Visual Studio 2013)
+MSVC++ 11.0 _MSC_VER == 1700 (Visual Studio 2012)
+MSVC++ 10.0 _MSC_VER == 1600 (Visual Studio 2010)
+MSVC++ 9.0  _MSC_VER == 1500 (Visual Studio 2008)
+MSVC++ 8.0  _MSC_VER == 1400 (Visual Studio 2005)
+MSVC++ 7.1  _MSC_VER == 1310 (Visual Studio 2003)
+MSVC++ 7.0  _MSC_VER == 1300
+MSVC++ 6.0  _MSC_VER == 1200
+MSVC++ 5.0  _MSC_VER == 1100
+
+*/

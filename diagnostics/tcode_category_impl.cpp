@@ -32,8 +32,8 @@ std::string tcode_category_impl::message(
 		std::string("build_fail") ,
 	};
 
-	if ( condition >= static_cast<int>(error_code::begin) && 
-	     condition <  static_cast<int>(error_code::end))
+	if ( condition >= static_cast<int>(errc::begin) && 
+	     condition <  static_cast<int>(errc::end))
 	{
 		return _map[condition];
 	}
@@ -41,7 +41,7 @@ std::string tcode_category_impl::message(
 }
 
 bool tcode_category_impl::equivalent(
-	const std::error_code& errcode 
+	const tcode::diagnostics::error_code& errcode 
 	, int condition) const _NOEXCEPT 
 {
 	if (*this == errcode.category() && 
@@ -72,7 +72,7 @@ std::error_category& tcode_category() {
 
 namespace std{
 
-error_condition make_error_condition( tcode::diagnostics::error_code condition ) {
+error_condition make_error_condition( tcode::diagnostics::errc condition ) {
 	return error_condition( static_cast<int>(condition)
 		, tcode::diagnostics::tcode_category());
 }

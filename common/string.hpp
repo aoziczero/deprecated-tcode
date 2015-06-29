@@ -215,6 +215,22 @@ static T_char* rtrim( T_char* message , T_char ch = ' ' ){
     }
     return message;
 }
+
+template < typename String >
+static String between( const String& src 
+						   , const String& pre 
+						   , const String& post ) 
+{
+	String::size_type begin_pos = src.find( pre );
+	if ( begin_pos != String::npos ) {
+		begin_pos += pre.length();
+		String::size_type end_pos = src.find( post  , begin_pos );
+		if ( end_pos != String::npos ) {
+			return src.substr( begin_pos , end_pos - begin_pos );
+		}
+	}
+	return "";
+}
 #if defined ( _WIN32 )
 static bool is_hangul( wchar_t ch );
 
@@ -246,20 +262,6 @@ static std::string hex_string( void* p , int sz ) {
 	return value;
 };
 
-static std::string between( const std::string& src 
-						   , const std::string& pre 
-						   , const std::string& post ) 
-{
-	std::string::size_type begin_pos = src.find( pre );
-	if ( begin_pos != std::string::npos ) {
-		begin_pos += pre.length();
-		std::string::size_type end_pos = src.find( post  , begin_pos );
-		if ( end_pos != std::string::npos ) {
-			return src.substr( begin_pos , end_pos - begin_pos );
-		}
-	}
-	return "";
-}
 
 }}
 

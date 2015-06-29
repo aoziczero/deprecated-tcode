@@ -94,6 +94,7 @@
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="test_common_closure.cpp" />
     <ClCompile Include="test_common_threading_wrapped_handler.cpp" />
+    <ClCompile Include="test_diagnostics_last_error.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

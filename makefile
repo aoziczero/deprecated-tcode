@@ -34,35 +34,58 @@ $(TARGET_COMMON_OBJS_DIR)/%.o : %.cpp
 
 
 	
+TARGET_THREADING_NAME=tcode.threading
+TARGET_THREADING_OBJS_DIR=$(OBJS_DIR)/$(TARGET_THREADING_NAME)
+TARGET_THREADING_CPPFLAGS=-std=c++11 -I./ $(DBG_FLAGS) -fpermissive
+TARGET_THREADING_DEPEND_FILE = $(TARGET_THREADING_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_THREADING_OBJS=$(TARGET_THREADING_SRCS:%.cpp=$(TARGET_THREADING_OBJS_DIR)/%.o)
+TARGET_THREADING=$(TARGET_THREADING_OBJS_DIR)/lib$(TARGET_THREADING_NAME).a
 
-TARGET_BUFFER_NAME=tcode.common
-TARGET_BUFFER_OBJS_DIR=$(OBJS_DIR)/$(TARGET_BUFFER_NAME)
-TARGET_BUFFER_CPPFLAGS=-std=c++11 -I./ $(DBG_FLAGS) -fpermissive
-TARGET_BUFFER_DEPEND_FILE = $(TARGET_BUFFER_OBJS_DIR)/$(DEPEND_FILE)
-TARGET_BUFFER_OBJS=$(TARGET_BUFFER_SRCS:%.cpp=$(TARGET_BUFFER_OBJS_DIR)/%.o)
-TARGET_BUFFER=$(TARGET_BUFFER_OBJS_DIR)/lib$(TARGET_BUFFER_NAME).a
-
-TARGET_BUFFER_SRCS=
+TARGET_THREADING_SRCS=threading/spin_lock.cpp\
 
 
-$(TARGET_BUFFER_OBJS_DIR)/%.o : %.cpp
+$(TARGET_THREADING_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
-	$(CXX) $(TARGET_BUFFER_CPPFLAGS) -c $< -o $@
+	$(CXX) $(TARGET_THREADING_CPPFLAGS) -c $< -o $@
 
+
+
+TARGET_DIAGNOSTICS_NAME=tcode.diagnostics
+TARGET_DIAGNOSTICS_OBJS_DIR=$(OBJS_DIR)/$(TARGET_DIAGNOSTICS_NAME)
+TARGET_DIAGNOSTICS_CPPFLAGS=-std=c++11 -I./ $(DBG_FLAGS) -fpermissive
+TARGET_DIAGNOSTICS_DEPEND_FILE = $(TARGET_DIAGNOSTICS_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_DIAGNOSTICS_OBJS=$(TARGET_DIAGNOSTICS_SRCS:%.cpp=$(TARGET_DIAGNOSTICS_OBJS_DIR)/%.o)
+TARGET_DIAGNOSTICS=$(TARGET_DIAGNOSTICS_OBJS_DIR)/lib$(TARGET_DIAGNOSTICS_NAME).a
+
+TARGET_DIAGNOSTICS_SRCS=diagnostics/tcode_error_code.cpp\
+diagnostics/tcode_category_impl.cpp\
+diagnostics/posix_category_impl.cpp\
+diagnostics/last_error.cpp\
+
+
+$(TARGET_DIAGNOSTICS_OBJS_DIR)/%.o : %.cpp
+	@echo "Compile=$(dir $@)"
+	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
+	$(CXX) $(TARGET_DIAGNOSTICS_CPPFLAGS) -c $< -o $@
+	
 
 TARGET_TEST_NAME=tcode.test
 TARGET_TEST_OBJS_DIR=$(OBJS_DIR)/$(TARGET_TEST_NAME)
 TARGET_TEST_CPPFLAGS=-std=c++11 -I./gtest/include -I./ $(DBG_FLAGS)
 TARGET_TEST_LDFLAGS= -L./gtest/lib -lgtest -lpthread\
-	-L$(TARGET_COMMON_OBJS_DIR) -ltcode.common
+	-L$(TARGET_COMMON_OBJS_DIR) -ltcode.common \
+	-L$(TARGET_THREADING_OBJS_DIR) -ltcode.threading \
+	-L$(TARGET_DIAGNOSTICS_OBJS_DIR) -ltcode.diagnostics
+	
 
 TARGET_TEST_DEPEND_FILE = $(TARGET_TEST_OBJS_DIR)/$(DEPEND_FILE)
 TARGET_TEST_OBJS=$(TARGET_TEST_SRCS:%.cpp=$(TARGET_TEST_OBJS_DIR)/%.o)
 TARGET_TEST=tests.out
 
 TARGET_TEST_SRCS=tests/tests.cpp\
-tests/test_common_closure.cpp
+tests/test_common_closure.cpp\
+tests/test_diagnostics_last_error.cpp
 
 $(TARGET_TEST_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
@@ -71,7 +94,7 @@ $(TARGET_TEST_OBJS_DIR)/%.o : %.cpp
 
 
 
-all: common buffer test
+all: common threading diagnostics test
 
 common: $(TARGET_COMMON)
 
@@ -81,13 +104,23 @@ $(TARGET_COMMON): $(TARGET_COMMON_OBJS)
 	$(RANLIB) $@
 	@echo ""
 
-buffer: $(TARGET_BUFFER)
+threading: $(TARGET_THREADING)
 
-$(TARGET_BUFFER): $(TARGET_BUFFER_OBJS)
-	@echo "archive=$(TARGET_BUFFER)"
-	$(AR) rvs $@ $(TARGET_BUFFER_OBJS)
+$(TARGET_THREADING): $(TARGET_THREADING_OBJS)
+	@echo "archive=$(TARGET_THREADING)"
+	$(AR) rvs $@ $(TARGET_THREADING_OBJS)
 	$(RANLIB) $@
 	@echo ""
+
+	
+diagnostics: $(TARGET_DIAGNOSTICS)
+
+$(TARGET_DIAGNOSTICS): $(TARGET_DIAGNOSTICS_OBJS)
+	@echo "archive=$(TARGET_DIAGNOSTICS)"
+	$(AR) rvs $@ $(TARGET_DIAGNOSTICS_OBJS)
+	$(RANLIB) $@
+	@echo ""
+
 
 
 test: $(TARGET_TEST)
@@ -98,7 +131,8 @@ $(TARGET_TEST): $(TARGET_TEST_OBJS)
 	@echo ""
 
 clean:
-	rm -rf $(TARGET_COMMON_OBJS) $(TARGET_COMMON) $(TARGET_TEST_OBJS) $(TARGET_TEST)
+	rm -rf $(TARGET_COMMON_OBJS) $(TARGET_COMMON) $(TARGET_TEST_OBJS) $(TARGET_TEST) \
+	$(TARGET_THREADING_OBJS) $(TARGET_THREADING) $(TARGET_DIAGNOSTICS_OBJS) $(TARGET_DIAGNOSTICS) 
 	
 test_clean:
 	rm -rf $(TEST_OBJS) $(TEST)

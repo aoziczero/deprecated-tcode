@@ -7,7 +7,8 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "gtestd-mtdd")
 #pragma comment(lib, "tcode.common.lib")
-
+#pragma comment(lib, "tcode.threading.lib")
+#pragma comment(lib, "tcode.diagnostics.lib")
 
 int _tmain(int argc, _TCHAR* argv[])
 #else

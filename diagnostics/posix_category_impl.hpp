@@ -14,9 +14,7 @@ namespace diagnostics{
 //! \author	tk aoziczero@gmail.com
 //! \date	2015 05 06
 //! 
-class posix_category_impl :
-	public std::error_category
-{
+class posix_category_impl : public error_category{
 public:
 	
 	//! construct

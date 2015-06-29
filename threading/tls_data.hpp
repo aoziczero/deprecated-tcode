@@ -4,7 +4,6 @@
 namespace tcode { namespace threading { 
 
 struct tls_data {
-	std::error_code error;	
 	static tls_data* instance( void );
 	static tls_data* instance( tls_data* td );
 };

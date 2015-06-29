@@ -38,5 +38,8 @@
     <ClCompile Include="test_common_threading_wrapped_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_diagnostics_last_error.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

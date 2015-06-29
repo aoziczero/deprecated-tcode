@@ -1,4 +1,6 @@
 #include "stdafx.h"
+/*
+
 #include <common/wrapped_handler.hpp>
 #include <thread>
 
@@ -16,4 +18,4 @@ TEST( wrapped_handler , thread_init ) {
 	test_thread.join();
 	ASSERT_TRUE( ins );
 	
-}
+}*/
