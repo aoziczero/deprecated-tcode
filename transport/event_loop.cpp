@@ -18,5 +18,9 @@ void event_loop::links_release( void ){
 	_active_links.fetch_sub(1);
 }
 
+transport::dispatcher& event_loop::dispatcher( void ) {
+	return _dispatcher;
+}
+
 
 }}

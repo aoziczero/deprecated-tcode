@@ -11,20 +11,23 @@
 
 namespace tcode { namespace transport {
 
+#if defined( TCODE_TARGET_WINDOWS )
+typedef	tcode::io::completion_port dispatcher;
+#elif defined( TCODE_TARGET_LINUX )
+typedef	tcode::io::epoll dispatcher;
+#endif
+
 class event_loop {
 public:
 	event_loop( void );
 	~event_loop( void );
 
-
 	void links_add( void );
 	void links_release( void );
+
+	transport::dispatcher& dispatcher( void );
 private:
-#if defined( TCODE_TARGET_WINDOWS )
-	tcode::io::completion_port dispatcher;
-#elif defined( TCODE_TARGET_LINUX )
-	tcode::io::epoll dispatcher;
-#endif
+	transport::dispatcher _dispatcher;
 	std::atomic< int > _active_links;
 	std::thread::id _thread_id;
 };
