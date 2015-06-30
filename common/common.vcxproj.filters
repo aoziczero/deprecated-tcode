@@ -15,9 +15,6 @@
     <ClInclude Include="compile_time_error.hpp">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="container_of.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="define.hpp">
       <Filter>common</Filter>
     </ClInclude>
@@ -48,6 +45,12 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="object_factory.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="basic_handle.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="container_of.hpp">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>

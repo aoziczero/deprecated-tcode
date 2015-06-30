@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{3B8A99C6-9671-40B1-9157-7ECEC83906E7}</ProjectGuid>
+    <ProjectGuid>{9BC80236-9F6B-489E-87F7-9BAF63EFBBBB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>common</RootNamespace>
+    <RootNamespace>io</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -76,38 +76,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="README" />
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aligned_storage.hpp" />
-    <ClInclude Include="basic_handle.hpp" />
-    <ClInclude Include="closure.hpp" />
-    <ClInclude Include="container_of.hpp" />
-    <ClInclude Include="object_factory.hpp" />
-    <ClInclude Include="rc_ptr.hpp" />
-    <ClInclude Include="rtti.hpp" />
-    <ClInclude Include="slist.hpp" />
-    <ClInclude Include="string.hpp" />
-    <ClInclude Include="lib_allocator.hpp" />
-    <ClInclude Include="compile_time_error.hpp" />
-    <ClInclude Include="define.hpp" />
+    <ClInclude Include="ip\address.hpp" />
+    <ClInclude Include="ip\basic_socket.hpp" />
+    <ClInclude Include="completion_handler.hpp" />
+    <ClInclude Include="completion_port.hpp" />
+    <ClInclude Include="ip\resolver.hpp" />
+    <ClInclude Include="ip\socket.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="time_span.hpp" />
-    <ClInclude Include="time_stamp.hpp" />
-    <ClInclude Include="time_util.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lib_allocator.cpp" />
-    <ClCompile Include="rtti.cpp" />
+    <ClCompile Include="ip\address.cpp" />
+    <ClCompile Include="ip\basic_socket.cpp" />
+    <ClCompile Include="completion_handler.cpp" />
+    <ClCompile Include="completion_port.cpp" />
+    <ClCompile Include="ip\resolver.cpp" />
+    <ClCompile Include="ip\socket.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="string.cpp" />
-    <ClCompile Include="time_span.cpp" />
-    <ClCompile Include="time_stamp.cpp" />
-    <ClCompile Include="time_util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

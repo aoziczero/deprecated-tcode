@@ -4,6 +4,28 @@
 namespace tcode {
 
 namespace slist{
+
+
+#ifndef TCODE_SLIST_NODE_DECL
+#define TCODE_SLIST_NODE_DECL( clazz )\
+public:\
+	clazz* slist_next( void );\
+	clazz* slist_next( clazz* c );\
+private:\
+	clazz* _##clazz##_next;
+#endif
+
+#ifndef TCODE_SLIST_NODE_IMPL
+#define TCODE_SLIST_NODE_IMPL( clazz )\
+	clazz* clazz::slist_next( void ){\
+		return _##clazz##_next;\
+	}\
+	clazz* clazz::slist_next( clazz* c ){\
+		std::swap( _##clazz##_next , c );\
+		return c;\
+	}
+#endif
+
 //! 
 //! \class	node
 //! \brief	single linked list node

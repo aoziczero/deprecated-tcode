@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="io">
+      <UniqueIdentifier>{dbce025f-f01a-4506-a5de-a978df5efa97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io\ip">
+      <UniqueIdentifier>{30014a84-eddc-415c-9382-b1c955fc85d1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="completion_port.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="completion_handler.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="ip\address.hpp">
+      <Filter>io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="ip\basic_socket.hpp">
+      <Filter>io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="ip\resolver.hpp">
+      <Filter>io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="ip\socket.hpp">
+      <Filter>io\ip</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="completion_port.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="completion_handler.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="ip\address.cpp">
+      <Filter>io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="ip\basic_socket.cpp">
+      <Filter>io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="ip\resolver.cpp">
+      <Filter>io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="ip\socket.cpp">
+      <Filter>io\ip</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

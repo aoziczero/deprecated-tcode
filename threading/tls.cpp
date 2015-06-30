@@ -45,7 +45,7 @@ tls::~tls(void){
 
 void* tls::value(void* v) {
 	void* old = value();
-	pthread_setspecific(_key, value);
+	pthread_setspecific(_key, v);
 	return old;
 }
 
