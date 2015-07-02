@@ -15,10 +15,16 @@
     <ClInclude Include="event_loop.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="event_timer.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="event_loop.cpp">
+      <Filter>transport</Filter>
+    </ClCompile>
+    <ClCompile Include="event_timer.cpp">
       <Filter>transport</Filter>
     </ClCompile>
   </ItemGroup>

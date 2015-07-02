@@ -18,6 +18,9 @@
     <ClInclude Include="tls.hpp">
       <Filter>threading</Filter>
     </ClInclude>
+    <ClInclude Include="atomic.hpp">
+      <Filter>threading</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />

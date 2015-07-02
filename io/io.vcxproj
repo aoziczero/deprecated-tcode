@@ -79,6 +79,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="completion_handler_one_shot.hpp" />
     <ClInclude Include="ip\address.hpp" />
     <ClInclude Include="ip\basic_socket.hpp" />
     <ClInclude Include="completion_handler.hpp" />

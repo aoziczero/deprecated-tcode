@@ -32,6 +32,7 @@
     <ClInclude Include="ip\socket.hpp">
       <Filter>io\ip</Filter>
     </ClInclude>
+    <ClInclude Include="completion_handler_one_shot.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
