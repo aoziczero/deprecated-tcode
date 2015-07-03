@@ -119,8 +119,11 @@ void acceptor::on_error( const std::error_code& ec ){
 }
 
 void acceptor::do_accept(accept_completion_handler* h){
-	if ( handle() == tcode::io::ip::invalid_socket ) 
+	if ( handle() == tcode::io::ip::invalid_socket ) {
+		if ( h )
+			delete h;
 		return;
+	}
 	if ( h == nullptr ) {
 		h = new accept_completion_handler( *this );
 	}
