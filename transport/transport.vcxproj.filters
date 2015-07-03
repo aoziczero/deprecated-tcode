@@ -18,6 +18,21 @@
     <ClInclude Include="event_timer.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="tcp\pipeline.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\channel.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\filter.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\acceptor.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\pipeline_builder.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -27,5 +42,9 @@
     <ClCompile Include="event_timer.cpp">
       <Filter>transport</Filter>
     </ClCompile>
+    <ClCompile Include="tcp\filter.cpp" />
+    <ClCompile Include="tcp\channel.cpp" />
+    <ClCompile Include="tcp\pipeline.cpp" />
+    <ClCompile Include="tcp\acceptor.cpp" />
   </ItemGroup>
 </Project>

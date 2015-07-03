@@ -34,7 +34,7 @@ bool event_loop::in_event_loop( void ){
 	return std::this_thread::get_id() == _thread_id;
 }
 
-void event_loop::execute( tcode::io::completion_handler* handler ){
+void event_loop::execute_handler( tcode::io::completion_handler* handler ){
 	_dispatcher.post( handler );
 }
 

@@ -35,13 +35,13 @@ public:
 
 	bool in_event_loop( void );
 
-	void execute( tcode::io::completion_handler* handler );
+	void execute_handler( tcode::io::completion_handler* handler );
 	
 	template < typename Handler >
 	void execute( const Handler& handler ) {
 		tcode::io::completion_handler* h =
 			new tcode::io::completion_handler_one_shot_no_param< Handler >( handler );
-		execute(h);
+		execute_handler(h);
 	}
 
 	void schedule( const event_timer::pointer_type& ptr );
