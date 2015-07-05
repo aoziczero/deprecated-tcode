@@ -2,6 +2,7 @@
 #define __tcode_transport_tcp_pipeline_h__
 
 #include <thread>
+#include <buffer/byte_buffer.hpp>
 #include <io/ip/address.hpp>
 
 namespace tcode { namespace transport { namespace tcp {
@@ -16,6 +17,10 @@ public:
 	
 	bool in_pipeline( void );
 	void fire_filter_on_open( const tcode::io::ip::address& addr );
+	void fire_filter_on_read( tcode::buffer::byte_buffer& buf );
+	void fire_filter_on_write( int written , bool flush );
+	void fire_filter_on_error( const tcode::diagnostics::error_code& ec );
+	void fire_filter_on_close( void );
 	void fire_filter_on_end_reference( void );
 
 	pipeline& add( filter* pfilter );

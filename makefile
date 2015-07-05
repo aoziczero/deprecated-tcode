@@ -93,18 +93,18 @@ TARGET_IO_OBJS_DIR=$(OBJS_DIR)/$(TARGET_IO_NAME)
 TARGET_IO_DEPEND_FILE = $(TARGET_IO_OBJS_DIR)/$(DEPEND_FILE)
 TARGET_IO_OBJS=$(TARGET_IO_SRCS:%.cpp=$(TARGET_IO_OBJS_DIR)/%.o)
 TARGET_IO=$(TARGET_IO_OBJS_DIR)/lib$(TARGET_IO_NAME).a
-
+TARGET_IO_CPPFLAGS=$(TARGET_CPPFLAGS) -I./io
 TARGET_IO_SRCS=io/completion_handler.cpp\
 io/epoll.cpp\
-io/address.cpp\
-io/basic_socket.cpp\
-io/resolver.cpp\
+io/ip/address.cpp\
+io/ip/basic_socket.cpp\
+io/ip/resolver.cpp\
 
 
 $(TARGET_IO_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
-	$(CXX) $(TARGET_CPPFLAGS) -c $< -o $@
+	$(CXX) $(TARGET_IO_CPPFLAGS) -c $< -o $@
 
 
 
@@ -113,14 +113,19 @@ TARGET_TRANSPORT_OBJS_DIR=$(OBJS_DIR)/$(TARGET_TRANSPORT_NAME)
 TARGET_TRANSPORT_DEPEND_FILE = $(TARGET_TRANSPORT_OBJS_DIR)/$(DEPEND_FILE)
 TARGET_TRANSPORT_OBJS=$(TARGET_TRANSPORT_SRCS:%.cpp=$(TARGET_TRANSPORT_OBJS_DIR)/%.o)
 TARGET_TRANSPORT=$(TARGET_TRANSPORT_OBJS_DIR)/lib$(TARGET_TRANSPORT_NAME).a
-
+TARGET_TRANSPORT_CPPFLAGS=$(TARGET_CPPFLAGS) -I./transport
 TARGET_TRANSPORT_SRCS=transport/event_loop.cpp\
 	transport/event_timer.cpp\
+	transport/tcp/filter.cpp\
+	transport/tcp/pipeline.cpp\
+	transport/tcp/acceptor.cpp\
+	transport/tcp/channel.cpp\
+	
 
 $(TARGET_TRANSPORT_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
-	$(CXX) $(TARGET_CPPFLAGS) -c $< -o $@
+	$(CXX) $(TARGET_TRANSPORT_CPPFLAGS) -c $< -o $@
 
 
 

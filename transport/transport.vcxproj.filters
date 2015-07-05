@@ -33,6 +33,15 @@
     <ClInclude Include="tcp\pipeline_builder.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="tcp\completion_handler_read.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\completion_handler_write.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\channel_config.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -42,9 +51,20 @@
     <ClCompile Include="event_timer.cpp">
       <Filter>transport</Filter>
     </ClCompile>
-    <ClCompile Include="tcp\filter.cpp" />
-    <ClCompile Include="tcp\channel.cpp" />
-    <ClCompile Include="tcp\pipeline.cpp" />
-    <ClCompile Include="tcp\acceptor.cpp" />
+    <ClCompile Include="tcp\acceptor.cpp">
+      <Filter>transport</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp\channel.cpp">
+      <Filter>transport</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp\filter.cpp">
+      <Filter>transport</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp\pipeline.cpp">
+      <Filter>transport</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp\completion_handler_read.cpp" />
+    <ClCompile Include="tcp\completion_handler_write.cpp" />
+    <ClCompile Include="tcp\channel_config.cpp" />
   </ItemGroup>
 </Project>

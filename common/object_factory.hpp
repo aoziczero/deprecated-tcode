@@ -8,7 +8,7 @@ namespace tcode {
 template < typename Object , typename Key>
 class object_factory {
 public:
-	typedef handler< Object* ( ) > create_handler;
+	typedef handler<Object* (void)> create_handler;
 	object_factory( void ) {
 	}
 

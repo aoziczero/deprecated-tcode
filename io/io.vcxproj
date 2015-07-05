@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="completion_handler_one_shot.hpp" />
+    <ClInclude Include="io.hpp" />
     <ClInclude Include="ip\address.hpp" />
     <ClInclude Include="ip\basic_socket.hpp" />
     <ClInclude Include="completion_handler.hpp" />
@@ -90,6 +91,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="io.cpp" />
     <ClCompile Include="ip\address.cpp" />
     <ClCompile Include="ip\basic_socket.cpp" />
     <ClCompile Include="completion_handler.cpp" />

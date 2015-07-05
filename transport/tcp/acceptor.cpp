@@ -5,16 +5,16 @@
 #include "channel.hpp"
 
 namespace tcode { namespace transport { namespace tcp {
-
-class accept_completion_handler
+#if defined( TCODE_TARGET_WINDOWS )
+class completion_handler_accept
 	: public tcode::io::completion_handler
 {
 public:
-	accept_completion_handler( acceptor& pacceptor )
+	completion_handler_accept( acceptor& pacceptor )
 		: _acceptor(pacceptor){
 	}
 
-	virtual ~accept_completion_handler( void ){
+	virtual ~completion_handler_accept( void ){
 	
 	}
 	
@@ -40,7 +40,7 @@ private:
 	SOCKET _handle;
 	tcode::io::ip::address _address[2];
 };
-
+#endif
 
 
 acceptor::acceptor(tcode::transport::event_loop& l)
@@ -81,11 +81,13 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 		return false;
 	}	
 	_address_family = bind_addr.family();
+#if defined( TCODE_TARGET_WINDOWS )
 	conditional_accept cond_accept( TRUE );
 	if ( !set_option( cond_accept )){
 		close();
 		return false;
 	}
+#endif
 	if ( !bind( bind_addr )){
 		close();
 		return false;
@@ -95,13 +97,19 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 		close();
 		return false;
 	}
-
+#if defined( TCODE_TARGET_WINDOWS )
 	if ( !_loop.dispatcher().bind( reinterpret_cast<HANDLE>(handle())))
 	{
 		close();
 		return false;
 	}
 	do_accept( nullptr );
+#elif defined( TCODE_TARGET_LINUX )
+	if ( !_loop.dispatcher().bind( handle() , EPOLLIN ,  this )){
+		close();
+		return false;
+	}
+#endif
 	return true;;
 }
 
@@ -118,14 +126,15 @@ void acceptor::on_error( const std::error_code& ec ){
 	
 }
 
-void acceptor::do_accept(accept_completion_handler* h){
+#if defined( TCODE_TARGET_WINDOWS )
+void acceptor::do_accept(completion_handler_accept* h){
 	if ( handle() == tcode::io::ip::invalid_socket ) {
 		if ( h )
 			delete h;
 		return;
 	}
 	if ( h == nullptr ) {
-		h = new accept_completion_handler( *this );
+		h = new completion_handler_accept( *this );
 	}
 	tcode::io::ip::tcp_holder tcp_handle;
 	tcp_handle.open( _address_family );
@@ -159,7 +168,7 @@ void acceptor::do_accept(accept_completion_handler* h){
 }
 
 void acceptor::handle_accept( const tcode::diagnostics::error_code& ec 
-				, accept_completion_handler* handler  )
+				, completion_handler_accept* handler  )
 {
 	tcode::io::ip::tcp_holder tcp_handle;
 	tcp_handle.handle( handler->handle());
@@ -195,6 +204,48 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 	}
 	do_accept(handler);
 }
+#elif defined( TCODE_TARGET_LINUX )
 
+void acceptor::operator()( const int events ){
+	if ( events & ( EPOLLERR | EPOLLHUP )) {
+		 on_error( events & EPOLLERR ? tcode::diagnostics::epoll_err 
+					: tcode::diagnostics::epoll_hup );
+	} else {
+		if ( events & EPOLLIN ) {
+			handle_accept();
+		} 
+	}
+}
+void acceptor::handle_accept( void ) {
+	tcode::io::ip::tcp_holder fd;
+	tcode::io::ip::address addr;
+	do {
+		fd.handle(::accept( handle()
+				, addr.sockaddr()
+				, addr.sockaddr_length_ptr() ));
+	} while((fd.handle()==-1)&&(errno==EINTR));
+
+	if ( fd.handle() < 0 ) {
+		return;
+	}
+
+	if ( condition( fd.handle() , addr )){
+		tcode::io::ip::tcp_holder::non_blocking non_block;
+		fd.set_option( non_block );
+		tcode::transport::tcp::pipeline pl;
+		if ( _builder && _builder->build( pl ) ) {
+			tcode::transport::tcp::channel* channel 
+					= new tcode::transport::tcp::channel( 
+							_builder->channel_loop() , pl ,fd.handle());
+				channel->fire_on_open( addr );
+		} else {
+			fd.close();
+		}
+	} else {
+		fd.close();
+	}
+}
+
+#endif
 
 }}}

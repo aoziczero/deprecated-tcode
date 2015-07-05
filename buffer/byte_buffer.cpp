@@ -164,7 +164,9 @@ void byte_buffer::reserve( const int sz ) {
 		return;
 	}	
 	byte_buffer nb( sz );
-	nb.write( rd_ptr() , length() );
+	if ( _block != nullptr ) {
+		nb.write( rd_ptr() , length() );
+	}
 	swap( nb );
 }
 

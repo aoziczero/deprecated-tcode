@@ -1,7 +1,8 @@
+#include "stdafx.h"
 // tests.cpp : Defines the entry point for the console application.
 //
+/*
 
-#include "stdafx.h"
 
 #if defined ( TCODE_TARGET_WINDOWS )
 #pragma comment(lib, "ws2_32.lib")
@@ -20,3 +21,4 @@ int main( int argc , char* argv[])
 	return 0;
 }
 
+*/

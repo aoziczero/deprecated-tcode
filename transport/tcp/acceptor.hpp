@@ -5,12 +5,19 @@
 #include <io/ip/basic_socket.hpp>
 #include <diagnostics/tcode_error_code.hpp>
 
+#if defined( TCODE_TARGET_LINUX )
+#include <io/epoll.hpp>
+#endif
+
 namespace tcode { namespace transport { namespace tcp {
 
-class accept_completion_handler;
+class completion_handler_accept;
 class pipeline_builder;
 class acceptor 
 	: public tcode::io::ip::accept_base
+#if defined( TCODE_TARGET_LINUX )
+	, public tcode::io::epoll::handler
+#endif
 {
 public:
 	acceptor(tcode::transport::event_loop& l);
@@ -25,9 +32,15 @@ public:
 			, const tcode::io::ip::address& addr );
 	virtual void on_error( const tcode::diagnostics::error_code& ec );
 	
-	void do_accept(accept_completion_handler* h);
+#if defined (TCODE_TARGET_WINDOWS )
+	void do_accept(completion_handler_accept* h);
 	void handle_accept( const tcode::diagnostics::error_code& ec 
-				, accept_completion_handler* handler );
+				, completion_handler_accept* handler );
+#elif defined( TCODE_TARGET_LINUX )
+	
+	virtual void operator()( const int events);
+	void handle_accept( void );
+#endif
 private:
 	tcode::transport::event_loop& _loop;
 	pipeline_builder* _builder;

@@ -37,6 +37,26 @@ void pipeline::fire_filter_on_open( const tcode::io::ip::address& addr ){
 		_inbound->filter_on_open( addr );
 }
 
+void pipeline::fire_filter_on_read( tcode::buffer::byte_buffer& buf ){
+	if ( _inbound )
+		_inbound->filter_on_read( buf );
+}
+
+void pipeline::fire_filter_on_write( int written , bool flush ){
+	if ( _inbound )
+		_inbound->filter_on_write( written , flush);
+}
+
+void pipeline::fire_filter_on_error( const tcode::diagnostics::error_code& ec ) {
+	if ( _inbound ) 
+		_inbound->filter_on_error( ec );
+}
+
+void pipeline::fire_filter_on_close( void ) {
+	if ( _inbound ) 
+		_inbound->filter_on_close();
+}
+
 pipeline& pipeline::add( filter* pfilter ){
 	if( _inbound == nullptr )
 		_inbound = pfilter;
