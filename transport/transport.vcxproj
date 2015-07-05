@@ -86,8 +86,10 @@
     <ClInclude Include="tcp\acceptor.hpp" />
     <ClInclude Include="tcp\channel.hpp" />
     <ClInclude Include="tcp\channel_config.hpp" />
+    <ClInclude Include="tcp\completion_handler_connect.hpp" />
     <ClInclude Include="tcp\completion_handler_read.hpp" />
     <ClInclude Include="tcp\completion_handler_write.hpp" />
+    <ClInclude Include="tcp\connector.hpp" />
     <ClInclude Include="tcp\filter.hpp" />
     <ClInclude Include="tcp\pipeline.hpp" />
     <ClInclude Include="tcp\pipeline_builder.hpp" />
@@ -102,8 +104,10 @@
     <ClCompile Include="tcp\acceptor.cpp" />
     <ClCompile Include="tcp\channel.cpp" />
     <ClCompile Include="tcp\channel_config.cpp" />
+    <ClCompile Include="tcp\completion_handler_connect.cpp" />
     <ClCompile Include="tcp\completion_handler_read.cpp" />
     <ClCompile Include="tcp\completion_handler_write.cpp" />
+    <ClCompile Include="tcp\connector.cpp" />
     <ClCompile Include="tcp\filter.cpp" />
     <ClCompile Include="tcp\pipeline.cpp" />
   </ItemGroup>

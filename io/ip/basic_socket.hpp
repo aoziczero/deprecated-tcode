@@ -534,10 +534,11 @@ typedef tcode::io::ip::socket_host4<
 		> accept_base;
 
 
-typedef tcode::io::ip::socket_host4<
+typedef tcode::io::ip::socket_host5<
 			tcode::io::ip::socket_handle_tcp 
 		,	tcode::io::ip::socket_api_enable_option
 		,	tcode::io::ip::socket_api_enable_bind
+		,   tcode::io::ip::socket_api_enable_wait
 		,	tcode::io::ip::socket_api_enable_connect
 		> connect_base;
 

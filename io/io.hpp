@@ -2,7 +2,9 @@
 #define __tcode_io_h__
 
 #include <buffer/byte_buffer.hpp>
-
+#if defined(TCODE_TARGET_LINUX)
+#include <sys/socket.h>
+#endif
 namespace tcode { 
 
 #if defined(TCODE_TARGET_WINDOWS)

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 // tests.cpp : Defines the entry point for the console application.
 //
-/*
+
 
 
 #if defined ( TCODE_TARGET_WINDOWS )
@@ -20,5 +20,3 @@ int main( int argc , char* argv[])
 	return RUN_ALL_TESTS();
 	return 0;
 }
-
-*/

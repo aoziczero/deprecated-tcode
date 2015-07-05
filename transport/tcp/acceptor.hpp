@@ -26,6 +26,8 @@ public:
 	bool listen( const tcode::io::ip::address& bind_addr
 		, pipeline_builder* builder );
 
+	void close( void );
+
 	tcode::transport::event_loop& loop( void );
 	
 	virtual bool condition( tcode::io::ip::socket_type h 

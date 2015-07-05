@@ -12,10 +12,11 @@ class completion_handler_accept
 public:
 	completion_handler_accept( acceptor& pacceptor )
 		: _acceptor(pacceptor){
+		_acceptor.loop().links_add();
 	}
 
 	virtual ~completion_handler_accept( void ){
-	
+		_acceptor.loop().links_release();
 	}
 	
 	virtual void operator()( const tcode::diagnostics::error_code& ec 
@@ -46,10 +47,11 @@ private:
 acceptor::acceptor(tcode::transport::event_loop& l)
 	: _loop(l) 
 {
-
+	
 }
 
 acceptor::~acceptor(void){
+	_loop.links_release();
 }
 
 bool acceptor::listen( const tcode::io::ip::address& bind_addr
@@ -109,8 +111,17 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 		close();
 		return false;
 	}
+	_loop.links_add();
 #endif
 	return true;;
+}
+
+void acceptor::close( void ){
+#if defined( TCODE_TARGET_LINUX )
+	_loop.dispatcher().unbind( handle() );
+	_loop.links_release();
+#endif
+	tcode::io::ip::accept_base::close();	
 }
 
 tcode::transport::event_loop& acceptor::loop( void ){

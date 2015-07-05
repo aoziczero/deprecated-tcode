@@ -99,6 +99,7 @@ io/epoll.cpp\
 io/ip/address.cpp\
 io/ip/basic_socket.cpp\
 io/ip/resolver.cpp\
+io/io.cpp\
 
 
 $(TARGET_IO_OBJS_DIR)/%.o : %.cpp
@@ -120,6 +121,7 @@ TARGET_TRANSPORT_SRCS=transport/event_loop.cpp\
 	transport/tcp/pipeline.cpp\
 	transport/tcp/acceptor.cpp\
 	transport/tcp/channel.cpp\
+	transport/tcp/channel_config.cpp\
 	
 
 $(TARGET_TRANSPORT_OBJS_DIR)/%.o : %.cpp
@@ -157,8 +159,33 @@ $(TARGET_TEST_OBJS_DIR)/%.o : %.cpp
 	$(CXX) $(TARGET_TEST_CPPFLAGS) -c $< -o $@
 
 
+	
+TARGET_ECHO_NAME=tcode.echo
+TARGET_ECHO_OBJS_DIR=$(OBJS_DIR)/$(TARGET_ECHO_NAME)
+TARGET_ECHO_CPPFLAGS=-std=c++11 -I./gtest/include -I./ $(DBG_FLAGS)
+TARGET_ECHO_LDFLAGS= -L./gtest/lib -lgtest -lpthread \
+	-L$(TARGET_TRANSPORT_OBJS_DIR) -l$(TARGET_TRANSPORT_NAME) \
+	-L$(TARGET_IO_OBJS_DIR) -l$(TARGET_IO_NAME) \
+	-L$(TARGET_BUFFER_OBJS_DIR) -l$(TARGET_BUFFER_NAME) \
+	-L$(TARGET_DIAGNOSTICS_OBJS_DIR) -l$(TARGET_DIAGNOSTICS_NAME) \
+	-L$(TARGET_THREADING_OBJS_DIR) -l$(TARGET_THREADING_NAME) \
+	-L$(TARGET_COMMON_OBJS_DIR) -l$(TARGET_COMMON_NAME) \
+	
 
-all: common threading diagnostics buffer io transport test
+TARGET_ECHO_DEPEND_FILE = $(TARGET_ECHO_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_ECHO_OBJS=$(TARGET_ECHO_SRCS:%.cpp=$(TARGET_ECHO_OBJS_DIR)/%.o)
+TARGET_ECHO=echo.out
+
+TARGET_ECHO_SRCS=tests/echoservermain.cpp\
+
+$(TARGET_ECHO_OBJS_DIR)/%.o : %.cpp
+	@echo "Compile=$(dir $@)"
+	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
+	$(CXX) $(TARGET_ECHO_CPPFLAGS) -c $< -o $@
+
+
+
+all: common threading diagnostics buffer io transport test echo
 
 common: $(TARGET_COMMON)
 
@@ -219,6 +246,15 @@ test: $(TARGET_TEST)
 $(TARGET_TEST): $(TARGET_TEST_OBJS)
 	@echo "ld=$(TEST)"
 	$(CXX) -o $@ $(TARGET_TEST_OBJS) $(TARGET_TEST_CPPFLAGS) $(TARGET_TEST_LDFLAGS) 
+	@echo ""
+
+
+
+echo: $(TARGET_ECHO)
+
+$(TARGET_ECHO): $(TARGET_ECHO_OBJS)
+	@echo "ld=$(ECHO)"
+	$(CXX) -o $@ $(TARGET_ECHO_OBJS) $(TARGET_ECHO_CPPFLAGS) $(TARGET_ECHO_LDFLAGS) 
 	@echo ""
 
 clean:

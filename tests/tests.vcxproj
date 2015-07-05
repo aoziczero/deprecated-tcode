@@ -92,7 +92,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tests.cpp" />
     <ClCompile Include="test_common_closure.cpp" />
     <ClCompile Include="test_common_threading_wrapped_handler.cpp" />
     <ClCompile Include="test_diagnostics_last_error.cpp" />

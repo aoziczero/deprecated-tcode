@@ -82,14 +82,12 @@ public:
 
 
 #if defined ( TCODE_TARGET_WINDOWS )
-int _tmain(int argc, _TCHAR* argv[])
-#else
-int main( int argc , char* argv[])
-#endif
-{
+int _tmain(int argc, _TCHAR* argv[]) {
 	WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);	
-	
+#else
+int main( int argc , char* argv[]) {
+#endif
 	tcode::transport::event_loop loop;
 	acceptor_impl acceptor( loop );
 

@@ -32,10 +32,11 @@ channel::channel( event_loop& l
 	handle( fd );	
 	_flag.store( detail::NO_ERROR_FLAG | detail::NOT_CLOSED_FLAG );
 	_pipeline.set_channel( this );
+	_loop.links_add();
 }
 
 channel::~channel( void ) {
-
+	_loop.links_release(); 
 }
 
 event_loop& channel::loop( void ){
