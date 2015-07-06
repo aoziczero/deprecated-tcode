@@ -24,14 +24,14 @@ typedef pthread_t thread_id;
 #endif
 
 struct record{
-	log::level level;
 	tcode::time_stamp time_stamp;
-	const char* file;
-	const char* function;
-	int line;
+	log::level level;
+	int line;;
 	thread_id   tid;
-	std::string tag;
-	std::string message;
+	char tag[64];
+	char file[256];
+	char function[256];
+	char message[2048];	
 };
 
 }}}

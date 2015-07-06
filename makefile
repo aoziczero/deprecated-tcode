@@ -25,6 +25,7 @@ common/time_span.cpp\
 common/time_stamp.cpp\
 common/time_util.cpp\
 common/rtti.cpp\
+common/string.cpp\
 
 $(TARGET_COMMON_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
@@ -56,19 +57,23 @@ TARGET_DIAGNOSTICS_OBJS_DIR=$(OBJS_DIR)/$(TARGET_DIAGNOSTICS_NAME)
 TARGET_DIAGNOSTICS_DEPEND_FILE = $(TARGET_DIAGNOSTICS_OBJS_DIR)/$(DEPEND_FILE)
 TARGET_DIAGNOSTICS_OBJS=$(TARGET_DIAGNOSTICS_SRCS:%.cpp=$(TARGET_DIAGNOSTICS_OBJS_DIR)/%.o)
 TARGET_DIAGNOSTICS=$(TARGET_DIAGNOSTICS_OBJS_DIR)/lib$(TARGET_DIAGNOSTICS_NAME).a
-
+TARGET_DIAGNOSTICS_CPPFLAGS=$(TARGET_CPPFLAGS) -I./diagnostics
 TARGET_DIAGNOSTICS_SRCS=diagnostics/tcode_error_code.cpp\
-diagnostics/tcode_category_impl.cpp\
-diagnostics/posix_category_impl.cpp\
-diagnostics/last_error.cpp\
+	diagnostics/tcode_category_impl.cpp\
+	diagnostics/posix_category_impl.cpp\
+	diagnostics/last_error.cpp\
+	diagnostics/log/record.cpp\
+	diagnostics/log/logger.cpp\
+	diagnostics/log/writer.cpp\
+	diagnostics/log/formatter.cpp\
+	diagnostics/log/console_writer.cpp\
+	diagnostics/log/file_writer.cpp\
 
 $(TARGET_DIAGNOSTICS_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
-	$(CXX) $(TARGET_CPPFLAGS) -c $< -o $@
+	$(CXX) $(TARGET_DIAGNOSTICS_CPPFLAGS) -c $< -o $@
 	
-
-
 
 TARGET_BUFFER_NAME=tcode.buffer
 TARGET_BUFFER_OBJS_DIR=$(OBJS_DIR)/$(TARGET_BUFFER_NAME)
@@ -205,7 +210,7 @@ $(TARGET_THREADING): $(TARGET_THREADING_OBJS)
 	
 diagnostics: $(TARGET_DIAGNOSTICS)
 
-$(TARGET_DIAGNOSTICS): $(TARGET_DIAGNOSTICS_OBJS)
+$(TARGET_DIAGNOSTICS): $(TARGET_DIAGNOSTICS_OBJS)  $(TARGET_DIAGNOSTICS_SRCS)
 	@echo "archive=$(TARGET_DIAGNOSTICS)"
 	$(AR) rvs $@ $(TARGET_DIAGNOSTICS_OBJS)
 	$(RANLIB) $@

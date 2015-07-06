@@ -221,10 +221,10 @@ static String between( const String& src
 						   , const String& pre 
 						   , const String& post ) 
 {
-	String::size_type begin_pos = src.find( pre );
+	typename String::size_type begin_pos = src.find( pre );
 	if ( begin_pos != String::npos ) {
 		begin_pos += pre.length();
-		String::size_type end_pos = src.find( post  , begin_pos );
+		typename String::size_type end_pos = src.find( post  , begin_pos );
 		if ( end_pos != String::npos ) {
 			return src.substr( begin_pos , end_pos - begin_pos );
 		}

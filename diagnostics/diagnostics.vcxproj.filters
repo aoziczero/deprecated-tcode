@@ -42,6 +42,12 @@
     <ClInclude Include="log\console_writer.hpp">
       <Filter>diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="log\log.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="log\file_writer.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -65,5 +71,6 @@
     <ClCompile Include="log\writer.cpp" />
     <ClCompile Include="log\formatter.cpp" />
     <ClCompile Include="log\console_writer.cpp" />
+    <ClCompile Include="log\file_writer.cpp" />
   </ItemGroup>
 </Project>

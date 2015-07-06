@@ -20,7 +20,7 @@
 #include <transport/tcp/filter.hpp>
 #include <transport/tcp/pipeline_builder.hpp>
 #include <transport/tcp/pipeline.hpp>
-
+#include <diagnostics/log/log.hpp>
 
 class echo_filter 
 	: public tcode::transport::tcp::filter
@@ -88,15 +88,32 @@ int _tmain(int argc, _TCHAR* argv[]) {
 #else
 int main( int argc , char* argv[]) {
 #endif
+	tcode::diagnostics::log::logger::instance().add_writer( 
+		tcode::diagnostics::log::writer_ptr(new tcode::diagnostics::log::console_writer())
+	);
+	
+	tcode::diagnostics::log::logger::instance().add_writer( 
+		tcode::diagnostics::log::writer_ptr(new tcode::diagnostics::log::file_writer())
+	);
+	LOG_T("TAG" , "Start %s" , "test" );
+	LOG_D("TAG" , "Start %s" , "test" );
+	LOG_I("TAG" , "Start %s" , "test" );
+	LOG_W("TAG" , "Start %s" , "test" );
+	LOG_E("TAG" , "Start %s" , "test" );
+	LOG_F("TAG" , "Start %s" , "test" );
+
+	char* test = "Call My Name";
+	LOG_DUMP_T( "tag" , test , strlen(test) , "Test DUMP %s" , "Dump!" );
+	
 	tcode::transport::event_loop loop;
 	acceptor_impl* acceptor =  new acceptor_impl( loop );
+
 
 	loop.links_add();
 	tcode::transport::tcp::pipeline_builder_ptr builder(acceptor);
 	if ( acceptor->listen( tcode::io::ip::address::any( 7543  , AF_INET ) , builder )){
 		loop.run();
 	}
-
 	return 0;
 }
 

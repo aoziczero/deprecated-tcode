@@ -1,10 +1,12 @@
 ﻿#include "stdafx.h"
 #include <common/string.hpp>
 #include <vector>
-#if defined( _WIN32 )
+#include <stdarg.h>
 
 namespace tcode{
 namespace string {
+
+#if defined( TCODE_TARGET_WINDOWS )
 
 std::string  wcs_to_mbs( const std::wstring& in ) {
 	std::string out;
@@ -70,12 +72,9 @@ std::string  utf_8_to_mbs( const std::string& in ) {
 	return wcs_to_mbs( utf_8_to_wcs( in ));
 }
 
-
-
 std::string& append_format( std::string& msg , const char* format , ... ) {
 	if ( format != nullptr ) {
 		char fmt_buffer[4096];
-		memset( fmt_buffer , 0x00 , 4096 );
 		va_list args;
 		va_start( args , format );
 		int ret = vsnprintf_s( fmt_buffer , 4096 , format , args );
@@ -90,7 +89,6 @@ std::string& append_format( std::string& msg , const char* format , ... ) {
 std::wstring& append_format( std::wstring& msg , const wchar_t* format , ... ) {
 	if ( format != nullptr ) {
 		wchar_t fmt_buffer[4096];
-		memset( fmt_buffer , 0x00 , 4096 );
 		va_list args;
 		va_start( args , format );
 		int ret = _vsnwprintf_s( fmt_buffer , 4096 , format , args );
@@ -142,5 +140,21 @@ string::hangul string::extract_hangul( wchar_t ch ) {
 	return hangul( ChoSungTable[ chosungIndex ] , JungSungTable[ jungsungIndex ] , JongSungTable[ jongsungIndex ] );
 }
 
-}}
+#else
+
+std::string& append_format( std::string& msg , const char* format , ... ) {
+	if ( format != nullptr ) {
+		char fmt_buffer[4096];
+		va_list args;
+		va_start( args , format );
+		int ret = vsnprintf( fmt_buffer , 4096 , format , args );
+		va_end( args );
+		if (ret >= 4096 || ret < 0)
+			fmt_buffer[4095] = '\0';
+		msg += fmt_buffer;
+	}
+	return msg;
+}
+
 #endif
+}}

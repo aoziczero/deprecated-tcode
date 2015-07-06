@@ -8,23 +8,7 @@
 
 namespace tcode { namespace diagnostics { namespace log {
 
-const char* to_string( tcode::diagnostics::log::level lv ) {
-	switch( lv ) {
-	case LOG_TRACE:
-		return "T";
-	case LOG_DEBUG:
-		return "D";
-	case LOG_INFO:
-		return "I";
-	case LOG_WARN:
-		return "W";
-	case LOG_ERROR:
-		return "E";
-	case LOG_FATAL:
-		return "F";	
-	}
-	return "?";
-}
+const char* to_string( tcode::diagnostics::log::level lv );
 
 formatter::formatter( void ) {
 
@@ -43,11 +27,11 @@ void formatter::format( const record& r , tcode::buffer::byte_buffer& buf ){
 #else
 	int len = snprintf(reinterpret_cast<char*>( buf.wr_ptr()) , buf.space()	
 #endif
-        , "[%04d%02d%02d %02d%02d%02d][%s][%s][%s][%s][%s:%d][%d]\r\n"
+        , "[%04d%02d%02d %02d%02d%02d][%s][%s][%s][%s][%s:%d][%d]\n"
 		, st.wYear , st.wMonth , st.wDay , st.wHour , st.wMinute , st.wSecond
 		, to_string(r.level)
-		, r.tag.c_str()
-		, r.message.c_str()
+		, r.tag
+		, r.message
 		, r.function
 		, r.file
 		, r.line

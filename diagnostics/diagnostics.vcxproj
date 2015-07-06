@@ -81,7 +81,9 @@
   <ItemGroup>
     <ClInclude Include="last_error.hpp" />
     <ClInclude Include="log\console_writer.hpp" />
+    <ClInclude Include="log\file_writer.hpp" />
     <ClInclude Include="log\formatter.hpp" />
+    <ClInclude Include="log\log.hpp" />
     <ClInclude Include="log\logger.hpp" />
     <ClInclude Include="log\record.hpp" />
     <ClInclude Include="log\writer.hpp" />
@@ -95,6 +97,7 @@
   <ItemGroup>
     <ClCompile Include="last_error.cpp" />
     <ClCompile Include="log\console_writer.cpp" />
+    <ClCompile Include="log\file_writer.cpp" />
     <ClCompile Include="log\formatter.cpp" />
     <ClCompile Include="log\logger.cpp" />
     <ClCompile Include="log\record.cpp" />
