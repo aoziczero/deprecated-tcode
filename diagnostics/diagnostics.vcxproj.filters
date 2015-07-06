@@ -27,6 +27,21 @@
     <ClInclude Include="last_error.hpp">
       <Filter>diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="log\record.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="log\logger.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="log\writer.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="log\formatter.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="log\console_writer.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -45,5 +60,10 @@
     <ClCompile Include="last_error.cpp">
       <Filter>diagnostics</Filter>
     </ClCompile>
+    <ClCompile Include="log\record.cpp" />
+    <ClCompile Include="log\logger.cpp" />
+    <ClCompile Include="log\writer.cpp" />
+    <ClCompile Include="log\formatter.cpp" />
+    <ClCompile Include="log\console_writer.cpp" />
   </ItemGroup>
 </Project>

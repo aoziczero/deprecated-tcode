@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C8414D2E-ED9E-498B-943B-DB95C70BB572}</ProjectGuid>
+    <ProjectGuid>{EE606876-FAA3-4BAA-8213-13916B5EB90B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>diagnostics</RootNamespace>
+    <RootNamespace>media</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -41,12 +41,7 @@
     <Import Project="..\tcode.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>tcode.$(ProjectName)</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetName>tcode.$(ProjectName)</TargetName>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -79,34 +74,14 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="last_error.hpp" />
-    <ClInclude Include="log\console_writer.hpp" />
-    <ClInclude Include="log\formatter.hpp" />
-    <ClInclude Include="log\logger.hpp" />
-    <ClInclude Include="log\record.hpp" />
-    <ClInclude Include="log\writer.hpp" />
-    <ClInclude Include="posix_category_impl.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="tcode_category_impl.hpp" />
-    <ClInclude Include="tcode_error_code.hpp" />
-    <ClInclude Include="windows_category_impl.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="last_error.cpp" />
-    <ClCompile Include="log\console_writer.cpp" />
-    <ClCompile Include="log\formatter.cpp" />
-    <ClCompile Include="log\logger.cpp" />
-    <ClCompile Include="log\record.cpp" />
-    <ClCompile Include="log\writer.cpp" />
-    <ClCompile Include="posix_category_impl.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tcode_category_impl.cpp" />
-    <ClCompile Include="tcode_error_code.cpp" />
-    <ClCompile Include="windows_category_impl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
