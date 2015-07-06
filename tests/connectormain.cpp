@@ -16,29 +16,26 @@
 #endif
 
 #include <transport/event_loop.hpp>
-#include <transport/tcp/acceptor.hpp>
+#include <transport/tcp/connector.hpp>
 #include <transport/tcp/filter.hpp>
 #include <transport/tcp/pipeline_builder.hpp>
 #include <transport/tcp/pipeline.hpp>
 
+#include <io/ip/resolver.hpp>
 
-class echo_filter 
-	: public tcode::transport::tcp::filter
-{
+class test_http_get_filter : public tcode::transport::tcp::filter {
 public:
-	echo_filter( void ){
-	}
-	virtual ~echo_filter( void ){
-	}
 	virtual void filter_on_open( const tcode::io::ip::address& addr ){
-		std::cout <<"filter_on_open" << std::endl;
+		tcode::buffer::byte_buffer buf(256);
+		buf.write_fmt( "GET /index.htm HTTP/1.1\r\n\r\n" );
+		fire_filter_do_write( buf );
 	}
 	virtual void filter_on_close( void ){
 		std::cout <<"filter_on_close" << std::endl;
 	}
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf ){
-		std::cout <<"filter_on_read" << std::endl;
-		fire_filter_do_write( buf );
+		buf.write("\0");
+		std::cout <<"on_read : %s " << buf.rd_ptr() << std::endl;
 	}
 	virtual void filter_on_write( int written , bool flush ){
 		std::cout <<"filter_on_write" << std::endl;
@@ -51,15 +48,14 @@ public:
 		delete this;
 	}
 private:
-
 };
 
-class acceptor_impl : public tcode::transport::tcp::acceptor
+class connector_impl : public tcode::transport::tcp::connector
 	, public tcode::transport::tcp::pipeline_builder
 {
 public:
-	acceptor_impl( tcode::transport::event_loop& l ) 
-		: acceptor( l ){
+	connector_impl( tcode::transport::event_loop& l ) 
+		: connector( l ){
 	}
 	
 	virtual bool condition( tcode::io::ip::socket_type h , const tcode::io::ip::address& addr ){
@@ -71,15 +67,14 @@ public:
 	}
 
 	virtual bool build( tcode::transport::tcp::pipeline& p ) {
-		p.add( new echo_filter());
+		p.add( new test_http_get_filter());
 		return true;
 	}
 
-	virtual tcode::transport::event_loop& channel_loop( void ){	
-		return loop();
+	virtual tcode::transport::event_loop& channel_loop( void ){
+		return loop();;
 	}
 };
-
 
 #if defined ( TCODE_TARGET_WINDOWS )
 int _tmain(int argc, _TCHAR* argv[]) {
@@ -89,14 +84,13 @@ int _tmain(int argc, _TCHAR* argv[]) {
 int main( int argc , char* argv[]) {
 #endif
 	tcode::transport::event_loop loop;
-	acceptor_impl* acceptor =  new acceptor_impl( loop );
-
-	loop.links_add();
-	tcode::transport::tcp::pipeline_builder_ptr builder(acceptor);
-	if ( acceptor->listen( tcode::io::ip::address::any( 7543  , AF_INET ) , builder )){
+	connector_impl* conn = new connector_impl( loop );
+	tcode::io::ip::resolver r;
+	std::vector< tcode::io::ip::address > addrs = r.resolve( "google.co.kr" , 80 , AF_INET );
+	tcode::transport::tcp::pipeline_builder_ptr builder( conn );
+	if ( conn->connect( addrs[0] , builder )){
 		loop.run();
 	}
-
 	return 0;
 }
 

@@ -100,6 +100,7 @@ void channel::fire_on_open( const tcode::io::ip::address& addr ){
 		_pipeline.fire_filter_on_open(addr);
 		read(nullptr);	
 #elif defined( TCODE_TARGET_LINUX ) 
+		_pipeline.fire_filter_on_open(addr);
 		if ( _write_buffers.empty() ){
 			if ( _loop.dispatcher().bind( handle()
 				, EPOLLIN

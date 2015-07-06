@@ -2,6 +2,7 @@
 #define __tcode_transport_tcp_pipeline_builder_h__
 
 #include <system_error>
+#include <common/rc_ptr.hpp>
 namespace tcode { namespace transport { 
 
 class event_loop;
@@ -9,7 +10,9 @@ class event_loop;
 namespace tcp {
 
 class pipeline;
-class pipeline_builder {
+class pipeline_builder 
+	: public tcode::ref_counted< pipeline_builder >
+	{
 public:
 	pipeline_builder( void ){}
 	virtual ~pipeline_builder( void ){}
@@ -19,6 +22,8 @@ public:
 	}
 private:
 };
+
+typedef tcode::rc_ptr<pipeline_builder> pipeline_builder_ptr;
 
 }}}
 

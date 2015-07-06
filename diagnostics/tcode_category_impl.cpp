@@ -30,6 +30,7 @@ std::string tcode_category_impl::message(
 		std::string("epoll_hup") ,
 		std::string("condition_fail") ,
 		std::string("build_fail") ,
+		std::string("timeout") ,
 	};
 
 	if ( condition >= static_cast<int>(errc::begin) && 

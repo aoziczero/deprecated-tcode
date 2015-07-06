@@ -38,6 +38,11 @@ tcode::diagnostics::error_code build_fail(
 	 static_cast<int>(tcode::diagnostics::errc::build_fail)
 	, tcode_category());
 
+tcode::diagnostics::error_code timeout(
+	 static_cast<int>(tcode::diagnostics::errc::timeout)
+	, tcode_category());
+
+
 tcode::diagnostics::error_code platform_error( void ) {
 #ifdef TCODE_TARGET_WINDOWS
 	return tcode::diagnostics::error_code( GetLastError() , windows_category());

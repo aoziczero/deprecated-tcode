@@ -6,12 +6,16 @@
 
 namespace tcode { namespace io {
 
+static const int MAX_EVT = 256;
+
 epoll::handler::handler( void ){}
 epoll::handler::~handler( void ){}
 
 epoll::epoll( void )
+	: _drain_req(false) 
+	, _post(*this)
 {
-	handle( epoll_create(4096) );
+	handle( epoll_create(MAX_EVT) );
 	bind( _post.handle() , EPOLLIN  , &_post );
 }
 epoll::~epoll( void )
@@ -19,8 +23,7 @@ epoll::~epoll( void )
 	close( handle(-1) );
 }
 
-int epoll::run( const tcode::time_span& ts ){
-	static const int MAX_EVT = 64;
+int epoll::run( const tcode::time_span& ts ){	
 	struct epoll_event events[MAX_EVT];
 	int nofd  = epoll_wait( handle()
 		, events
@@ -36,6 +39,10 @@ int epoll::run( const tcode::time_span& ts ){
 				(*handler)( events[i].events );
 			}
 		}
+	}
+	if ( _drain_req ){
+		_post.drain();
+		_drain_req = false;
 	}
 	return 0;
 }
@@ -73,9 +80,13 @@ void epoll::post( tcode::io::completion_handler* op )
 	_post.post( op );
 }
 
+void epoll::drain_req( void ) {
+	_drain_req = true;
+}
 
-epoll::post_handler::post_handler( void )
-	: _event_fd( eventfd( 0 , EFD_NONBLOCK ))
+
+epoll::post_handler::post_handler( epoll& e )
+	: _event_fd( eventfd( 0 , EFD_NONBLOCK )) , _epoll(e)
 {
 
 }
@@ -89,6 +100,21 @@ int epoll::post_handler::handle( void ) {
 }
 
 void epoll::post_handler::operator()( const int events ) {
+	_epoll.drain_req();	
+}
+
+void epoll::post_handler::set( void ) {
+	eventfd_write( _event_fd , 1 );
+}
+
+void epoll::post_handler::post( tcode::io::completion_handler* op )
+{
+	tcode::threading::scoped_lock<> guard( _lock );
+	_posted.add_tail(op);
+	set();
+}
+
+void epoll::post_handler::drain( void ){
 	tcode::slist::queue< tcode::io::completion_handler > drain;
 	do {
 		tcode::threading::scoped_lock<> guard( _lock );
@@ -101,17 +127,6 @@ void epoll::post_handler::operator()( const int events ) {
 		drain.pop_front();
 		(*op)( op->error_code() , 0 );
 	}
-}
-
-void epoll::post_handler::set( void ) {
-	eventfd_write( _event_fd , 1 );
-}
-
-void epoll::post_handler::post( tcode::io::completion_handler* op )
-{
-	tcode::threading::scoped_lock<> guard( _lock );
-	_posted.add_tail(op);
-	set();
 }
 
 }}

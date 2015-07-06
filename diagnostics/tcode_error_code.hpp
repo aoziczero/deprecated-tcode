@@ -27,6 +27,7 @@ enum class errc{
 	epoll_hup ,
 	condition_fail , 
 	build_fail ,
+	timeout,
 	end //!< end marker
 };
 
@@ -39,6 +40,7 @@ extern tcode::diagnostics::error_code epoll_err;
 extern tcode::diagnostics::error_code epoll_hup;
 extern tcode::diagnostics::error_code condition_fail;
 extern tcode::diagnostics::error_code build_fail;
+extern tcode::diagnostics::error_code timeout;
 
 tcode::diagnostics::error_code platform_error( void );
 

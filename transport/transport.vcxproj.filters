@@ -45,9 +45,6 @@
     <ClInclude Include="tcp\connector.hpp">
       <Filter>transport</Filter>
     </ClInclude>
-    <ClInclude Include="tcp\completion_handler_connect.hpp">
-      <Filter>transport</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -73,6 +70,5 @@
     <ClCompile Include="tcp\completion_handler_write.cpp" />
     <ClCompile Include="tcp\channel_config.cpp" />
     <ClCompile Include="tcp\connector.cpp" />
-    <ClCompile Include="tcp\completion_handler_connect.cpp" />
   </ItemGroup>
 </Project>

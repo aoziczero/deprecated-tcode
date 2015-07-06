@@ -58,13 +58,9 @@ void event_timer::fire( void ){
 void event_timer::cancel( void ){
 	if ( tcode::threading::atomic_bit_set( _flag , FLAG_CANCEL )) {
 		tcode::rc_ptr< event_timer > ptr( this );
-		if ( _loop.in_event_loop() ) {
+		_loop.execute( [ptr]{
 			ptr->_loop.cancel( ptr );
-		} else {
-			_loop.execute( [ptr]{
-				ptr->_loop.cancel( ptr );
-			});
-		}
+		});
 	}
 }
 

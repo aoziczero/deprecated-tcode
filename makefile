@@ -120,6 +120,7 @@ TARGET_TRANSPORT_SRCS=transport/event_loop.cpp\
 	transport/tcp/filter.cpp\
 	transport/tcp/pipeline.cpp\
 	transport/tcp/acceptor.cpp\
+	transport/tcp/connector.cpp\
 	transport/tcp/channel.cpp\
 	transport/tcp/channel_config.cpp\
 	
@@ -128,8 +129,6 @@ $(TARGET_TRANSPORT_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
 	$(CXX) $(TARGET_TRANSPORT_CPPFLAGS) -c $< -o $@
-
-
 
 
 
@@ -221,8 +220,7 @@ $(TARGET_BUFFER): $(TARGET_BUFFER_OBJS)
 	$(RANLIB) $@
 	@echo ""
 
-
-	
+		
 io: $(TARGET_IO)
 
 $(TARGET_IO): $(TARGET_IO_OBJS)
@@ -247,9 +245,7 @@ $(TARGET_TEST): $(TARGET_TEST_OBJS)
 	@echo "ld=$(TEST)"
 	$(CXX) -o $@ $(TARGET_TEST_OBJS) $(TARGET_TEST_CPPFLAGS) $(TARGET_TEST_LDFLAGS) 
 	@echo ""
-
-
-
+	
 echo: $(TARGET_ECHO)
 
 $(TARGET_ECHO): $(TARGET_ECHO_OBJS)

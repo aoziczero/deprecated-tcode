@@ -55,7 +55,7 @@ acceptor::~acceptor(void){
 }
 
 bool acceptor::listen( const tcode::io::ip::address& bind_addr
-	, pipeline_builder* builder )
+	, pipeline_builder_ptr builder )
 {
 	_builder = builder;
 	switch( bind_addr.family() )
