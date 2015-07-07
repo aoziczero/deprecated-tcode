@@ -66,13 +66,19 @@ public:
 	position tell( void ) const;
 	void     seek( const position& p );
 
-	std::size_t write( const char* msg );
-	std::size_t write( const wchar_t* msg );
+	std::size_t write_msg( const char* msg );
+	std::size_t write_msg( const wchar_t* msg );
 	std::size_t write_fmt( const char* msg , ... );
 private:
 	block::handle _block;
 	position _pos;
 };
+
+template < typename Object >
+byte_buffer& operator<<( byte_buffer& buf , const Object& obj ) {
+	buf.write( const_cast<Object*>( &obj ), sizeof( obj ));
+	return buf;
+}	
 
 }}
 

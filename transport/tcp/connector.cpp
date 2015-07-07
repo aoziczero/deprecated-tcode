@@ -28,20 +28,14 @@ bool connector::connect_timeout( const tcode::io::ip::address& conn_addr
 		tcode::io::ip::connect_base::non_blocking non_block;
 		cb.set_option( non_block );
 		if ( cb.connect( conn_addr , ts )){
-			auto handle = cb.handle();
-			_loop.execute( [handle,conn_addr,builder]{
-				tcode::transport::tcp::pipeline pl;
-				if ( builder && builder->build( pl ) ) {
-					tcode::transport::tcp::channel* channel 
-							= new tcode::transport::tcp::channel( 
-									builder->channel_loop() , pl ,handle);
-					channel->fire_on_open( conn_addr );
-				} else {
-					tcode::io::ip::tcp_holder h;
-					h.handle( handle );
-					h.close();
-				}
-			});
+			tcode::transport::tcp::pipeline pl;
+			if ( builder && builder->build( pl ) ) {
+				tcode::transport::tcp::channel* channel 
+						= new tcode::transport::tcp::channel( 
+								builder->channel_loop() , pl ,cb.handle());
+				channel->fire_on_open( conn_addr );
+				return true;;
+			} 
 		}
 	}
 	cb.close();

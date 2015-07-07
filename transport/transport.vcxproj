@@ -92,6 +92,12 @@
     <ClInclude Include="tcp\filter.hpp" />
     <ClInclude Include="tcp\pipeline.hpp" />
     <ClInclude Include="tcp\pipeline_builder.hpp" />
+    <ClInclude Include="udp\bootstrap.hpp" />
+    <ClInclude Include="udp\channel.hpp" />
+    <ClInclude Include="udp\completion_handler_recv_from.hpp" />
+    <ClInclude Include="udp\filter.hpp" />
+    <ClInclude Include="udp\pipeline.hpp" />
+    <ClInclude Include="udp\pipeline_builder.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="event_loop.cpp" />
@@ -108,6 +114,11 @@
     <ClCompile Include="tcp\connector.cpp" />
     <ClCompile Include="tcp\filter.cpp" />
     <ClCompile Include="tcp\pipeline.cpp" />
+    <ClCompile Include="udp\bootstrap.cpp" />
+    <ClCompile Include="udp\channel.cpp" />
+    <ClCompile Include="udp\completion_handler_recv_from.cpp" />
+    <ClCompile Include="udp\filter.cpp" />
+    <ClCompile Include="udp\pipeline.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

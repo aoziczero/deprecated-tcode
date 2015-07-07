@@ -128,6 +128,9 @@ TARGET_TRANSPORT_SRCS=transport/event_loop.cpp\
 	transport/tcp/connector.cpp\
 	transport/tcp/channel.cpp\
 	transport/tcp/channel_config.cpp\
+	transport/udp/filter.cpp\
+	transport/udp/pipeline.cpp\
+	transport/udp/channel.cpp\
 	
 
 $(TARGET_TRANSPORT_OBJS_DIR)/%.o : %.cpp

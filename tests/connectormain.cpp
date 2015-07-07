@@ -37,7 +37,7 @@ public:
 		std::cout <<"filter_on_close" << std::endl;
 	}
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf ){
-		buf.write("\0");
+		buf << '\0';
 		std::cout <<"on_read : %s " << buf.rd_ptr() << std::endl;
 	}
 	virtual void filter_on_write( int written , bool flush ){
@@ -91,7 +91,9 @@ int main( int argc , char* argv[]) {
 		tcode::diagnostics::log::writer_ptr(new tcode::diagnostics::log::console_writer())
 	);
 	tcode::diagnostics::log::logger::instance().add_writer( 
-		tcode::diagnostics::log::writer_ptr(new tcode::diagnostics::log::file_writer())
+		tcode::diagnostics::log::writer_ptr(new tcode::diagnostics::log::udp_writer( 
+			tcode::io::ip::address::from( "127.0.0.1" , 8888 )
+		))
 	);
 	
 	LOG_T("TAG" , "Start %s" , "test" );

@@ -7,7 +7,7 @@
 #include <diagnostics/log/logger.hpp>
 #include <diagnostics/log/console_writer.hpp>
 #include <diagnostics/log/file_writer.hpp>
-
+#include <diagnostics/log/udp_writer.hpp>
 #if defined( _WIN32)
 #include <crtdefs.h>
 

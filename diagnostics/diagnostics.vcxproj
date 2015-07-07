@@ -86,6 +86,7 @@
     <ClInclude Include="log\log.hpp" />
     <ClInclude Include="log\logger.hpp" />
     <ClInclude Include="log\record.hpp" />
+    <ClInclude Include="log\udp_writer.hpp" />
     <ClInclude Include="log\writer.hpp" />
     <ClInclude Include="posix_category_impl.hpp" />
     <ClInclude Include="stdafx.h" />
@@ -101,6 +102,7 @@
     <ClCompile Include="log\formatter.cpp" />
     <ClCompile Include="log\logger.cpp" />
     <ClCompile Include="log\record.cpp" />
+    <ClCompile Include="log\udp_writer.cpp" />
     <ClCompile Include="log\writer.cpp" />
     <ClCompile Include="posix_category_impl.cpp" />
     <ClCompile Include="stdafx.cpp">

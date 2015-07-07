@@ -212,11 +212,11 @@ std::size_t byte_buffer::write_fmt( const char* msg , ... ) {
 	return write( fmt_buffer , len );
 }
 
-std::size_t byte_buffer::write( const char* msg ) {
+std::size_t byte_buffer::write_msg( const char* msg ) {
 	return write( const_cast<char*>(msg) , strlen(msg));
 }
 
-std::size_t byte_buffer::write( const wchar_t* msg ) {
+std::size_t byte_buffer::write_msg( const wchar_t* msg ) {
 	return write( const_cast<wchar_t*>( msg ) , wcslen( msg ) * sizeof( wchar_t ));
 }
 

@@ -107,7 +107,7 @@ void logger::write_dump(
 #endif
 	struct i_to_hex {
         static void convert( uint8_t ch , char* out ) {
-            static std::string map("0123456789ABCDEF");
+            const char map[] = "0123456789ABCDEF";
             out[0] = map[ch/16];
             out[1] = map[ch%16];
         }

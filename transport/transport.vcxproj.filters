@@ -45,6 +45,24 @@
     <ClInclude Include="tcp\connector.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="udp\channel.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="udp\pipeline.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="udp\filter.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="udp\pipeline_builder.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="udp\completion_handler_recv_from.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="udp\bootstrap.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -70,5 +88,10 @@
     <ClCompile Include="tcp\completion_handler_write.cpp" />
     <ClCompile Include="tcp\channel_config.cpp" />
     <ClCompile Include="tcp\connector.cpp" />
+    <ClCompile Include="udp\pipeline.cpp" />
+    <ClCompile Include="udp\filter.cpp" />
+    <ClCompile Include="udp\channel.cpp" />
+    <ClCompile Include="udp\completion_handler_recv_from.cpp" />
+    <ClCompile Include="udp\bootstrap.cpp" />
   </ItemGroup>
 </Project>
