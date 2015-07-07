@@ -80,6 +80,12 @@ byte_buffer& operator<<( byte_buffer& buf , const Object& obj ) {
 	return buf;
 }	
 
+template < typename Object >
+byte_buffer& operator>>( byte_buffer& buf , Object& obj ) {
+	buf.read( &obj , sizeof( obj ));
+	return buf;
+}	
+
 }}
 
 #endif
