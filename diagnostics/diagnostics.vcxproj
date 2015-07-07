@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="last_error.hpp" />
+    <ClInclude Include="log\serialize_formatter.hpp" />
     <ClInclude Include="log\console_writer.hpp" />
     <ClInclude Include="log\file_writer.hpp" />
     <ClInclude Include="log\formatter.hpp" />
@@ -102,6 +103,7 @@
     <ClCompile Include="log\formatter.cpp" />
     <ClCompile Include="log\logger.cpp" />
     <ClCompile Include="log\record.cpp" />
+    <ClCompile Include="log\serialize_formatter.cpp" />
     <ClCompile Include="log\udp_writer.cpp" />
     <ClCompile Include="log\writer.cpp" />
     <ClCompile Include="posix_category_impl.cpp" />
