@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aligned_storage.hpp" />
+    <ClInclude Include="base64.hpp" />
     <ClInclude Include="basic_handle.hpp" />
     <ClInclude Include="closure.hpp" />
     <ClInclude Include="container_of.hpp" />
@@ -98,6 +99,7 @@
     <ClInclude Include="time_util.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="base64.cpp" />
     <ClCompile Include="lib_allocator.cpp" />
     <ClCompile Include="rtti.cpp" />
     <ClCompile Include="stdafx.cpp">

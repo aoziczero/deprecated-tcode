@@ -3,18 +3,19 @@
 
 #include <common/time_stamp.hpp>
 #include <string>
+#include <buffer/byte_buffer.hpp>
 
 namespace tcode { namespace diagnostics { namespace log {
 
 enum level {
-	LOG_TRACE = 0x01,
-	LOG_DEBUG = LOG_TRACE << 1,
-	LOG_INFO  = LOG_DEBUG << 1,
-	LOG_WARN  = LOG_INFO << 1,
-	LOG_ERROR = LOG_WARN << 1 ,
-	LOG_FATAL = LOG_ERROR << 1 ,
-	LOG_ALL = LOG_TRACE | LOG_DEBUG | LOG_INFO | LOG_WARN | LOG_ERROR | LOG_FATAL ,
-	LOG_OFF = 0,
+	LOG_TRACE	= 0x01,
+	LOG_DEBUG	= LOG_TRACE << 1,
+	LOG_INFO	= LOG_DEBUG << 1,
+	LOG_WARN	= LOG_INFO	<< 1,
+	LOG_ERROR	= LOG_WARN	<< 1 ,
+	LOG_FATAL	= LOG_ERROR << 1 ,
+	LOG_ALL		= LOG_TRACE | LOG_DEBUG | LOG_INFO | LOG_WARN | LOG_ERROR | LOG_FATAL ,
+	LOG_OFF		= 0,
 };
 
 #if defined( TCODE_TARGET_WINDOWS )
@@ -33,6 +34,9 @@ struct record{
 	char function[256];
 	char message[2048];	
 };
+
+tcode::buffer::byte_buffer& operator<<( tcode::buffer::byte_buffer& buf , const record& r );
+tcode::buffer::byte_buffer& operator>>( tcode::buffer::byte_buffer& buf , record& r ) ;
 
 }}}
 

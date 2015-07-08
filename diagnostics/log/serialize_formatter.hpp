@@ -13,9 +13,6 @@ public:
 	serialize_formatter( void );
 	virtual ~serialize_formatter( void );
 	virtual void format( const record& r , tcode::buffer::byte_buffer& buf );
-	void serialize( const record&r , tcode::buffer::byte_buffer& buf );
-	void deserialize( tcode::buffer::byte_buffer& buf , record& r );
-	
 };
 
 }}}

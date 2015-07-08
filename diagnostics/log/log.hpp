@@ -8,6 +8,7 @@
 #include <diagnostics/log/console_writer.hpp>
 #include <diagnostics/log/file_writer.hpp>
 #include <diagnostics/log/udp_writer.hpp>
+#include <diagnostics/log/serialize_formatter.hpp>
 #if defined( _WIN32)
 #include <crtdefs.h>
 

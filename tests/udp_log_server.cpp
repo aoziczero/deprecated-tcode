@@ -17,6 +17,7 @@
 
 #include <transport/event_loop.hpp>
 #include <transport/udp/bootstrap.hpp>
+#include <diagnostics/log/log.hpp>
 
 class log_filter 
 	: public tcode::transport::udp::filter
@@ -35,8 +36,9 @@ public:
 	}
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf 
 		,const tcode::io::ip::address& addr ){
-		buf << '\0';
-		std::cout <<"filter_on_read : " << (char*)buf.rd_ptr() << std::endl;		
+		tcode::diagnostics::log::record r;
+		buf >> r;
+		_writer.write(r);
 	}
 	virtual void filter_on_write( int written , bool flush ){
 		std::cout <<"filter_on_write" << std::endl;
@@ -49,7 +51,7 @@ public:
 		delete this;
 	}
 private:
-
+	tcode::diagnostics::log::console_writer _writer;
 };
 
 
