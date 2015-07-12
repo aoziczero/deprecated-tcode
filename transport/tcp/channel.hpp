@@ -53,6 +53,9 @@ public:
 	void fire_on_close( const std::error_code& ec );
 
 	void do_write( tcode::buffer::byte_buffer buf );
+	void do_write( tcode::buffer::byte_buffer buf1 
+				, tcode::buffer::byte_buffer buf2 );
+
 #if defined( TCODE_TARGET_WINDOWS )
 	void read( completion_handler_read* h );
 	void handle_read( const tcode::diagnostics::error_code& ec 

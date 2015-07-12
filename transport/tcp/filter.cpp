@@ -40,74 +40,113 @@ void filter::filter_on_error( const std::error_code& ec ){
 
 void filter::filter_on_end_reference( void ){
 	fire_filter_on_end_reference();
+	delete this;
 }
 	
 // outbound
 void filter::filter_do_write( tcode::buffer::byte_buffer buf ){
+	fire_filter_do_write(buf);
+}	
+
+// fire inbound
+void filter::fire_filter_on_open( const tcode::io::ip::address& addr ){
 	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		fire_filter_do_write( buf );
+		if ( _inbound )
+			_inbound->filter_on_open( addr );
+	} else {
+		add_ref();
+		channel()->loop().execute( [ this , addr ] {
+			if ( _inbound )
+				_inbound->filter_on_open( addr );
+			release();
+		});
+	}	
+}
+void filter::fire_filter_on_close( void ){
+	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
+		if ( _inbound )
+			 _inbound->filter_on_close( );
+	} else {
+		add_ref();
+		channel()->loop().execute( [ this  ] {
+			if ( _inbound )
+				 _inbound->filter_on_close( );
+			release();
+		});
+	}
+}
+void filter::fire_filter_on_read( tcode::buffer::byte_buffer& buf ){
+	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
+		if ( _inbound )
+			_inbound->filter_on_read( buf );
 	} else {
 		add_ref();
 		channel()->loop().execute( [ this , buf  ] {
 			tcode::buffer::byte_buffer nb( buf );
-			fire_filter_do_write( nb );
+			if ( _inbound )
+				_inbound->filter_on_read( buf );
 			release();
 		});
-	}
-}	
-/*
-void filter::filter_do_writev( const std::vector< tcode::buffer::byte_buffer>& bufs ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		fire_filter_do_writev( bufs);
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this , bufs  ] {
-			fire_filter_do_writev( bufs );
-			release();
-		});
-	}
-}
-*/
-
-// fire inbound
-void filter::fire_filter_on_open( const tcode::io::ip::address& addr ){
-	if ( _inbound )
-		 _inbound->filter_on_open( addr );
-}
-void filter::fire_filter_on_close( void ){
-	if ( _inbound )
-		 _inbound->filter_on_close( );
-}
-void filter::fire_filter_on_read( tcode::buffer::byte_buffer& buf ){
-	if ( _inbound )
-		 _inbound->filter_on_read( buf );
+	}	
 }
 void filter::fire_filter_on_write( int written , bool flush ){
-	if ( _inbound )
-		 _inbound->filter_on_write( written , flush );
+	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
+		if ( _inbound )
+			 _inbound->filter_on_write( written , flush );
+	} else {
+		add_ref();
+		channel()->loop().execute( [ this , written , flush ] {
+			if ( _inbound )
+				_inbound->filter_on_write( written , flush );
+			release();
+		});
+	}	
 }
 void filter::fire_filter_on_error( const std::error_code& ec ){
-	if ( _inbound )
-		 _inbound->filter_on_error( ec );
+	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
+		if ( _inbound )
+				_inbound->filter_on_error( ec );
+	} else {
+		add_ref();
+		channel()->loop().execute( [ this , ec  ] {			
+			if ( _inbound )
+				 _inbound->filter_on_error( ec );
+			release();
+		});
+	}
 }
 void filter::fire_filter_on_end_reference( void ){
-	if ( _inbound )
-		 _inbound->filter_on_end_reference();
+	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
+		if ( _inbound )
+			_inbound->filter_on_end_reference();
+	} else {
+		add_ref();
+		channel()->loop().execute( [ this ] {
+			if ( _inbound )
+				_inbound->filter_on_end_reference();
+			release();
+		});
+	}	
 }	
 void filter::fire_filter_do_write( tcode::buffer::byte_buffer& buf ){
-	if ( _outbound )
-		 _outbound->filter_do_write( buf );
-	else 
-		_channel->do_write( buf );
+	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
+		if ( _outbound )
+			_outbound->filter_do_write( buf );
+		else 
+			_channel->do_write( buf );
+	} else {
+		add_ref();
+		channel()->loop().execute( [ this , buf  ] {
+			tcode::buffer::byte_buffer nb( buf );
+			if ( _outbound )
+				_outbound->filter_do_write( buf );
+			else 
+				_channel->do_write( buf );
+			release();
+		});
+	}
 }
-/*
-void filter::fire_filter_do_writev( const std::vector< tcode::buffer::byte_buffer>& bufs ){
-	if ( _outbound )
-		 _outbound->filter_do_writev( bufs );
-	else 
-		_channel->do_writev( bufs );
-}*/
-	
+
 filter* filter::inbound( void ){
 	return _inbound;
 }

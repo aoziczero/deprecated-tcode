@@ -150,6 +150,38 @@ void channel::do_write( tcode::buffer::byte_buffer buf ){
 	}
 }
 
+void channel::do_write( tcode::buffer::byte_buffer buf1 
+				, tcode::buffer::byte_buffer buf2 )
+{
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
+		return;
+
+	if ( !_loop.in_event_loop() ){
+		add_ref();
+		_loop.execute([this,buf1,buf2]{
+			do_write( buf1,buf2 );
+			release();
+		});
+		return;
+	}
+	bool write = _write_buffers.empty();
+	_write_buffers.push_back( buf1 );
+	_write_buffers.push_back( buf2 );
+	if ( write ) {
+#if defined( TCODE_TARGET_WINDOWS )
+		write_remains( nullptr );
+#elif defined( TCODE_TARGET_LINUX ) 
+		if ( _loop.dispatcher().bind( handle()
+			, EPOLLIN | EPOLLOUT
+			, this)){
+		} else {
+			close( tcode::diagnostics::platform_error() );
+		}
+#endif
+	}
+}
+
+
 
 #if defined( TCODE_TARGET_WINDOWS )
 void channel::read( completion_handler_read* h ) {

@@ -22,6 +22,7 @@ public:
 
 	byte_buffer( void );
 	explicit byte_buffer( const std::size_t sz );
+	byte_buffer( uint8_t* buf , const std::size_t len );
 
 	byte_buffer( const byte_buffer& rhs );
 	byte_buffer( byte_buffer&& rhs );
@@ -69,6 +70,8 @@ public:
 	std::size_t write_msg( const char* msg );
 	std::size_t write_msg( const wchar_t* msg );
 	std::size_t write_fmt( const char* msg , ... );
+
+	tcode::buffer::byte_buffer sub_buffer( const std::size_t start , const std::size_t len );
 private:
 	block::handle _block;
 	position _pos;

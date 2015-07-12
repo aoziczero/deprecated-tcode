@@ -41,6 +41,12 @@ byte_buffer::byte_buffer( const std::size_t sz )
 {
 }
 
+byte_buffer::byte_buffer( uint8_t* buf , const std::size_t len )
+	: _block( block::alloc(len))
+{
+	write( buf , len);
+}
+
 byte_buffer::byte_buffer( const byte_buffer& rhs )
 	: _block( block::duplicate(rhs._block))
 	, _pos( rhs._pos ) 
@@ -218,6 +224,10 @@ std::size_t byte_buffer::write_msg( const char* msg ) {
 
 std::size_t byte_buffer::write_msg( const wchar_t* msg ) {
 	return write( const_cast<wchar_t*>( msg ) , wcslen( msg ) * sizeof( wchar_t ));
+}
+
+tcode::buffer::byte_buffer byte_buffer::sub_buffer( const std::size_t start , const std::size_t len ){
+	return tcode::buffer::byte_buffer( rd_ptr() + start , len );
 }
 
 }}

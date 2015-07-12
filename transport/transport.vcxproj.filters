@@ -63,6 +63,9 @@
     <ClInclude Include="udp\bootstrap.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="tcp\size_filter.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -93,5 +96,6 @@
     <ClCompile Include="udp\channel.cpp" />
     <ClCompile Include="udp\completion_handler_recv_from.cpp" />
     <ClCompile Include="udp\bootstrap.cpp" />
+    <ClCompile Include="tcp\size_filter.cpp" />
   </ItemGroup>
 </Project>
