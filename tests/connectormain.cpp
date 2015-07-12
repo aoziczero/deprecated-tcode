@@ -112,7 +112,7 @@ int main( int argc , char* argv[]) {
 	tcode::io::ip::resolver r;
 	std::vector< tcode::io::ip::address > addrs = r.resolve( "google.co.kr" , 80 , AF_INET );
 	tcode::transport::tcp::pipeline_builder_ptr builder( conn );
-	if ( conn->connect( addrs[0] , builder )){
+	if ( conn->connect( addrs[0] , builder , tcode::time_span::minutes(2) )){
 		loop.run();
 	}
 	return 0;

@@ -1,10 +1,11 @@
 #ifndef __tcode_transport_tcp_channel_connector_h__
 #define __tcode_transport_tcp_channel_connector_h__
 
-#include <transport/event_loop.hpp>
 #include <io/ip/basic_socket.hpp>
 #include <diagnostics/tcode_error_code.hpp>
+#include <transport/event_loop.hpp>
 #include <transport/tcp/pipeline_builder.hpp>
+#include <transport/event_timer.hpp>
 
 namespace tcode { namespace transport { namespace tcp {
 
@@ -15,6 +16,7 @@ class connector
 #elif defined( TCODE_TARGET_LINUX )
 	, public tcode::io::epoll::handler
 #endif
+	, public tcode::ref_counted< connector >
 {
 public:
 	connector(tcode::transport::event_loop& l);
@@ -25,11 +27,11 @@ public:
 		, const tcode::time_span& ts );
 
 	bool connect( const tcode::io::ip::address& addr
-		, pipeline_builder_ptr builder );
+		, pipeline_builder_ptr builder
+		, const tcode::time_span& ts );
 
 	tcode::transport::event_loop& loop( void );
 	
-	virtual bool condition( tcode::io::ip::socket_type h , const tcode::io::ip::address& addr );
 	virtual void on_error( const std::error_code& ec );
 	
 	bool do_connect(void);
@@ -38,6 +40,8 @@ private:
 	tcode::transport::event_loop& _loop;
 	pipeline_builder_ptr _builder;
 	tcode::io::ip::address _address;
+	event_timer::pointer_type _timer;
+	bool _timeout;
 private:
 #if defined( TCODE_TARGET_WINDOWS )	
 	virtual void operator()( const tcode::diagnostics::error_code& ec 

@@ -94,6 +94,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tcode_category_impl.hpp" />
     <ClInclude Include="tcode_error_code.hpp" />
+    <ClInclude Include="win32\mini_dump.hpp" />
     <ClInclude Include="windows_category_impl.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +114,7 @@
     </ClCompile>
     <ClCompile Include="tcode_category_impl.cpp" />
     <ClCompile Include="tcode_error_code.cpp" />
+    <ClCompile Include="win32\mini_dump.cpp" />
     <ClCompile Include="windows_category_impl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

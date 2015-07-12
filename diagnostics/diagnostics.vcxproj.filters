@@ -54,6 +54,9 @@
     <ClInclude Include="log\serialize_formatter.hpp">
       <Filter>diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="win32\mini_dump.hpp">
+      <Filter>diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -80,5 +83,6 @@
     <ClCompile Include="log\file_writer.cpp" />
     <ClCompile Include="log\udp_writer.cpp" />
     <ClCompile Include="log\serialize_formatter.cpp" />
+    <ClCompile Include="win32\mini_dump.cpp" />
   </ItemGroup>
 </Project>

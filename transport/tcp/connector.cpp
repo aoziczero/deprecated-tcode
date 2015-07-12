@@ -11,6 +11,7 @@ LPFN_CONNECTEX fp_connect_ex = nullptr;
 #endif
 connector::connector(tcode::transport::event_loop& l)
 	: _loop(l) 
+	, _timeout(false)
 {
 	_loop.links_add();
 }
@@ -43,10 +44,28 @@ bool connector::connect_timeout( const tcode::io::ip::address& conn_addr
 }
 
 bool connector::connect( const tcode::io::ip::address& addr
-	, pipeline_builder_ptr builder )
+	, pipeline_builder_ptr builder 
+	, const tcode::time_span& ts  )
 {
 	_address = addr;
 	_builder = builder;
+	_timer = event_timer::create( loop() );
+	_timer->expired_at( tcode::time_stamp::now() + ts );
+	add_ref();
+	_timer->on_expired(event_timer::handler(
+			[this]( const tcode::diagnostics::error_code& ec, const event_timer& ){
+				if ( ec != tcode::diagnostics::cancel ) {
+					_timeout = true;
+#if defined( TCODE_TARGET_WINDOWS )	
+					close();
+#else
+					loop().dispatcher().unbind( handle());
+					close();
+					on_error( tcode::diagnostics::timeout);
+#endif					
+				}
+				release();
+			}));
 	switch( addr.family() )
 	{
 	case AF_INET:
@@ -98,16 +117,15 @@ bool connector::connect( const tcode::io::ip::address& addr
 		return false;
 	}
 #endif
-	return do_connect();
+	if ( do_connect() ) {
+		_timer->fire();
+		return true;
+	}
+	return false;
 }
 
 tcode::transport::event_loop& connector::loop( void ){
 	return _loop;
-}
-	
-bool connector::condition( tcode::io::ip::socket_type h , const tcode::io::ip::address& addr )
-{
-	return true;
 }
 
 void connector::on_error( const std::error_code& ec ){
@@ -120,6 +138,7 @@ bool connector::do_connect(void){
 		return false;
 
 	this->prepare();
+	this->add_ref();
     DWORD dwBytes = 0;
 	if ( fp_connect_ex( handle() ,  
                         _address.sockaddr() , 
@@ -135,6 +154,7 @@ bool connector::do_connect(void){
 			_loop.execute_handler(this);
         }
     }
+	
 	return true;
 #elif defined( TCODE_TARGET_LINUX ) 
 	int r;
@@ -159,40 +179,40 @@ bool connector::do_connect(void){
 void connector::handle_connect( const tcode::diagnostics::error_code& ec )
 {
 	auto er = ec;
+	if ( _timeout )
+		er = tcode::diagnostics::timeout;
 	if ( !er ){
-		if ( condition( handle() , _address )){
-			tcode::transport::tcp::pipeline pl;
-			if ( _builder && _builder->build( pl ) ) {
-				tcode::transport::tcp::channel* channel 
-					= new tcode::transport::tcp::channel( 
-							_builder->channel_loop()
-						,  pl
-						,	handle( tcode::io::ip::invalid_socket ));
-				channel->fire_on_open(_address);
-				return;
-			} else {
-				er = tcode::diagnostics::build_fail;
-			}
-		}else {
-			er = tcode::diagnostics::condition_fail;
+		tcode::transport::tcp::pipeline pl;
+		if ( _builder && _builder->build( pl ) ) {
+			tcode::transport::tcp::channel* channel 
+				= new tcode::transport::tcp::channel( 
+						_builder->channel_loop()
+					,  pl
+					,	handle( tcode::io::ip::invalid_socket ));
+			channel->fire_on_open(_address);
+			return;
+		} else {
+			er = tcode::diagnostics::build_fail;
 		}
 	}
 	on_error( er );
 	tcode::io::ip::connect_base::close();
+	this->release();
 }
 
 #if defined( TCODE_TARGET_WINDOWS )
 
 void connector::operator()( const tcode::diagnostics::error_code& ec 
 			, const int completion_bytes )
-{
+{	
 	handle_connect(ec);
+	_timer->cancel();
 }
 
 #elif defined( TCODE_TARGET_LINUX )
 
 void connector::operator()( const int events )
-{	
+{		
 	std::cout <<"on notify" << std::endl;
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
 		 handle_connect( events & EPOLLERR ? tcode::diagnostics::epoll_err : tcode::diagnostics::epoll_hup );
@@ -201,6 +221,7 @@ void connector::operator()( const int events )
 			handle_connect( tcode::diagnostics::success );
 		}
 	}
+	_timer->cancel();
 }
 
 #endif
