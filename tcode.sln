@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common\common.vcxproj", "{3B8A99C6-9671-40B1-9157-7ECEC83906E7}"
 EndProject
@@ -28,6 +28,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "transport-ssl", "transport-ssl\transport-ssl.vcxproj", "{3A4B5A56-E98D-4BE6-A7AC-AE5031A959B0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "media", "media\media.vcxproj", "{EE606876-FAA3-4BAA-8213-13916B5EB90B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "transport-zlib", "transport-zlib\transport-zlib.vcxproj", "{73623FDF-E3F4-4079-8F43-5683FBA76EE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,10 @@ Global
 		{EE606876-FAA3-4BAA-8213-13916B5EB90B}.Debug|Win32.Build.0 = Debug|Win32
 		{EE606876-FAA3-4BAA-8213-13916B5EB90B}.Release|Win32.ActiveCfg = Release|Win32
 		{EE606876-FAA3-4BAA-8213-13916B5EB90B}.Release|Win32.Build.0 = Release|Win32
+		{73623FDF-E3F4-4079-8F43-5683FBA76EE9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{73623FDF-E3F4-4079-8F43-5683FBA76EE9}.Debug|Win32.Build.0 = Debug|Win32
+		{73623FDF-E3F4-4079-8F43-5683FBA76EE9}.Release|Win32.ActiveCfg = Release|Win32
+		{73623FDF-E3F4-4079-8F43-5683FBA76EE9}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

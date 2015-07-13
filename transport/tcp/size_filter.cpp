@@ -16,13 +16,15 @@ void size_filter::filter_on_read( tcode::buffer::byte_buffer buf )
 {
 	_read_buffer.reserve( _read_buffer.length() + buf.length());
 	_read_buffer.write( buf.rd_ptr() , buf.length());
-	size_type size;
-	_read_buffer.peak( &size , sizeof(size_type));
-	while( size >= (size_type)(_read_buffer.length() + sizeof(size_type))){
+	
+	while ( _read_buffer.length() > sizeof( size_type ) ){
+		size_type size;
+		_read_buffer.peak( &size , sizeof(size_type));
+		if (  _read_buffer.length() < sizeof( size ) + size ){
+			break;
+		}
 		_read_buffer.read( &size , sizeof(size_type));
 		fire_filter_on_read( _read_buffer.sub_buffer( 0 , size));
-		_read_buffer.rd_ptr( size );
-		_read_buffer.peak( &size , sizeof(size_type));
 	}
 	_read_buffer.fit();
 }
