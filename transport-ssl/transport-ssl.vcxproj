@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="context.hpp" />
-    <ClInclude Include="filter.hpp" />
+    <ClInclude Include="ssl_filter.hpp" />
     <ClInclude Include="openssl.hpp" />
     <ClInclude Include="openssl_error_category.hpp" />
     <ClInclude Include="stdafx.h" />
@@ -88,7 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="context.cpp" />
-    <ClCompile Include="filter.cpp" />
+    <ClCompile Include="ssl_filter.cpp" />
     <ClCompile Include="openssl.cpp" />
     <ClCompile Include="openssl_error_category.cpp" />
     <ClCompile Include="stdafx.cpp">

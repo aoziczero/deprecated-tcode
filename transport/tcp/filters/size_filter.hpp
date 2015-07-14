@@ -4,11 +4,10 @@
 #include <buffer/byte_buffer.hpp>
 #include <io/ip/address.hpp>
 #include <diagnostics/tcode_error_code.hpp>
-#include <transport/tcp./filter.hpp>
+#include <transport/tcp/filter.hpp>
 
 namespace tcode { namespace transport { namespace tcp {
 
-class channel;
 class size_filter : public filter{
 public:
 	size_filter( void );

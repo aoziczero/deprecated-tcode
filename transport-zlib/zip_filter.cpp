@@ -1,9 +1,8 @@
 #include "stdafx.h"
-#include "filter.hpp"
+#include "zip_filter.hpp"
 #include <zlib/include/zlib.h>
 
-namespace tcode {
-namespace zlib {
+namespace tcode { namespace transport { namespace tcp {
 namespace {
 #pragma pack(push, 1)   
 struct header {
@@ -13,12 +12,12 @@ struct header {
 #pragma pack(pop) 
 }
 
-filter::filter( void ){
+zip_filter::zip_filter( void ){
 }
-filter::~filter( void ){
+zip_filter::~zip_filter( void ){
 }
 
-void filter::filter_on_read( tcode::buffer::byte_buffer buf ){
+void zip_filter::filter_on_read( tcode::buffer::byte_buffer buf ){
 	_read_buffer.reserve( _read_buffer.length() + buf.length());
 	_read_buffer.write( buf.rd_ptr() , buf.length());
 
@@ -38,7 +37,7 @@ void filter::filter_on_read( tcode::buffer::byte_buffer buf ){
 	_read_buffer.fit();
 }
 
-void filter::filter_do_write( tcode::buffer::byte_buffer buf ){
+void zip_filter::filter_do_write( tcode::buffer::byte_buffer buf ){
 	tcode::buffer::byte_buffer cbuf( static_cast<int>(buf.length() * 1.2 ) + sizeof(header));
 	header hdr;
 	hdr.len = 0;
@@ -50,4 +49,4 @@ void filter::filter_do_write( tcode::buffer::byte_buffer buf ){
 	fire_filter_do_write( cbuf );
 }
 
-}}
+}}}

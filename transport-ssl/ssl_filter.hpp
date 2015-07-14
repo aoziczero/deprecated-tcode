@@ -5,10 +5,9 @@
 #include <transport/tcp/filter.hpp>
 #include <openssl/ssl.h>
 
-namespace tcode {
-namespace ssl {
+namespace tcode { namespace transport { namespace tcp {
 
-class filter 
+class ssl_filter 
 	: public tcode::transport::tcp::filter {
 public:
 	enum class HANDSHAKE{
@@ -17,8 +16,8 @@ public:
 		COMPLETE ,
 	};
 
-	filter( SSL_CTX* ctx , HANDSHAKE hs );
-	virtual ~filter( void );
+	ssl_filter( SSL_CTX* ctx , HANDSHAKE hs );
+	virtual ~ssl_filter( void );
 
 	virtual void filter_on_open( const tcode::io::ip::address& addr );
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf );
@@ -26,8 +25,8 @@ public:
 
 	bool is_fatal_error( int ret );
 	void send_pending( void );
-	bool read_data_write_bio( tcode::buffer::byte_buffer msg );
-	bool write_data_write_ssl( tcode::buffer::byte_buffer msg );
+	bool write_rbio( tcode::buffer::byte_buffer msg );
+	bool write_wbio( tcode::buffer::byte_buffer msg );
 	void begin_handshake( void );
 	void end_handshake( void );
 
@@ -43,6 +42,6 @@ private:
 	tcode::io::ip::address _addr;
 };
 
-}}
+}}}
 
 #endif

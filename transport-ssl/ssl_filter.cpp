@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "filter.hpp"
+#include "ssl_filter.hpp"
 #include "openssl_error_category.hpp"
 #include <transport/event_loop.hpp>
 #include <transport/tcp/channel.hpp>
@@ -8,10 +8,9 @@
 
 #include <openssl/err.h>
 
-namespace tcode {
-namespace ssl {
+namespace tcode { namespace transport { namespace tcp {
 
-filter::filter( SSL_CTX* ctx  , HANDSHAKE hs ) 
+ssl_filter::ssl_filter( SSL_CTX* ctx  , HANDSHAKE hs ) 
 	: _ssl( SSL_new( ctx ))
 	, _rbio( BIO_new( BIO_s_mem()))
 	, _wbio( BIO_new( BIO_s_mem()))
@@ -20,29 +19,29 @@ filter::filter( SSL_CTX* ctx  , HANDSHAKE hs )
 	SSL_set_bio( _ssl , _rbio , _wbio );
 }
 
-filter::~filter( void ){
+ssl_filter::~ssl_filter( void ){
 	SSL_shutdown( _ssl );
 	SSL_free( _ssl );
 }
 
-void filter::begin_handshake( void ) {
+void ssl_filter::begin_handshake( void ) {
 	int ret = SSL_read( _ssl , nullptr , 0 );
 	if ( is_fatal_error( ret ) ){
 		end_handshake();
 		channel()->close( 
-			std::error_code( SSL_get_error(_ssl, ret) , openssl_error_category()));
+			std::error_code( SSL_get_error(_ssl, ret) , tcode::ssl::openssl_error_category()));
 		return;
 	}
 	send_pending();
 }
 
-void filter::end_handshake( void ) {
+void ssl_filter::end_handshake( void ) {
 	if ( _handshake != HANDSHAKE::COMPLETE )
 		fire_filter_on_open( _addr );
 	_handshake = HANDSHAKE::COMPLETE;
 }
 
-void filter::filter_on_open( const tcode::io::ip::address& addr ){
+void ssl_filter::filter_on_open( const tcode::io::ip::address& addr ){
 	_addr = addr;
 	if ( _handshake == HANDSHAKE::ACCEPT )
 		SSL_set_accept_state( _ssl );
@@ -51,14 +50,14 @@ void filter::filter_on_open( const tcode::io::ip::address& addr ){
 	begin_handshake();
 }
 
-void filter::send_pending( void ) {
+void ssl_filter::send_pending( void ) {
 	while ( BIO_ctrl_pending( _wbio )) {
 		tcode::buffer::byte_buffer mb( 4096 );
 		int ret = BIO_read( _wbio , mb.wr_ptr() , mb.space() );
 		if ( ret <= 0 ) {
 			if (is_fatal_error(ret)){				
 				channel()->close( 
-					std::error_code( SSL_get_error(_ssl, ret) , openssl_error_category()));
+					std::error_code( SSL_get_error(_ssl, ret) , tcode::ssl::openssl_error_category()));
 				end_handshake();
 			}
 			break;
@@ -69,7 +68,7 @@ void filter::send_pending( void ) {
 	}
 }
 
-bool filter::read_data_write_bio( tcode::buffer::byte_buffer msg ) {
+bool ssl_filter::write_rbio( tcode::buffer::byte_buffer msg ) {
 	while( msg.length() > 0 ) {
 		int len = BIO_write( _rbio 
 			, msg.rd_ptr()
@@ -78,7 +77,7 @@ bool filter::read_data_write_bio( tcode::buffer::byte_buffer msg ) {
 		if ( len <= 0 ) {
 			if ( !BIO_should_retry(_rbio)){
 				channel()->close( 
-					std::error_code( SSL_get_error(_ssl, len) , openssl_error_category()));
+					std::error_code( SSL_get_error(_ssl, len) , tcode::ssl::openssl_error_category()));
 				end_handshake();
 				return false;
 			}
@@ -89,7 +88,7 @@ bool filter::read_data_write_bio( tcode::buffer::byte_buffer msg ) {
 	return true;
 }
 
-bool filter::write_data_write_ssl( tcode::buffer::byte_buffer msg  ) {
+bool ssl_filter::write_wbio( tcode::buffer::byte_buffer msg  ) {
 	while( msg.length() > 0 ) {
 		int len = SSL_write( _ssl 
 			, msg.rd_ptr()
@@ -97,7 +96,7 @@ bool filter::write_data_write_ssl( tcode::buffer::byte_buffer msg  ) {
 		if ( len <= 0 ) {
 			if ( is_fatal_error( len ) ) {
 				channel()->close( 
-					std::error_code( SSL_get_error(_ssl, len) , openssl_error_category()));
+					std::error_code( SSL_get_error(_ssl, len) , tcode::ssl::openssl_error_category()));
 				return false;
 			}
 		} else {
@@ -107,8 +106,8 @@ bool filter::write_data_write_ssl( tcode::buffer::byte_buffer msg  ) {
 	return true;
 }
 
-void filter::filter_on_read( tcode::buffer::byte_buffer buf ){
-	if ( !read_data_write_bio( buf ) ) {
+void ssl_filter::filter_on_read( tcode::buffer::byte_buffer buf ){
+	if ( !write_rbio( buf ) ) {
 		return;
 	}
 	while ( true ) {
@@ -120,7 +119,7 @@ void filter::filter_on_read( tcode::buffer::byte_buffer buf ){
 		std::error_code ec;
 		if ( len <= 0 ) {
 			if ( is_fatal_error(len)){
-				ec = std::error_code( SSL_get_error(_ssl, len) , openssl_error_category());
+				ec = std::error_code( SSL_get_error(_ssl, len) , tcode::ssl::openssl_error_category());
 			}
 		}
 		if (( _handshake != HANDSHAKE::COMPLETE ) && SSL_is_init_finished( _ssl ) ) {
@@ -141,12 +140,12 @@ void filter::filter_on_read( tcode::buffer::byte_buffer buf ){
 	send_pending();
 }
 
-void filter::filter_do_write( tcode::buffer::byte_buffer buf  ){
-	write_data_write_ssl(buf);
+void ssl_filter::filter_do_write( tcode::buffer::byte_buffer buf  ){
+	write_wbio(buf);
 	send_pending();
 }
 
-bool filter::is_fatal_error( int ret ) {
+bool ssl_filter::is_fatal_error( int ret ) {
 	switch(SSL_get_error(_ssl, ret)){
         case SSL_ERROR_NONE:
         case SSL_ERROR_WANT_READ:
@@ -159,16 +158,16 @@ bool filter::is_fatal_error( int ret ) {
 }
 
 
-X509* filter::peer_certificate( void ) {
+X509* ssl_filter::peer_certificate( void ) {
 	return SSL_get_peer_certificate(_ssl);
 }
 
-void  filter::free_peer_certificate( X509* x ) {
+void  ssl_filter::free_peer_certificate( X509* x ) {
 	X509_free(x);
 }
 
-SSL* filter::ssl( void ) {
+SSL* ssl_filter::ssl( void ) {
 	return _ssl;
 }
 
-}}
+}}}

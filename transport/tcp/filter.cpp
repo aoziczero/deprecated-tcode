@@ -179,4 +179,8 @@ void filter::release( void ){
 	_channel->release();
 }
 
+void filter::close( const tcode::diagnostics::error_code& ec ){
+	_channel->close( ec );
+}
+
 }}}

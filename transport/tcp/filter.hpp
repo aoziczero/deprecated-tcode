@@ -47,6 +47,8 @@ public:
 
 	void add_ref( void );
 	void release( void );
+
+	void close( const tcode::diagnostics::error_code& ec );
 private:
 	tcp::channel* _channel;
 	filter* _inbound;

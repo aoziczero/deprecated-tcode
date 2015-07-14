@@ -33,7 +33,7 @@
     <ClInclude Include="context.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filter.hpp">
+    <ClInclude Include="ssl_filter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,7 +50,7 @@
     <ClCompile Include="context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="filter.cpp">
+    <ClCompile Include="ssl_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "size_filter.hpp"
-#include "channel.hpp"
+#include <transport/tcp/channel.hpp>
 
 namespace tcode { namespace transport { namespace tcp {
 
