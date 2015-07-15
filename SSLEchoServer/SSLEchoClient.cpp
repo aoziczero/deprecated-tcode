@@ -39,7 +39,7 @@ public:
 	virtual void filter_on_open( const tcode::io::ip::address& addr ){
 		LOG_T("ECHO" , "filter_on_open %s" , addr.ip_address().c_str() );
 		tcode::buffer::byte_buffer hello(10);
-		hello.write_msg("Hello!");
+		hello.write_msg("Hello!\0");
 		fire_filter_do_write(hello);
 	}
 	virtual void filter_on_close( void ){
@@ -64,12 +64,13 @@ private:
 
 };
 
-class connector_impl : public tcode::transport::tcp::connector
-	, public tcode::transport::tcp::pipeline_builder
+class connector_impl : public tcode::transport::tcp::pipeline_builder
+	, public tcode::transport::tcp::connector::error_handler
 {
 public:
 	connector_impl( tcode::transport::event_loop& l ) 
-		: connector( l )
+		: _connector(  tcode::transport::tcp::connector::create( l 
+			, tcode::rc_ptr<tcode::transport::tcp::connector::error_handler>(this)) )
 		, _ssl_context( SSLv23_client_method() )
 	{
 	}
@@ -88,11 +89,16 @@ public:
 		p.add( new echo_filter());
 		return true;
 	}
+	
+	tcode::rc_ptr<tcode::transport::tcp::connector >& connector( void ){
+		return _connector;
+	}
 
 	virtual tcode::transport::event_loop& channel_loop( void ){	
-		return loop();
+		return _connector->loop();
 	}
 private:
+	tcode::rc_ptr<tcode::transport::tcp::connector > _connector;
 	tcode::ssl::context _ssl_context;
 };
 
@@ -106,7 +112,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	tcode::transport::event_loop loop;
 	connector_impl* conn = new connector_impl( loop );
 	tcode::transport::tcp::pipeline_builder_ptr builder(conn);
-	if ( conn->connect(  tcode::io::ip::address::from( "127.0.0.1" , 7543)  , builder , tcode::time_span::minutes(2) )){
+	if ( conn->connector()->connect(  tcode::io::ip::address::from( "127.0.0.1" , 7543)  , builder , tcode::time_span::minutes(2) )){
 		loop.run();
 	}
 	return 0;

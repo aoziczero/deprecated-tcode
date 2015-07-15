@@ -21,16 +21,7 @@ void completion_handler_read::operator()( const tcode::diagnostics::error_code& 
 	if ( completion_bytes == 0 && !errc ) {
 		errc = tcode::diagnostics::error_code( WSAECONNRESET , tcode::diagnostics::windows_category());
 	} 
-	if ( !errc) {
-		_read_buffer.wr_ptr( completion_bytes );
-	}
-	_channel.handle_read( errc , _read_buffer , this );
-}
-
-tcode::iovec completion_handler_read::read_buffer( const int sz ){
-	_read_buffer.clear();
-	_read_buffer.reserve( sz );
-	return tcode::io::read_buffer( _read_buffer );
+	_channel.handle_read( errc , completion_bytes , this );
 }
 
 }}}

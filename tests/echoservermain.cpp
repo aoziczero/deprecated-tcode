@@ -31,23 +31,23 @@ public:
 	virtual ~echo_filter( void ){
 	}
 	virtual void filter_on_open( const tcode::io::ip::address& addr ){
-		std::cout <<"filter_on_open" << std::endl;
+		LOG_T("ECHO" , "filter_on_open %s" , addr.ip_address().c_str() );
 	}
 	virtual void filter_on_close( void ){
-		std::cout <<"filter_on_close" << std::endl;
+		LOG_T("ECHO" , "filter_on_close" );
 	}
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf ){
-		std::cout <<"filter_on_read" << std::endl;
+		LOG_T("ECHO" , "filter_on_read" );
 		fire_filter_do_write( buf );
 	}
 	virtual void filter_on_write( int written , bool flush ){
-		std::cout <<"filter_on_write" << std::endl;
+		LOG_T("ECHO" , "filter_on_write %d " , written );
 	}
 	virtual void filter_on_error( const std::error_code& ec ){
-		std::cout <<"filter_on_error" << std::endl;
+		LOG_D("ECHO" , "filter_on_error : %s" , ec.message().c_str());
 	}
 	virtual void filter_on_end_reference( void ){
-		std::cout <<"filter_on_end_reference" << std::endl;
+		LOG_T("ECHO" , "filter_on_end_reference" );
 		delete this;
 	}
 private:

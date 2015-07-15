@@ -5,6 +5,7 @@
 #include <buffer/byte_buffer.hpp>
 #include <io/ip/basic_socket.hpp>
 #include <transport/tcp/pipeline.hpp>
+#include <transport/tcp/packet_buffer.hpp>
 
 #include <atomic>
 
@@ -59,7 +60,8 @@ public:
 #if defined( TCODE_TARGET_WINDOWS )
 	void read( completion_handler_read* h );
 	void handle_read( const tcode::diagnostics::error_code& ec 
-			, tcode::buffer::byte_buffer& readbuf
+			, const int completion_bytes 
+			//, tcode::buffer::byte_buffer& readbuf
 			, completion_handler_read* h );
 	void handle_write( const tcode::diagnostics::error_code& ec 
 			, const int completion_bytes 
@@ -78,6 +80,7 @@ private:
 	tcp::pipeline _pipeline;
 	std::atomic< int > _flag;
 	std::vector< tcode::buffer::byte_buffer > _write_buffers;
+	packet_buffer_ptr _packet_buffer;
 };
 
 }}}

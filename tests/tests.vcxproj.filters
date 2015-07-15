@@ -38,7 +38,7 @@
     <ClCompile Include="test_diagnostics_last_error.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="connectormain.cpp">
+    <ClCompile Include="echoservermain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

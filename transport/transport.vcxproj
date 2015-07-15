@@ -91,6 +91,7 @@
     <ClInclude Include="tcp\connector.hpp" />
     <ClInclude Include="tcp\filter.hpp" />
     <ClInclude Include="tcp\filters\timeout_filter.hpp" />
+    <ClInclude Include="tcp\packet_buffer.hpp" />
     <ClInclude Include="tcp\pipeline.hpp" />
     <ClInclude Include="tcp\pipeline_builder.hpp" />
     <ClInclude Include="tcp\filters\size_filter.hpp" />
@@ -116,6 +117,7 @@
     <ClCompile Include="tcp\connector.cpp" />
     <ClCompile Include="tcp\filter.cpp" />
     <ClCompile Include="tcp\filters\timeout_filter.cpp" />
+    <ClCompile Include="tcp\packet_buffer.cpp" />
     <ClCompile Include="tcp\pipeline.cpp" />
     <ClCompile Include="tcp\filters\size_filter.cpp" />
     <ClCompile Include="udp\bootstrap.cpp" />

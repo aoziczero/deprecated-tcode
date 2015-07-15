@@ -194,7 +194,10 @@ void channel::read( completion_handler_read* h ) {
 	if ( h == nullptr ) h = new completion_handler_read( *this );
 		
 	h->prepare();
-	tcode::iovec iov = h->read_buffer( channel_config::READ_BUFFER_SIZE );
+	if ( _packet_buffer.get() == nullptr ){
+		_packet_buffer = new simple_packet_buffer( channel_config::READ_BUFFER_SIZE  );
+	}
+	tcode::iovec iov = _packet_buffer->read_iovec();
 	DWORD flag = 0;
     if ( WSARecv(	handle() 
                     , &iov
@@ -213,14 +216,16 @@ void channel::read( completion_handler_read* h ) {
 }
 
 void channel::handle_read( const tcode::diagnostics::error_code& ec 
-		, tcode::buffer::byte_buffer& readbuf
+		, const int completion_bytes 
 		, completion_handler_read* h )
 {
 	if ( tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
 		if ( ec ){
 			close(ec);
 		} else {
-			_pipeline.fire_filter_on_read( readbuf );
+			if ( _packet_buffer->complete(completion_bytes)){
+				_pipeline.fire_filter_on_read( _packet_buffer->detach_packet());	
+			}
 			read(h);
 			return;
 		}
@@ -364,21 +369,31 @@ void channel::write_reamins( void ){
 }
 
 void channel::handle_read( void ){
-	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
-		return;
-	}
+	while ( true ) {
+		if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+			return;
+		}
 
-	tcode::buffer::byte_buffer buffer( channel_config::READ_BUFFER_SIZE );	
-	iovec vec = tcode::io::read_buffer( buffer );
-	int result = read( &vec , 1 );
-	if ( result < 0 ){
-		close( tcode::diagnostics::platform_error() );
-	} else if ( result == 0 ) {
-		close( std::error_code( ECONNRESET , tcode::diagnostics::posix_category()) );
-	} else {
-		buffer.wr_ptr( result );
-		_pipeline.fire_filter_on_read( buffer );
-	}	
+		if ( _packet_buffer.get() == nullptr ){
+			_packet_buffer = new simple_packet_buffer( channel_config::READ_BUFFER_SIZE  );
+		}
+	
+		tcode::iovec iov = _packet_buffer->read_iovec();
+		int result = read( &vec , 1 );
+		if ( result < 0 ){
+			if ( errno == EAGAIN )
+				break;
+			else 
+				close( tcode::diagnostics::platform_error() );
+		} else if ( result == 0 ) {
+			close( std::error_code( ECONNRESET , tcode::diagnostics::posix_category()) );
+		} else {
+			if ( _packet_buffer->complete(completion_bytes)){
+				return _pipeline.fire_filter_on_read( _packet_buffer->detach_packet());	
+			}
+		}	
+	}
+	
 }
 
 void channel::handle_write( void ){

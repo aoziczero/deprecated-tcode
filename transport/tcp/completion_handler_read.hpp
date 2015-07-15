@@ -15,12 +15,9 @@ public:
 	completion_handler_read( channel& channel );
 	virtual ~completion_handler_read( void );	
 	virtual void operator()( const tcode::diagnostics::error_code& ec 
-			, const int completion_bytes );
-	
-	tcode::iovec read_buffer( const int sz );
+			, const int completion_bytes );	
 private:
 	channel& _channel;
-	tcode::buffer::byte_buffer _read_buffer;
 };
 
 }}}

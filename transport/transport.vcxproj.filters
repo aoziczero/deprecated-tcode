@@ -69,6 +69,9 @@
     <ClInclude Include="tcp\filters\timeout_filter.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="tcp\packet_buffer.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -101,5 +104,6 @@
     <ClCompile Include="udp\bootstrap.cpp" />
     <ClCompile Include="tcp\filters\size_filter.cpp" />
     <ClCompile Include="tcp\filters\timeout_filter.cpp" />
+    <ClCompile Include="tcp\packet_buffer.cpp" />
   </ItemGroup>
 </Project>
