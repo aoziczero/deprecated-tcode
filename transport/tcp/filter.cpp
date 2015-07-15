@@ -7,7 +7,7 @@
 namespace tcode { namespace transport { namespace tcp {
 
 filter::filter( void )
-	: _channel(nullptr) 
+	: _pipeline(nullptr) 
 	, _inbound(nullptr)
 	, _outbound( nullptr )
 {
@@ -39,7 +39,7 @@ void filter::filter_on_error( const std::error_code& ec ){
 }
 
 void filter::filter_on_end_reference( void ){
-	fire_filter_on_end_reference();
+	//fire_filter_on_end_reference();
 	delete this;
 }
 	
@@ -50,101 +50,32 @@ void filter::filter_do_write( tcode::buffer::byte_buffer buf ){
 
 // fire inbound
 void filter::fire_filter_on_open( const tcode::io::ip::address& addr ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _inbound )
-			_inbound->filter_on_open( addr );
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this , addr ] {
-			if ( _inbound )
-				_inbound->filter_on_open( addr );
-			release();
-		});
-	}	
+	if ( _inbound )
+		pipeline()->fire_filter_on_open( _inbound , addr );
 }
+
 void filter::fire_filter_on_close( void ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _inbound )
-			 _inbound->filter_on_close( );
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this  ] {
-			if ( _inbound )
-				 _inbound->filter_on_close( );
-			release();
-		});
-	}
+	if ( _inbound )
+		pipeline()->fire_filter_on_close( _inbound  );
 }
+
 void filter::fire_filter_on_read( tcode::buffer::byte_buffer& buf ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _inbound )
-			_inbound->filter_on_read( buf );
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this , buf  ] {
-			tcode::buffer::byte_buffer nb( buf );
-			if ( _inbound )
-				_inbound->filter_on_read( buf );
-			release();
-		});
-	}	
+	if ( _inbound )
+		pipeline()->fire_filter_on_read( _inbound , buf );
+		
 }
 void filter::fire_filter_on_write( int written , bool flush ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _inbound )
-			 _inbound->filter_on_write( written , flush );
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this , written , flush ] {
-			if ( _inbound )
-				_inbound->filter_on_write( written , flush );
-			release();
-		});
-	}	
+	if ( _inbound )
+		pipeline()->fire_filter_on_write( _inbound , written , flush );
 }
+
 void filter::fire_filter_on_error( const std::error_code& ec ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _inbound )
-				_inbound->filter_on_error( ec );
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this , ec  ] {			
-			if ( _inbound )
-				 _inbound->filter_on_error( ec );
-			release();
-		});
-	}
+	if ( _inbound )
+		pipeline()->fire_filter_on_error( _inbound , ec );	
 }
-void filter::fire_filter_on_end_reference( void ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _inbound )
-			_inbound->filter_on_end_reference();
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this ] {
-			if ( _inbound )
-				_inbound->filter_on_end_reference();
-			release();
-		});
-	}	
-}	
+
 void filter::fire_filter_do_write( tcode::buffer::byte_buffer& buf ){
-	if ( channel()->loop().in_event_loop() && channel()->pipeline().in_pipeline() ){
-		if ( _outbound )
-			_outbound->filter_do_write( buf );
-		else 
-			_channel->do_write( buf );
-	} else {
-		add_ref();
-		channel()->loop().execute( [ this , buf  ] {
-			tcode::buffer::byte_buffer nb( buf );
-			if ( _outbound )
-				_outbound->filter_do_write( buf );
-			else 
-				_channel->do_write( buf );
-			release();
-		});
-	}
+	pipeline()->fire_filter_do_write( _outbound , buf );
 }
 
 filter* filter::inbound( void ){
@@ -164,23 +95,27 @@ void filter::outbound( filter* f ){
 }
 
 tcp::channel* filter::channel( void ){
-	return _channel;
+	return _pipeline->channel();
 }
 
-void filter::channel( tcp::channel* c ){
-	_channel = c;
+tcp::pipeline* filter::pipeline( void ){
+	return _pipeline;
+}
+
+void filter::pipeline( tcp::pipeline* p ){
+	_pipeline = p;
 }
 
 void filter::add_ref( void ) {
-	_channel->add_ref();
+	channel()->add_ref();
 }
 
 void filter::release( void ){
-	_channel->release();
+	channel()->release();
 }
 
 void filter::close( const tcode::diagnostics::error_code& ec ){
-	_channel->close( ec );
+	channel()->close( ec );
 }
 
 }}}

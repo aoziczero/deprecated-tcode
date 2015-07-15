@@ -8,6 +8,7 @@
 namespace tcode { namespace transport { namespace tcp {
 
 class channel;
+class pipeline;
 class filter {
 public:
 	filter( void );
@@ -19,6 +20,8 @@ public:
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf );
 	virtual void filter_on_write( int written , bool flush );
 	virtual void filter_on_error( const std::error_code& ec );
+
+	// filter_on_end_reference 는 지연 실행 불가
 	virtual void filter_on_end_reference( void );;
 	
 	// outbound
@@ -43,14 +46,15 @@ public:
 	void outbound( filter* f );
 	
 	tcp::channel* channel( void );
-	void channel( tcp::channel* c );
+	tcp::pipeline* pipeline( void );
+	void pipeline( tcp::pipeline* p );
 
 	void add_ref( void );
 	void release( void );
 
 	void close( const tcode::diagnostics::error_code& ec );
 private:
-	tcp::channel* _channel;
+	tcp::pipeline* _pipeline;
 	filter* _inbound;
 	filter* _outbound;
 };

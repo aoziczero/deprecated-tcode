@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "logger.hpp"
 #include <common/time_util.hpp>
-
 #include <stdarg.h>
+#include "console_writer.hpp"
 
 namespace tcode { namespace diagnostics { namespace log {
 
@@ -11,7 +11,9 @@ const char* to_string( tcode::diagnostics::log::level lv );
 logger::logger( void )
 	: _level( log::level::LOG_ALL )
 {
-
+#if defined( _DEBUG ) || defined( DEBUG )
+	add_writer( tcode::diagnostics::log::console_writer::instance());
+#endif
 }
 
 logger::~logger ( void ){

@@ -71,9 +71,10 @@ bool openssl_init( void ){
 	CRYPTO_set_dynlock_destroy_callback(&ssl_lock_dyn_destroy_callback);
 
 	SSL_load_error_strings();
-	SSLeay_add_ssl_algorithms();
-    ERR_load_BIO_strings();
-    ERR_load_SSL_strings();
+    ERR_load_crypto_strings();
+    OpenSSL_add_all_algorithms();
+    SSL_library_init();
+	
 	return true;
 }
 

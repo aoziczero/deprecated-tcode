@@ -13,6 +13,7 @@
 #pragma comment(lib, "tcode.diagnostics.lib")
 #pragma comment(lib, "tcode.io.lib")
 #pragma comment(lib, "tcode.transport.lib")
+#pragma comment(lib, "tcode.transport-ssl.lib")
 #endif
 
 #include <transport/event_loop.hpp>
@@ -86,11 +87,6 @@ int _tmain(int argc, _TCHAR* argv[]) {
 #else
 int main( int argc , char* argv[]) {
 #endif
-
-	tcode::diagnostics::log::logger::instance().add_writer( 
-		tcode::diagnostics::log::writer_ptr(new tcode::diagnostics::log::console_writer())
-	);
-	
 	tcode::diagnostics::log::formatter_ptr formatter( new tcode::diagnostics::log::serialize_formatter());
 	tcode::diagnostics::log::writer_ptr writer(new tcode::diagnostics::log::udp_writer( 
 			tcode::io::ip::address::from( "127.0.0.1" , 8888 )
@@ -117,5 +113,7 @@ int main( int argc , char* argv[]) {
 	}
 	return 0;
 }
+
+
 
 

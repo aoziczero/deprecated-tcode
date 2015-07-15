@@ -51,7 +51,7 @@ acceptor::acceptor(tcode::transport::event_loop& l)
 }
 
 acceptor::~acceptor(void){
-	_loop.links_release();
+	
 }
 
 bool acceptor::listen( const tcode::io::ip::address& bind_addr

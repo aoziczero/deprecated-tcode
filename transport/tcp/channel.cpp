@@ -31,7 +31,7 @@ channel::channel( event_loop& l
 {
 	handle( fd );	
 	_flag.store( detail::NO_ERROR_FLAG | detail::NOT_CLOSED_FLAG );
-	_pipeline.set_channel( this );
+	_pipeline.channel( this );
 	_loop.links_add();
 }
 
@@ -82,7 +82,7 @@ void channel::add_ref( void ){
 	_flag.fetch_add(1);
 }
 
-void channel::release( void ){
+int channel::release( void ){
 	int val = _flag.fetch_sub(1
 			, std::memory_order::memory_order_release ) - 1;
 	if ( val == 0 ) {
@@ -90,6 +90,7 @@ void channel::release( void ){
 			fire_on_end_reference();
 		});
 	}
+	return val;
 }
 
 void channel::fire_on_open( const tcode::io::ip::address& addr ){

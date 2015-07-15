@@ -55,4 +55,9 @@ void console_writer::write( const record& r ){
 	_buffer.clear();
 }
 
+tcode::rc_ptr< writer > console_writer::instance( void ){
+	tcode::rc_ptr< writer > writer( new console_writer());
+	return writer;
+}
+
 }}}

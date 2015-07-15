@@ -31,15 +31,15 @@ void size_filter::filter_on_read( tcode::buffer::byte_buffer buf )
 
 void size_filter::filter_do_write( tcode::buffer::byte_buffer buf )
 {	
-	if ( outbound()) {
+	if ( !outbound() && pipeline()->in_pipeline() ){
+		tcode::buffer::byte_buffer size(sizeof(size_type));
+		size << (size_type)buf.length();
+		channel()->do_write( size , buf );
+	}else {
 		tcode::buffer::byte_buffer buff( buf.length() + sizeof(size_type) );
 		buff << (size_type)buf.length();
 		buff.write( buf.rd_ptr() , buf.length());
 		fire_filter_do_write(buff);
-	} else {
-		tcode::buffer::byte_buffer size(sizeof(size_type));
-		size << (size_type)buf.length();
-		channel()->do_write( size , buf );
 	}
 }
 

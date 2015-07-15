@@ -23,12 +23,21 @@ public:
 	void fire_filter_on_close( void );
 	void fire_filter_on_end_reference( void );
 
+	void fire_filter_on_open(  filter* pfilter , const tcode::io::ip::address& addr );
+	void fire_filter_on_close( filter* pfilter );
+	void fire_filter_on_read( filter* pfilter , tcode::buffer::byte_buffer& buf );
+	void fire_filter_on_write( filter* pfilter , int written , bool flush );
+	void fire_filter_on_error( filter* pfilter , const std::error_code& ec );
+	void fire_filter_do_write( filter* pfilter , tcode::buffer::byte_buffer& buf );
+
 	pipeline& add( filter* pfilter );
 	
-	void set_channel( tcp::channel* chan );
+	void channel( tcp::channel* chan );
+	tcp::channel* channel( void );
 private:
-	int _flag;	
+	tcp::channel* _channel;
 	filter* _inbound;
+	int _flag;	
 };
 
 }}}
