@@ -46,7 +46,7 @@ public:
 	void close( const std::error_code& ec );
 	
 	void add_ref( void );
-	void release( void );
+	int release( void );
 	
 	void fire_on_open( const tcode::io::ip::address& addr );
 	void fire_on_end_reference( void );

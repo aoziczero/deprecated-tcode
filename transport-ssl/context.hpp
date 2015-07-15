@@ -9,9 +9,9 @@ namespace ssl {
 
 class context {
 public:
-	context(void);
+	context( const SSL_METHOD* method );
 	~context(void);
-
+	bool use_generate_key();
 	bool use_certificate_file( const std::string& file );
 	bool use_private_key_file( const std::string& file
 		, const std::string& pw );

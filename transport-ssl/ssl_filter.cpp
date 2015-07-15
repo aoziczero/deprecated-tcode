@@ -7,6 +7,14 @@
 #include <transport/tcp/pipeline.hpp>
 
 #include <openssl/err.h>
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#include <openssl/applink.c>
+#endif
+
+#ifdef _CRT_SECURE_NO_WARNINGS
+#undef _CRT_SECURE_NO_WARNINGS
+#endif
 
 namespace tcode { namespace transport { namespace tcp {
 
@@ -15,8 +23,7 @@ ssl_filter::ssl_filter( SSL_CTX* ctx  , HANDSHAKE hs )
 	, _rbio( BIO_new( BIO_s_mem()))
 	, _wbio( BIO_new( BIO_s_mem()))
 	, _handshake( hs )
-{
-	SSL_set_bio( _ssl , _rbio , _wbio );
+{	
 }
 
 ssl_filter::~ssl_filter( void ){
@@ -25,6 +32,7 @@ ssl_filter::~ssl_filter( void ){
 }
 
 void ssl_filter::begin_handshake( void ) {
+	SSL_set_bio( _ssl , _rbio , _wbio );
 	int ret = SSL_read( _ssl , nullptr , 0 );
 	if ( is_fatal_error( ret ) ){
 		end_handshake();
@@ -146,7 +154,8 @@ void ssl_filter::filter_do_write( tcode::buffer::byte_buffer buf  ){
 }
 
 bool ssl_filter::is_fatal_error( int ret ) {
-	switch(SSL_get_error(_ssl, ret)){
+	int er_code = SSL_get_error(_ssl, ret);
+	switch(er_code){
         case SSL_ERROR_NONE:
         case SSL_ERROR_WANT_READ:
         case SSL_ERROR_WANT_WRITE:
@@ -154,6 +163,7 @@ bool ssl_filter::is_fatal_error( int ret ) {
         case SSL_ERROR_WANT_ACCEPT:
             return false;
     }
+	ERR_print_errors_fp(stderr);
 	return true;
 }
 

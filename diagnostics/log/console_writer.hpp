@@ -15,6 +15,8 @@ public:
 	virtual void write( const record& r );
 private:	
 	tcode::buffer::byte_buffer _buffer;
+public:
+	static tcode::rc_ptr< writer > instance( void );
 };
 
 }}}
