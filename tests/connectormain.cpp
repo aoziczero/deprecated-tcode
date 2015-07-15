@@ -53,19 +53,18 @@ public:
 private:
 };
 
-class connector_impl : public tcode::transport::tcp::connector
+class connector_impl : public tcode::transport::tcp::connector::error_handler
 	, public tcode::transport::tcp::pipeline_builder
 {
 public:
-	connector_impl( tcode::transport::event_loop& l ) 
-		: connector( l ){
+	connector_impl( tcode::transport::event_loop& l ) {
+		_connector = tcode::transport::tcp::connector::create( l , 
+			tcode::rc_ptr< tcode::transport::tcp::connector::error_handler >(this)
+		  );
 	}
 	
-	virtual bool condition( tcode::io::ip::socket_type h , const tcode::io::ip::address& addr ){
-		return true;
-	}
 
-	virtual void on_error( const std::error_code& ec ){
+	virtual void operator()( const std::error_code& ec ){
 	
 	}
 
@@ -75,8 +74,13 @@ public:
 	}
 
 	virtual tcode::transport::event_loop& channel_loop( void ){
-		return loop();;
+		return _connector->loop();
 	}
+	const tcode::rc_ptr< tcode::transport::tcp::connector >& connector() {	
+		return _connector;
+	}
+private:
+	tcode::rc_ptr< tcode::transport::tcp::connector > _connector;
 };
 
 #if defined ( TCODE_TARGET_WINDOWS )
@@ -112,7 +116,7 @@ int main( int argc , char* argv[]) {
 	tcode::io::ip::resolver r;
 	std::vector< tcode::io::ip::address > addrs = r.resolve( "google.co.kr" , 80 , AF_INET );
 	tcode::transport::tcp::pipeline_builder_ptr builder( conn );
-	if ( conn->connect( addrs[0] , builder , tcode::time_span::minutes(2) )){
+	if ( conn->connector()->connect( addrs[0] , builder , tcode::time_span::minutes(2) )){
 		loop.run();
 	}
 	return 0;

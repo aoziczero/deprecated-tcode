@@ -9,9 +9,11 @@ namespace tcode { namespace transport { namespace tcp {
 #if defined(TCODE_TARGET_WINDOWS)
 LPFN_CONNECTEX fp_connect_ex = nullptr;
 #endif
-connector::connector(tcode::transport::event_loop& l)
+connector::connector(tcode::transport::event_loop& l
+	, const tcode::rc_ptr< error_handler >& h )
 	: _loop(l) 
 	, _timeout(false)
+	, _err_handler(h)
 {
 	_loop.links_add();
 }
@@ -49,23 +51,7 @@ bool connector::connect( const tcode::io::ip::address& addr
 {
 	_address = addr;
 	_builder = builder;
-	_timer = event_timer::create( loop() );
-	_timer->expired_at( tcode::time_stamp::now() + ts );
-	add_ref();
-	_timer->on_expired(event_timer::handler(
-			[this]( const tcode::diagnostics::error_code& ec, const event_timer& ){
-				if ( ec != tcode::diagnostics::cancel ) {
-					_timeout = true;
-#if defined( TCODE_TARGET_WINDOWS )	
-					close();
-#else
-					loop().dispatcher().unbind( handle());
-					close();
-					on_error( tcode::diagnostics::timeout);
-#endif					
-				}
-				release();
-			}));
+	
 	switch( addr.family() )
 	{
 	case AF_INET:
@@ -118,6 +104,21 @@ bool connector::connect( const tcode::io::ip::address& addr
 	}
 #endif
 	if ( do_connect() ) {
+		tcode::rc_ptr< connector > pthis(this);
+		_timer = event_timer::create( loop() );
+		_timer->expired_at( tcode::time_stamp::now() + ts );
+		_timer->on_expired(event_timer::handler(
+				[this , pthis ]( const tcode::diagnostics::error_code& ec, const event_timer& ){
+					if ( ec != tcode::diagnostics::cancel ) {
+						_timeout = true;
+	#if defined( TCODE_TARGET_WINDOWS )	
+						close();
+	#else
+						loop().dispatcher().unbind( handle());
+						handle_connect( tcode::diagnostics::timeout );
+	#endif					
+					}
+				}));
 		_timer->fire();
 		return true;
 	}
@@ -128,17 +129,12 @@ tcode::transport::event_loop& connector::loop( void ){
 	return _loop;
 }
 
-void connector::on_error( const std::error_code& ec ){
-	
-}
 
 bool connector::do_connect(void){
+	
 #if defined( TCODE_TARGET_WINDOWS )
-	if ( handle() == tcode::io::ip::invalid_socket ) 
-		return false;
-
-	this->prepare();
 	this->add_ref();
+	this->prepare();
     DWORD dwBytes = 0;
 	if ( fp_connect_ex( handle() ,  
                         _address.sockaddr() , 
@@ -168,6 +164,7 @@ bool connector::do_connect(void){
 					, EPOLLOUT | EPOLLONESHOT 
 					,  this ))
 		{
+			this->add_ref();
 			return true;	
 		}
 	} 
@@ -195,7 +192,7 @@ void connector::handle_connect( const tcode::diagnostics::error_code& ec )
 			er = tcode::diagnostics::build_fail;
 		}
 	}
-	on_error( er );
+	(*_err_handler)( er );
 	tcode::io::ip::connect_base::close();
 	this->release();
 }
@@ -205,26 +202,31 @@ void connector::handle_connect( const tcode::diagnostics::error_code& ec )
 void connector::operator()( const tcode::diagnostics::error_code& ec 
 			, const int completion_bytes )
 {	
-	handle_connect(ec);
 	_timer->cancel();
+	handle_connect(ec);
 }
 
 #elif defined( TCODE_TARGET_LINUX )
 
 void connector::operator()( const int events )
 {		
-	std::cout <<"on notify" << std::endl;
+	_timer->cancel();
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
 		 handle_connect( events & EPOLLERR ? tcode::diagnostics::epoll_err : tcode::diagnostics::epoll_hup );
 	} else {
 		if ( events & EPOLLOUT ) {
 			handle_connect( tcode::diagnostics::success );
 		}
-	}
-	_timer->cancel();
+	}	
 }
 
 #endif
+
+tcode::rc_ptr<connector> connector::create( tcode::transport::event_loop& l 
+	, const tcode::rc_ptr< error_handler >& errh )
+{
+	return tcode::rc_ptr<connector>( new connector(l , errh));
+}
 
 }}}
 
