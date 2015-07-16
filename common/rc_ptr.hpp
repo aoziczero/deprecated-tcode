@@ -67,7 +67,7 @@ template < typename Object >
 class rc_ptr {
 public:	
 	//! construct
-    explicit rc_ptr( Object* p = nullptr ) 
+    rc_ptr( Object* p = nullptr ) 
         : _ptr( p ){
         add_ref();
     }

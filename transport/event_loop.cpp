@@ -38,16 +38,16 @@ void event_loop::execute_handler( tcode::io::completion_handler* handler ){
 	_dispatcher.post( handler );
 }
 
-void event_loop::schedule( const event_timer::pointer_type& ptr ) {
-	std::list<event_timer::pointer_type>::iterator it = 
+void event_loop::schedule( const event_timer_ptr& ptr ) {
+	std::list<event_timer_ptr>::iterator it = 
         std::upper_bound( _event_timers.begin() , _event_timers.end() , ptr , 
-			[]( const event_timer::pointer_type& v , const event_timer::pointer_type& cmp )->bool{
+			[]( const event_timer_ptr& v , const event_timer_ptr& cmp )->bool{
                 return v->expired_at() < cmp->expired_at();
             });
     _event_timers.insert( it , ptr );
 }
 
-void event_loop::cancel( const event_timer::pointer_type& ptr ){
+void event_loop::cancel( const event_timer_ptr& ptr ){
 	auto it = std::find(_event_timers.begin(), _event_timers.end() , ptr );
 	if (it != _event_timers.end()){
 		_event_timers.erase( it );
@@ -65,7 +65,7 @@ tcode::time_span event_loop::wake_up_time( void ){
 void event_loop::schedule_timer( void ){
 	tcode::time_stamp ts = tcode::time_stamp::now();
 	while( !_event_timers.empty() ) {
-		event_timer::pointer_type ptr = _event_timers.front();
+		event_timer_ptr ptr = _event_timers.front();
 		if (  ptr->expired_at() <= ts ){
 			_event_timers.pop_front();
 			(*ptr)();

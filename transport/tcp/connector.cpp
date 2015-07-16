@@ -6,24 +6,50 @@
 #include "completion_handler_connect.hpp"
 
 namespace tcode { namespace transport { namespace tcp {
-#if defined(TCODE_TARGET_WINDOWS)
-LPFN_CONNECTEX fp_connect_ex = nullptr;
-#endif
-connector::connector(tcode::transport::event_loop& l
-	, const tcode::rc_ptr< error_handler >& h )
-	: _loop(l) 
-	, _timeout(false)
-	, _err_handler(h)
-{
-	_loop.links_add();
+
+connector::connector(void){
+
 }
 
 connector::~connector(void){
-	_loop.links_release();
+
+}
+
+bool connector::connect( const tcode::io::ip::address& addr
+		, const tcode::time_span& wait_time 
+		, const connector_handler_ptr handler )
+{
+	std::vector< tcode::io::ip::address > addrs;
+	addrs.push_back(addr);
+	return connect_sequence( addrs , wait_time , handler );
+}
+
+bool connector::connect_sequence( const std::vector< tcode::io::ip::address >& addr 
+		, const tcode::time_span& per_wait_time 
+		, const connector_handler_ptr handler )
+{
+	handler->timeout(per_wait_time);
+	return handler->do_connect( addr );
+}
+
+
+/*
+#if defined(TCODE_TARGET_WINDOWS)
+LPFN_CONNECTEX fp_connect_ex = nullptr;
+#endif
+connector::connector(tcode::transport::event_loop& l )
+	: _loop(l) 
+	, _timeout(false)
+{
+
+}
+
+connector::~connector(void){
+
 }
 
 bool connector::connect_timeout( const tcode::io::ip::address& conn_addr
-		, pipeline_builder_ptr builder 
+		, const connector_handler_ptr builder 
 		, const tcode::time_span& ts )
 {
 	tcode::io::ip::connect_base cb;
@@ -46,12 +72,11 @@ bool connector::connect_timeout( const tcode::io::ip::address& conn_addr
 }
 
 bool connector::connect( const tcode::io::ip::address& addr
-	, pipeline_builder_ptr builder 
+	, const connector_handler_ptr builder 
 	, const tcode::time_span& ts  )
 {
 	_address = addr;
-	_builder = builder;
-	
+	_builder = builder;	
 	switch( addr.family() )
 	{
 	case AF_INET:
@@ -97,7 +122,7 @@ bool connector::connect( const tcode::io::ip::address& addr
 		}
 	}		
 
-	if ( !_loop.dispatcher().bind( reinterpret_cast<HANDLE>(handle())))
+	if ( !_loop.dispatcher().bind( handle()))
 	{
 		close();
 		return false;
@@ -105,7 +130,7 @@ bool connector::connect( const tcode::io::ip::address& addr
 #endif
 	if ( do_connect() ) {
 		tcode::rc_ptr< connector > pthis(this);
-		_timer = event_timer::create( loop() );
+		_timer = event_timer::create_timer( loop() );
 		_timer->expired_at( tcode::time_stamp::now() + ts );
 		_timer->on_expired(event_timer::handler(
 				[this , pthis ]( const tcode::diagnostics::error_code& ec, const event_timer& ){
@@ -192,7 +217,7 @@ void connector::handle_connect( const tcode::diagnostics::error_code& ec )
 			er = tcode::diagnostics::build_fail;
 		}
 	}
-	(*_err_handler)( er );
+	_builder->connector_on_error(er);
 	tcode::io::ip::connect_base::close();
 	this->release();
 }
@@ -221,13 +246,7 @@ void connector::operator()( const int events )
 }
 
 #endif
-
-tcode::rc_ptr<connector> connector::create( tcode::transport::event_loop& l 
-	, const tcode::rc_ptr< error_handler >& errh )
-{
-	return tcode::rc_ptr<connector>( new connector(l , errh));
-}
-
+*/
 }}}
 
 

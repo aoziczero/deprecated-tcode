@@ -6,6 +6,31 @@
 #include <threading/atomic.hpp>
 
 namespace tcode { namespace transport { namespace tcp {
+
+completion_handler_connect::completion_handler_connect(
+	const connector_handler_ptr& ptr )
+	: _handler(ptr)
+{
+	_cancel.store(0);
+}
+
+completion_handler_connect::~completion_handler_connect( void ){
+	
+}
+
+void completion_handler_connect::cancel( void ){
+	_cancel.exchange(1);
+}
+
+void completion_handler_connect::operator()( const tcode::diagnostics::error_code& ec 
+		, const int completion_bytes )
+{
+	if( _cancel.load() != 0 ) {
+		_handler->handle_connect(ec);
+	} 
+	delete this;
+}
+
 /*
 #if defined(TCODE_TARGET_WINDOWS)	
 LPFN_CONNECTEX get_connect_ex( SOCKET s ){

@@ -60,12 +60,12 @@ private:
 
 };
 
-class acceptor_impl : public tcode::transport::tcp::acceptor
-	, public tcode::transport::tcp::pipeline_builder
+class acceptor_handler_impl 
+	: public tcode::transport::tcp::acceptor_handler
 {
 public:
-	acceptor_impl( tcode::transport::event_loop& l ) 
-		: acceptor( l )
+	acceptor_handler_impl( tcode::transport::event_loop& l ) 
+		: _loop( l )
 		, _ssl_context( SSLv23_server_method() )
 	{
 		_ssl_context.use_generate_key();
@@ -75,7 +75,7 @@ public:
 		return true;
 	}
 
-	virtual void on_error( const std::error_code& ec ){
+	virtual void acceptor_on_error( const std::error_code& ec ){
 		LOG_D("ECHO" , "acceptor_impl error : %s" , ec.message().c_str());
 	}
 
@@ -87,9 +87,10 @@ public:
 	}
 
 	virtual tcode::transport::event_loop& channel_loop( void ){	
-		return loop();
+		return _loop;
 	}
 private:
+	tcode::transport::event_loop& _loop;
 	tcode::ssl::context _ssl_context;
 };
 
@@ -101,9 +102,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	tcode::ssl::openssl_init();
 	
 	tcode::transport::event_loop loop;
-	acceptor_impl* acceptor =  new acceptor_impl( loop );	
-	tcode::transport::tcp::pipeline_builder_ptr builder(acceptor);
-	if ( acceptor->listen( tcode::io::ip::address::any( 7543  , AF_INET ) , builder )){
+	tcode::transport::tcp::acceptor acceptor(loop);
+	tcode::transport::tcp::acceptor_handler_ptr handler( new acceptor_handler_impl(loop));
+	if ( acceptor.listen( tcode::io::ip::address::any( 7543  , AF_INET ) , handler )){
 		loop.run();
 	}
 	return 0;

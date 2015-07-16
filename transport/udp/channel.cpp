@@ -52,28 +52,18 @@ void channel::close( void ){
 	close( tcode::diagnostics::cancel );
 }
 
-
 void channel::close( const std::error_code& ec ){
-	if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) ) {
-		_loop.execute([this , ec ]{
-			fire_on_close( ec);
-		});
-	}
+	if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) )
+		_loop.execute([this , ec ]{ fire_on_close( ec); });
 }
 
 void channel::fire_on_close( const std::error_code& ec  ){
-	_loop.dispatcher().unbind(
-#if defined( TCODE_TARGET_WINDOWS )	
-		(HANDLE)handle()
-#elif defined (TCODE_TARGET_LINUX)
-		handle()
-#endif	
-	);
+	_loop.dispatcher().unbind(handle());
 	tcode::io::ip::udp_base::close();	
 	
-	if ( tcode::threading::atomic_bit_reset( _flag , detail::NO_ERROR_FLAG )) {
+	if ( tcode::threading::atomic_bit_reset( _flag , detail::NO_ERROR_FLAG ))
 		_pipeline.fire_filter_on_error( ec );
-	}
+
 	_pipeline.fire_filter_on_close();
 	release();
 }
@@ -82,36 +72,27 @@ void channel::add_ref( void ){
 	_flag.fetch_add(1);
 }
 
-void channel::release( void ){
-	int val = _flag.fetch_sub(1
-			, std::memory_order::memory_order_release ) - 1;
-	if ( val == 0 ) {
-		_loop.execute([this]{
-			fire_on_end_reference();
-		});
-	}
+int channel::release( void ){
+	int val = _flag.fetch_sub( 1 , std::memory_order::memory_order_release ) - 1;
+	if ( val == 0 )
+		_loop.execute([this]{ fire_on_end_reference(); });
+	return val;
 }
 
 void channel::fire_on_open(){
 	add_ref();
 	if ( _loop.in_event_loop() ){
 #if defined( TCODE_TARGET_WINDOWS )
-		_loop.dispatcher().bind( reinterpret_cast<HANDLE>(handle()));
+		_loop.dispatcher().bind( handle());
 		_pipeline.fire_filter_on_open();
 		read(nullptr);	
 #elif defined( TCODE_TARGET_LINUX ) 
 		_pipeline.fire_filter_on_open();
-		if ( _loop.dispatcher().bind( handle()
-			, EPOLLIN
-			, this )){
-		} else {
+		if ( !_loop.dispatcher().bind( handle(), EPOLLIN , this ))
 			close( tcode::diagnostics::platform_error() );
-		}	
 #endif
 	} else {
-		_loop.execute([this]{
-			fire_on_open();
-		});
+		_loop.execute([this]{ fire_on_open(); });
 	}
 }
 
@@ -126,15 +107,12 @@ void channel::do_write( const tcode::io::ip::address& addr
 	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
 
-	if ( !_loop.in_event_loop() ){
-		add_ref();
-		_loop.execute([this,addr,buf]{
-			do_write( addr , buf );
-			release();
-		});
-		return;
+	if ( _loop.in_event_loop() ){
+		sendto( buf.rd_ptr() , buf.length() , addr );
+	} else {
+		tcode::rc_ptr< channel > chan(this);
+		_loop.execute([chan,addr,buf]{ chan->do_write( addr , buf ); });
 	}
-	sendto( buf.rd_ptr() , buf.length() , addr );
 }
 
 
@@ -145,9 +123,11 @@ void channel::read( completion_handler_recv_from* h ) {
 		return;
 	}
 		
-	if ( h == nullptr ) h = new completion_handler_recv_from( *this );
+	if ( h == nullptr ) 
+		h = new completion_handler_recv_from( *this );
 		
 	h->prepare();
+	
 	tcode::iovec iov = h->read_buffer( channel_config::READ_BUFFER_SIZE );
 	DWORD flag = 0;
     if ( WSARecvFrom( handle() 
@@ -173,33 +153,31 @@ void channel::handle_recv_from( const tcode::diagnostics::error_code& ec
 			, const tcode::io::ip::address& addr 			
 			, completion_handler_recv_from* h )
 {
-	if ( tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
-		if ( ec ){
-			close(ec);
-		} else {
-			_pipeline.fire_filter_on_read( readbuf ,  addr );
-			read(h);
-			return;
-		}
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+		if ( h )  delete h;
+		return;
 	}
-	delete h;
+	if ( ec ){
+		close(ec);
+	} else {
+		_pipeline.fire_filter_on_read( readbuf ,  addr );
+		read(h);
+		return;
+	}
 }
 
 	
 #elif defined( TCODE_TARGET_LINUX )
 void channel::operator()( const int events ){
-	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
-	}
+
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
-		if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) ) {
+		if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) )
 			fire_on_close( events & EPOLLERR ? tcode::diagnostics::epoll_err : tcode::diagnostics::epoll_hup);
-		}
 	} else {
-		if ( events & EPOLLIN ) {
-			handle_read();
-		}
-	}
+		if ( events & EPOLLIN ) handle_read();
+	}	
 }
 
 int channel::read( iovec* iov , int cnt , tcode::io::ip::address& addr ) {
@@ -211,20 +189,19 @@ int channel::read( iovec* iov , int cnt , tcode::io::ip::address& addr ) {
 }
 
 void channel::handle_read( void ){
-	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
-	}
 
 	tcode::buffer::byte_buffer buffer( channel_config::READ_BUFFER_SIZE );	
 	iovec vec = tcode::io::read_buffer( buffer );
 	tcode::io::ip::address address;
 	
 	int result = read( &vec , 1  , address );
-	if ( result < 0 ){
+	if ( result < 0 )
 		close( tcode::diagnostics::platform_error() );
-	} else if ( result == 0 ) {
+	else if ( result == 0 )
 		close( std::error_code( ECONNRESET , tcode::diagnostics::posix_category()) );
-	} else {
+	else {
 		buffer.wr_ptr( result );
 		_pipeline.fire_filter_on_read( buffer , address );
 	}	

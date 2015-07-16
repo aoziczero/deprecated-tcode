@@ -194,7 +194,7 @@ public:																							\
 	}																							\
 																								\
 	template < typename t_handler >																\
-	explicit handler( const t_handler& handler )												\
+	handler( const t_handler& handler )															\
 		: _closure( closure_type::bind( handler , &_buffer , sizeof( _buffer ))){				\
 	}																							\
 																								\

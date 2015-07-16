@@ -18,9 +18,8 @@ void completion_handler_read::operator()( const tcode::diagnostics::error_code& 
 		, const int completion_bytes )
 {
 	tcode::diagnostics::error_code errc = ec;
-	if ( completion_bytes == 0 && !errc ) {
+	if ( completion_bytes == 0 && !errc )
 		errc = tcode::diagnostics::error_code( WSAECONNRESET , tcode::diagnostics::windows_category());
-	} 
 	_channel.handle_read( errc , completion_bytes , this );
 }
 

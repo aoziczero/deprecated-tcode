@@ -57,11 +57,11 @@ public:
 	void do_write( tcode::buffer::byte_buffer buf1 
 				, tcode::buffer::byte_buffer buf2 );
 
+	void packet_buffer( packet_buffer_ptr& ptr );
 #if defined( TCODE_TARGET_WINDOWS )
 	void read( completion_handler_read* h );
 	void handle_read( const tcode::diagnostics::error_code& ec 
 			, const int completion_bytes 
-			//, tcode::buffer::byte_buffer& readbuf
 			, completion_handler_read* h );
 	void handle_write( const tcode::diagnostics::error_code& ec 
 			, const int completion_bytes 
@@ -73,7 +73,7 @@ public:
 	int write( iovec* iov , int cnt );
 	void write_reamins( void );
 	void handle_read( void );
-	void handle_write( void );	
+	void handle_write( void );
 #endif	
 private:
 	event_loop& _loop;

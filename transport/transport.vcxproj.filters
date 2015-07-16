@@ -72,6 +72,15 @@
     <ClInclude Include="tcp\packet_buffer.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="tcp\acceptor_handler.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\connector_handler.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp\completion_handler_connect.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -105,5 +114,8 @@
     <ClCompile Include="tcp\filters\size_filter.cpp" />
     <ClCompile Include="tcp\filters\timeout_filter.cpp" />
     <ClCompile Include="tcp\packet_buffer.cpp" />
+    <ClCompile Include="tcp\acceptor_handler.cpp" />
+    <ClCompile Include="tcp\connector_handler.cpp" />
+    <ClCompile Include="tcp\completion_handler_connect.cpp" />
   </ItemGroup>
 </Project>

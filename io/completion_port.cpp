@@ -76,18 +76,15 @@ int completion_port::run( const tcode::time_span& ts ) {
 }
 
 
-bool completion_port::bind( HANDLE h ) {
-	if ( CreateIoCompletionPort( h ,
-							handle() ,
-							reinterpret_cast<ULONG_PTR>( h ) ,
-							0  ) == handle() ) 
+bool completion_port::bind( SOCKET h ) {
+	if ( CreateIoCompletionPort( (HANDLE)h , handle() ,(ULONG_PTR)h , 0 ) == handle() ) 
 	{
 		return true;
 	}   
 	return false;
 }
 
-void completion_port::unbind( HANDLE ){
+void completion_port::unbind( SOCKET ){
 	
 }
 

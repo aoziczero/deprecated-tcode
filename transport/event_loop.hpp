@@ -44,15 +44,15 @@ public:
 		execute_handler(h);
 	}
 
-	void schedule( const event_timer::pointer_type& ptr );
-	void cancel( const event_timer::pointer_type& ptr );
+	void schedule( const event_timer_ptr& ptr );
+	void cancel( const event_timer_ptr& ptr );
 	tcode::time_span wake_up_time( void );
 	void schedule_timer( void );
 private:
 	transport::dispatcher _dispatcher;
 	std::atomic< int > _active_links;
 	std::thread::id _thread_id;
-	std::list< event_timer::pointer_type > _event_timers;
+	std::list< event_timer_ptr > _event_timers;
 };
 
 }}

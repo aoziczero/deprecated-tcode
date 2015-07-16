@@ -12,6 +12,7 @@ int FLAG_CANCEL = 0x01;
 
 event_timer::event_timer( event_loop& l )	
 	: _loop( l )
+	, _flag(0)
 {
 	_expired_at = tcode::time_stamp::now();
 }
@@ -44,7 +45,8 @@ void event_timer::operator()(void){
 	_handler( ec , *this);
 }
 
-void event_timer::fire( void ){
+void event_timer::fire( void ){		
+	_flag = 0;
 	tcode::rc_ptr< event_timer > ptr( this );
 	if ( _loop.in_event_loop() ) {
 		_loop.schedule( ptr );
@@ -64,8 +66,8 @@ void event_timer::cancel( void ){
 	}
 }
 
-event_timer::pointer_type event_timer::create( event_loop& l){
-	return rc_ptr< event_timer >( new event_timer(l));
+tcode::rc_ptr< event_timer > event_timer::create_timer( event_loop& l){
+	return new event_timer(l);
 }
 
 }}

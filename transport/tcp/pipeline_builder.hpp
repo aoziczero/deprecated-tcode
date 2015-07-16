@@ -23,8 +23,6 @@ public:
 private:
 };
 
-typedef tcode::rc_ptr<pipeline_builder> pipeline_builder_ptr;
-
 }}}
 
 #endif

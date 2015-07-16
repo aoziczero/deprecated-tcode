@@ -55,9 +55,9 @@ acceptor::~acceptor(void){
 }
 
 bool acceptor::listen( const tcode::io::ip::address& bind_addr
-	, pipeline_builder_ptr builder )
+		, const acceptor_handler_ptr& handler  )
 {
-	_builder = builder;
+	_handler = handler;
 	switch( bind_addr.family() )
 	{
 	case AF_INET:
@@ -69,9 +69,9 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 	default:
 		return false;
 	}
-	if ( !good() ) {
+	if ( !good() )
 		return false;
-	}
+
 	reuse_address reuse(true);	
 	if ( !set_option( reuse )){
 		close();
@@ -100,8 +100,7 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 		return false;
 	}
 #if defined( TCODE_TARGET_WINDOWS )
-	if ( !_loop.dispatcher().bind( reinterpret_cast<HANDLE>(handle())))
-	{
+	if ( !_loop.dispatcher().bind( handle())){
 		close();
 		return false;
 	}
@@ -128,15 +127,6 @@ tcode::transport::event_loop& acceptor::loop( void ){
 	return _loop;
 }
 	
-bool acceptor::condition( tcode::io::ip::socket_type h , const tcode::io::ip::address& addr )
-{
-	return true;
-}
-
-void acceptor::on_error( const std::error_code& ec ){
-	
-}
-
 #if defined( TCODE_TARGET_WINDOWS )
 void acceptor::do_accept(completion_handler_accept* h){
 	if ( handle() == tcode::io::ip::invalid_socket ) {
@@ -144,9 +134,9 @@ void acceptor::do_accept(completion_handler_accept* h){
 			delete h;
 		return;
 	}
-	if ( h == nullptr ) {
+	if ( h == nullptr )
 		h = new completion_handler_accept( *this );
-	}
+
 	tcode::io::ip::tcp_holder tcp_handle;
 	tcp_handle.open( _address_family );
 	if ( !tcp_handle.good()) {
@@ -185,7 +175,7 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 	tcp_handle.handle( handler->handle());
 	if ( ec ){
 		tcp_handle.close();
-		on_error( ec );
+		_handler->acceptor_on_error( ec );
 	} else {
 		struct sockaddr* remote , *local;
 		INT remotelen , locallen;
@@ -197,14 +187,14 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 								&locallen ,
 								&remote ,
 								&remotelen );
-		if ( condition( tcp_handle.handle() , handler->address_ptr()[1] )){
+		if ( _handler->condition( tcp_handle.handle() , handler->address_ptr()[1] )){
 			tcode::io::ip::tcp_holder::update_accept_context ctx(handle());
 			tcp_handle.set_option( ctx );
 			tcode::transport::tcp::pipeline pl;
-			if ( _builder && _builder->build( pl ) ) {
+			if ( _handler->build( pl ) ) {
 				tcode::transport::tcp::channel* channel 
 					= new tcode::transport::tcp::channel( 
-							_builder->channel_loop() ,pl ,tcp_handle.handle());
+							_handler->channel_loop() ,pl ,tcp_handle.handle());
 				channel->fire_on_open( handler->address_ptr()[1] );
 			} else {
 				tcp_handle.close();
@@ -220,35 +210,31 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 void acceptor::operator()( const int events ){
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
 		 on_error( events & EPOLLERR ? tcode::diagnostics::epoll_err 
-					: tcode::diagnostics::epoll_hup );
+			: tcode::diagnostics::epoll_hup );
 	} else {
-		if ( events & EPOLLIN ) {
-			handle_accept();
-		} 
+		if ( events & EPOLLIN ) handle_accept();
 	}
 }
+
 void acceptor::handle_accept( void ) {
 	tcode::io::ip::tcp_holder fd;
 	tcode::io::ip::address addr;
 	do {
-		fd.handle(::accept( handle()
-				, addr.sockaddr()
-				, addr.sockaddr_length_ptr() ));
+		fd.handle(::accept( handle() , addr.sockaddr() , addr.sockaddr_length_ptr() ));
 	} while((fd.handle()==-1)&&(errno==EINTR));
 
-	if ( fd.handle() < 0 ) {
+	if ( fd.handle() < 0 ) 
 		return;
-	}
 
-	if ( condition( fd.handle() , addr )){
+	if ( _handler->condition( fd.handle() , addr )){
 		tcode::io::ip::tcp_holder::non_blocking non_block;
 		fd.set_option( non_block );
 		tcode::transport::tcp::pipeline pl;
-		if ( _builder && _builder->build( pl ) ) {
+		if ( _handler->build( pl ) ) {
 			tcode::transport::tcp::channel* channel 
 					= new tcode::transport::tcp::channel( 
 							_builder->channel_loop() , pl ,fd.handle());
-				channel->fire_on_open( addr );
+			channel->fire_on_open( addr );
 		} else {
 			fd.close();
 		}

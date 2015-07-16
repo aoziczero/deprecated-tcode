@@ -64,22 +64,16 @@ private:
 
 };
 
-class connector_impl : public tcode::transport::tcp::pipeline_builder
-	, public tcode::transport::tcp::connector::error_handler
-{
+class connector_handler_impl 
+	: public tcode::transport::tcp::connector_handler {
 public:
-	connector_impl( tcode::transport::event_loop& l ) 
-		: _connector(  tcode::transport::tcp::connector::create( l 
-			, tcode::rc_ptr<tcode::transport::tcp::connector::error_handler>(this)) )
+	connector_handler_impl( tcode::transport::event_loop& l ) 
+		: _loop( l )
 		, _ssl_context( SSLv23_client_method() )
 	{
 	}
-	
-	virtual bool condition( tcode::io::ip::socket_type h , const tcode::io::ip::address& addr ){
-		return true;
-	}
 
-	virtual void on_error( const std::error_code& ec ){
+	virtual void connector_on_error( const std::error_code& ec ){
 		LOG_D("ECHO" , "acceptor_impl error : %s" , ec.message().c_str());
 	}
 
@@ -89,16 +83,12 @@ public:
 		p.add( new echo_filter());
 		return true;
 	}
-	
-	tcode::rc_ptr<tcode::transport::tcp::connector >& connector( void ){
-		return _connector;
-	}
 
 	virtual tcode::transport::event_loop& channel_loop( void ){	
-		return _connector->loop();
+		return _loop;
 	}
 private:
-	tcode::rc_ptr<tcode::transport::tcp::connector > _connector;
+	tcode::transport::event_loop& _loop;
 	tcode::ssl::context _ssl_context;
 };
 
@@ -110,12 +100,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	tcode::ssl::openssl_init();
 	
 	tcode::transport::event_loop loop;
-	connector_impl* conn = new connector_impl( loop );
-	tcode::transport::tcp::pipeline_builder_ptr builder(conn);
-	if ( conn->connector()->connect(  tcode::io::ip::address::from( "127.0.0.1" , 7543)  , builder , tcode::time_span::minutes(2) )){
+	tcode::transport::tcp::connector connector(loop);
+	tcode::transport::tcp::connector_handler_ptr handler( new connector_handler_impl( loop ));
+	if ( connector.connect( tcode::io::ip::address::from( "127.0.0.1" , 7543)  
+			, handler , tcode::time_span::minutes(2) ))
+	{
 		loop.run();
 	}
 	return 0;
 }
+
 
 

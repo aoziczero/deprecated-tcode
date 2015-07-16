@@ -22,8 +22,8 @@ public:
 
 	int run( const tcode::time_span& ts );
 
-	bool bind( HANDLE h );
-	void unbind( HANDLE h);
+	bool bind( SOCKET h );
+	void unbind( SOCKET h);
 
 	void wake_up();		
 	

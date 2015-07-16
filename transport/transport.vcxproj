@@ -84,11 +84,14 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tcp\acceptor.hpp" />
+    <ClInclude Include="tcp\acceptor_handler.hpp" />
     <ClInclude Include="tcp\channel.hpp" />
     <ClInclude Include="tcp\channel_config.hpp" />
+    <ClInclude Include="tcp\completion_handler_connect.hpp" />
     <ClInclude Include="tcp\completion_handler_read.hpp" />
     <ClInclude Include="tcp\completion_handler_write.hpp" />
     <ClInclude Include="tcp\connector.hpp" />
+    <ClInclude Include="tcp\connector_handler.hpp" />
     <ClInclude Include="tcp\filter.hpp" />
     <ClInclude Include="tcp\filters\timeout_filter.hpp" />
     <ClInclude Include="tcp\packet_buffer.hpp" />
@@ -110,11 +113,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="tcp\acceptor.cpp" />
+    <ClCompile Include="tcp\acceptor_handler.cpp" />
     <ClCompile Include="tcp\channel.cpp" />
     <ClCompile Include="tcp\channel_config.cpp" />
+    <ClCompile Include="tcp\completion_handler_connect.cpp" />
     <ClCompile Include="tcp\completion_handler_read.cpp" />
     <ClCompile Include="tcp\completion_handler_write.cpp" />
     <ClCompile Include="tcp\connector.cpp" />
+    <ClCompile Include="tcp\connector_handler.cpp" />
     <ClCompile Include="tcp\filter.cpp" />
     <ClCompile Include="tcp\filters\timeout_filter.cpp" />
     <ClCompile Include="tcp\packet_buffer.cpp" />

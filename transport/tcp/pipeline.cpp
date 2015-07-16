@@ -84,74 +84,75 @@ void pipeline::fire_filter_on_close( void ) {
 }
 
 void pipeline::fire_filter_on_open(  filter* pfilter , const tcode::io::ip::address& addr ){
-	if ( pfilter ){
-		if ( in_pipeline() ){
+	if( !pfilter )
+		return;
+	if ( in_pipeline() ){
+		pfilter->filter_on_open( addr );
+	} else {
+		tcode::rc_ptr< tcp::channel > pchan( channel());
+		channel()->loop().execute( [ pfilter , addr , pchan , this ] {
+			in_pipeline_holder ipl(_flag);
 			pfilter->filter_on_open( addr );
-		} else {
-			tcode::rc_ptr< tcp::channel > pchan( channel());
-			channel()->loop().execute( [ pfilter , addr , pchan , this ] {
-				in_pipeline_holder ipl(_flag);
-				pfilter->filter_on_open( addr );
-			});
-		}	
-	}
+		});
+	}	
 }
 
 void pipeline::fire_filter_on_close( filter* pfilter ){
-	if ( pfilter ){
-		if ( in_pipeline() ){
+	if ( !pfilter )
+		return;
+	if ( in_pipeline() ){
+		pfilter->filter_on_close();
+	} else {
+		tcode::rc_ptr< tcp::channel > pchan( channel());
+		channel()->loop().execute( [ pfilter , pchan , this ] {
+			in_pipeline_holder ipl(_flag);
 			pfilter->filter_on_close();
-		} else {
-			tcode::rc_ptr< tcp::channel > pchan( channel());
-			channel()->loop().execute( [ pfilter , pchan , this ] {
-				in_pipeline_holder ipl(_flag);
-				pfilter->filter_on_close();
-			});
-		}	
-	}
+		});
+	}	
 }
 
 void pipeline::fire_filter_on_read( filter* pfilter , tcode::buffer::byte_buffer& buf ){
-	if ( pfilter ){
-		if ( in_pipeline() ){
-			pfilter->filter_on_read(buf);
-		} else {
-			tcode::rc_ptr< tcp::channel > pchan( channel());
-			channel()->loop().execute( [ pfilter , buf , pchan , this ] {
-				in_pipeline_holder ipl(_flag);
-				tcode::buffer::byte_buffer nb( buf );
-				pfilter->filter_on_read(nb);
-			});
-		}	
-	}
+	if ( !pfilter )
+		return;
+
+	if ( in_pipeline() ){
+		pfilter->filter_on_read(buf);
+	} else {
+		tcode::rc_ptr< tcp::channel > pchan( channel());
+		channel()->loop().execute( [ pfilter , buf , pchan , this ] {
+			in_pipeline_holder ipl(_flag);
+			tcode::buffer::byte_buffer nb( buf );
+			pfilter->filter_on_read(nb);
+		});
+	}	
 }
 
 void pipeline::fire_filter_on_write( filter* pfilter , int written , bool flush ){
-	if ( pfilter ){
-		if ( in_pipeline() ){
-			pfilter->filter_on_write(written,flush);
-		} else {
-			tcode::rc_ptr< tcp::channel > pchan( channel());
-			channel()->loop().execute( [ pfilter,written,flush,pchan,this ] {
-				in_pipeline_holder ipl(_flag);
-				pfilter->filter_on_write(written, flush);
-			});
-		}	
-	}
+	if ( !pfilter )
+		return;
+	if ( in_pipeline() ){
+		pfilter->filter_on_write(written,flush);
+	} else {
+		tcode::rc_ptr< tcp::channel > pchan( channel());
+		channel()->loop().execute( [ pfilter,written,flush,pchan,this ] {
+			in_pipeline_holder ipl(_flag);
+			pfilter->filter_on_write(written, flush);
+		});
+	}	
 }
 
 void pipeline::fire_filter_on_error( filter* pfilter , const std::error_code& ec ){
-	if ( pfilter ){
-		if ( in_pipeline() ){
+	if ( !pfilter )
+		return;
+	if ( in_pipeline() ){
+		pfilter->filter_on_error(ec);
+	} else {
+		tcode::rc_ptr< tcp::channel > pchan( channel());
+		channel()->loop().execute( [ pfilter , ec ,  pchan , this ] {
+			in_pipeline_holder ipl(_flag);
 			pfilter->filter_on_error(ec);
-		} else {
-			tcode::rc_ptr< tcp::channel > pchan( channel());
-			channel()->loop().execute( [ pfilter , ec ,  pchan , this ] {
-				in_pipeline_holder ipl(_flag);
-				pfilter->filter_on_error(ec);
-			});
-		}	
-	}
+		});
+	}	
 }
 
 void pipeline::fire_filter_do_write( filter* pfilter , tcode::buffer::byte_buffer& buf ){
@@ -178,7 +179,6 @@ void pipeline::fire_filter_do_write( filter* pfilter , tcode::buffer::byte_buffe
 		}	
 	}
 }
-
 
 pipeline& pipeline::add( filter* pfilter ){
 	if( _inbound == nullptr )

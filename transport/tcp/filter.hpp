@@ -50,7 +50,7 @@ public:
 	void pipeline( tcp::pipeline* p );
 
 	void add_ref( void );
-	void release( void );
+	int release( void );
 
 	void close( const tcode::diagnostics::error_code& ec );
 private:

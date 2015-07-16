@@ -12,21 +12,17 @@
 #endif
 #include "channel_config.hpp"
 
-
-namespace tcode{ namespace transport { 
-namespace tcp{ 
+namespace tcode{ namespace transport { namespace tcp{ 
 namespace detail {
 	
 const int NO_ERROR_FLAG = 0x10000000;
 const int NOT_CLOSED_FLAG = NO_ERROR_FLAG << 1;
-
+const int MAX_WRITEV_COUNT = 16;
 }
 
-
 channel::channel( event_loop& l
-				, const tcp::pipeline& p 
-				, tcode::io::ip::socket_type fd  )
-	: _loop( l )
+	, const tcp::pipeline& p 
+	, tcode::io::ip::socket_type fd  ) : _loop( l )
 	, _pipeline(p)
 {
 	handle( fd );	
@@ -43,7 +39,6 @@ event_loop& channel::loop( void ){
 	return _loop;
 }
 
-
 tcp::pipeline& channel::pipeline( void ){
 	return _pipeline;
 }
@@ -52,30 +47,9 @@ void channel::close( void ){
 	close( tcode::diagnostics::cancel );
 }
 
-
 void channel::close( const std::error_code& ec ){
-	if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) ) {
-		_loop.execute([this , ec ]{
-			fire_on_close( ec);
-		});
-	}
-}
-
-void channel::fire_on_close( const std::error_code& ec  ){
-	_loop.dispatcher().unbind(
-#if defined( TCODE_TARGET_WINDOWS )	
-		(HANDLE)handle()
-#elif defined (TCODE_TARGET_LINUX)
-		handle()
-#endif	
-	);
-	tcode::io::ip::tcp_base::close();	
-	
-	if ( tcode::threading::atomic_bit_reset( _flag , detail::NO_ERROR_FLAG )) {
-		_pipeline.fire_filter_on_error( ec );
-	}
-	_pipeline.fire_filter_on_close();
-	release();
+	if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) )
+		_loop.execute([this , ec ]{ fire_on_close( ec); });
 }
 
 void channel::add_ref( void ){
@@ -83,71 +57,70 @@ void channel::add_ref( void ){
 }
 
 int channel::release( void ){
-	int val = _flag.fetch_sub(1
-			, std::memory_order::memory_order_release ) - 1;
-	if ( val == 0 ) {
-		_loop.execute([this]{
-			fire_on_end_reference();
-		});
-	}
+	int val = _flag.fetch_sub( 1 , std::memory_order::memory_order_release ) - 1;
+	if ( val == 0 )
+		_loop.execute([this]{ fire_on_end_reference(); });	
 	return val;
 }
 
+#if defined( TCODE_TARGET_WINDOWS )
 void channel::fire_on_open( const tcode::io::ip::address& addr ){
 	add_ref();
 	if ( _loop.in_event_loop() ){
-#if defined( TCODE_TARGET_WINDOWS )
-		_loop.dispatcher().bind( reinterpret_cast<HANDLE>(handle()));
+		_loop.dispatcher().bind( handle());
 		_pipeline.fire_filter_on_open(addr);
 		read(nullptr);	
-#elif defined( TCODE_TARGET_LINUX ) 
-		_pipeline.fire_filter_on_open(addr);
-		if ( _write_buffers.empty() ){
-			if ( _loop.dispatcher().bind( handle()
-				, EPOLLIN
-				, this )){
-			} else {
-				close( tcode::diagnostics::platform_error() );
-			}			
-		}
-#endif
 	} else {
-		_loop.execute([this,addr]{
-			fire_on_open(addr);
-		});
+		_loop.execute([this,addr]{ fire_on_open(addr); });
+	}
+	
+}
+#elif defined( TCODE_TARGET_LINUX ) 
+void channel::fire_on_open( const tcode::io::ip::address& addr ){
+	add_ref();
+	if ( _loop.in_event_loop() ){
+		_pipeline.fire_filter_on_open(addr);
+		if ( _write_buffers.empty() && !_loop.dispatcher().bind( handle() , EPOLLIN , this ))
+			close( tcode::diagnostics::platform_error() );
+	} else {
+		_loop.execute([this,addr]{ fire_on_open(addr); });
 	}
 }
+#else
 
+#endif
 void channel::fire_on_end_reference( void ){
 	_pipeline.fire_filter_on_end_reference();
 	delete this;
+}
+
+void channel::fire_on_close( const std::error_code& ec  ){
+	_loop.dispatcher().unbind( handle());
+	tcode::io::ip::tcp_base::close();	
+	if ( tcode::threading::atomic_bit_reset( _flag , detail::NO_ERROR_FLAG )) 
+		_pipeline.fire_filter_on_error( ec );
+	_pipeline.fire_filter_on_close();
+	release();
 }
 
 void channel::do_write( tcode::buffer::byte_buffer buf ){
 	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
 
-	if ( !_loop.in_event_loop() ){
-		add_ref();
-		_loop.execute([this,buf]{
-			do_write( buf );
-			release();
-		});
-		return;
-	}
-	bool write = _write_buffers.empty();
-	_write_buffers.push_back( buf );
-	if ( write ) {
+	if ( _loop.in_event_loop() ){
+		bool needwrite = _write_buffers.empty();
+		_write_buffers.push_back( buf );
+		if ( !needwrite ) 
+			return;
 #if defined( TCODE_TARGET_WINDOWS )
 		write_remains( nullptr );
 #elif defined( TCODE_TARGET_LINUX ) 
-		if ( _loop.dispatcher().bind( handle()
-			, EPOLLIN | EPOLLOUT
-			, this)){
-		} else {
+		if ( !_loop.dispatcher().bind( handle() , EPOLLIN | EPOLLOUT , this))
 			close( tcode::diagnostics::platform_error() );
-		}
 #endif
+	} else {
+		tcode::rc_ptr< channel > chan(this);
+		_loop.execute([chan,buf]{ chan->do_write( buf ); });
 	}
 }
 
@@ -157,32 +130,27 @@ void channel::do_write( tcode::buffer::byte_buffer buf1
 	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
 
-	if ( !_loop.in_event_loop() ){
-		add_ref();
-		_loop.execute([this,buf1,buf2]{
-			do_write( buf1,buf2 );
-			release();
-		});
-		return;
-	}
-	bool write = _write_buffers.empty();
-	_write_buffers.push_back( buf1 );
-	_write_buffers.push_back( buf2 );
-	if ( write ) {
+	if ( _loop.in_event_loop() ){
+		bool needwrite = _write_buffers.empty();
+		_write_buffers.push_back( buf1 );
+		_write_buffers.push_back( buf2 );
+		if ( !needwrite ) 
+			return;
 #if defined( TCODE_TARGET_WINDOWS )
 		write_remains( nullptr );
 #elif defined( TCODE_TARGET_LINUX ) 
-		if ( _loop.dispatcher().bind( handle()
-			, EPOLLIN | EPOLLOUT
-			, this)){
-		} else {
+		if ( !_loop.dispatcher().bind( handle() , EPOLLIN | EPOLLOUT , this))
 			close( tcode::diagnostics::platform_error() );
-		}
 #endif
+	} else {
+		tcode::rc_ptr< channel > chan(this);
+		_loop.execute([chan,buf1,buf2]{ chan->do_write( buf1,buf2 ); });
 	}
 }
 
-
+void channel::packet_buffer( packet_buffer_ptr& ptr ){
+	_packet_buffer = ptr;
+}
 
 #if defined( TCODE_TARGET_WINDOWS )
 void channel::read( completion_handler_read* h ) {
@@ -191,12 +159,14 @@ void channel::read( completion_handler_read* h ) {
 		return;
 	}
 		
-	if ( h == nullptr ) h = new completion_handler_read( *this );
+	if ( h == nullptr ) 
+		h = new completion_handler_read( *this );
 		
 	h->prepare();
-	if ( _packet_buffer.get() == nullptr ){
+
+	if ( _packet_buffer.get() == nullptr )
 		_packet_buffer = new simple_packet_buffer( channel_config::READ_BUFFER_SIZE  );
-	}
+
 	tcode::iovec iov = _packet_buffer->read_iovec();
 	DWORD flag = 0;
     if ( WSARecv(	handle() 
@@ -219,51 +189,49 @@ void channel::handle_read( const tcode::diagnostics::error_code& ec
 		, const int completion_bytes 
 		, completion_handler_read* h )
 {
-	if ( tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
-		if ( ec ){
-			close(ec);
-		} else {
-			if ( _packet_buffer->complete(completion_bytes)){
-				_pipeline.fire_filter_on_read( _packet_buffer->detach_packet());	
-			}
-			read(h);
-			return;
-		}
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+		if ( h )  delete h;
+		return;
 	}
-	delete h;
+	if ( ec )
+		close(ec);
+	else {
+		if ( _packet_buffer->complete(completion_bytes))
+			_pipeline.fire_filter_on_read( _packet_buffer->detach_packet());	
+		read(h);
+		return;
+	}
 }
 
 void channel::handle_write( const tcode::diagnostics::error_code& ec 
 		, const int completion_bytes 
 		, completion_handler_write* h )
 {	
-	if ( tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
-		if ( ec ) {
-			close(ec);
-		} else {
-			int bytes = completion_bytes;
-			auto it = _write_buffers.begin();
-			while ( bytes > 0 ) {
-				int move = it->rd_ptr( bytes );
-				bytes -= move;
-				++it;
-			}
-			_write_buffers.erase( 
-				std::remove_if( _write_buffers.begin() , _write_buffers.end() , 
-						[] ( tcode::buffer::byte_buffer& buf ) -> bool {
-							return buf.length() == 0;
-						}) , _write_buffers.end());
-
-			bool flush = _write_buffers.empty();
-
-			_pipeline.fire_filter_on_write( completion_bytes , flush );
-			if ( !flush ) {
-				write_remains( h );
-				return;				
-			}	
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+		if ( h )  delete h;
+		return;
+	}
+	if ( ec )
+		close(ec);
+	else {
+		int bytes = completion_bytes;
+		auto it = _write_buffers.begin();
+		while( it != _write_buffers.end() && bytes > 0 ) {
+			bytes -= it->rd_ptr( bytes );
+			++it;
 		}
-	}	
-	delete h;
+		_write_buffers.erase( 
+			std::remove_if( _write_buffers.begin() , _write_buffers.end() , 
+					[] ( tcode::buffer::byte_buffer& buf ) -> bool {
+						return buf.length() == 0;
+					}) , _write_buffers.end());
+		bool flush = _write_buffers.empty();
+		_pipeline.fire_filter_on_write( completion_bytes , flush );
+		if ( !flush ) {
+			write_remains( h );
+			return;				
+		}	
+	}
 }
 
 void channel::write_remains( completion_handler_write* h ){
@@ -271,15 +239,15 @@ void channel::write_remains( completion_handler_write* h ){
 		if ( h )  delete h;
 		return;
 	}
-	if ( h == nullptr ) h = new completion_handler_write( *this );
+	if ( h == nullptr )
+		h = new completion_handler_write( *this );
 
-	iovec write_buffers[16];
+	iovec write_buffers[detail::MAX_WRITEV_COUNT];
 	int count = 0 ;
 	auto it = _write_buffers.begin();
-	for ( ; count < 16 ; ++count , ++it) {
-		if ( it == _write_buffers.end() ){
+	for ( ; count < detail::MAX_WRITEV_COUNT ; ++count , ++it) {
+		if ( it == _write_buffers.end() ) 
 			break;
-		}
 		write_buffers[count] = tcode::io::write_buffer( *it );
 	}
 	h->prepare();
@@ -302,21 +270,16 @@ void channel::write_remains( completion_handler_write* h ){
 	
 #elif defined( TCODE_TARGET_LINUX )
 void channel::operator()( const int events ){
-	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
-	}
+
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
-		if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) ) {
+		if ( tcode::threading::atomic_bit_reset( _flag , detail::NOT_CLOSED_FLAG ) )
 			fire_on_close( events & EPOLLERR ? tcode::diagnostics::epoll_err : tcode::diagnostics::epoll_hup);
-		}
 	} else {
-		if ( events & EPOLLIN ) {
-			handle_read();
-		}
-		if ( events & EPOLLOUT ){
-			handle_write();
-		}
-	}
+		if ( events & EPOLLIN ) handle_read();
+		if ( events & EPOLLOUT ) handle_write();
+	}		
 }
 
 int channel::read( iovec* iov , int cnt ) {
@@ -336,80 +299,68 @@ int channel::write( iovec* iov , int cnt ){
 }
 
 void channel::write_reamins( void ){
-	iovec write_buffers[16];
+	iovec write_buffers[detail::MAX_WRITEV_COUNT];
 	int count = 0 ;
 	auto it = _write_buffers.begin();
-	for ( ; count < 16 ; ++count , ++it) {
-		if ( it == _write_buffers.end() ){
+	for ( ; count < detail::MAX_WRITEV_COUNT ; ++count , ++it) {
+		if ( it == _write_buffers.end() )
 			break;
-		}
 		write_buffers[count] = tcode::io::write_buffer( *it );
 	}
-	int result = write( write_buffers , count );
-	if ( result < 0 ){
+	int completion_bytes = write( write_buffers , count );
+	if ( completion_bytes < 0 )
 		close( tcode::diagnostics::platform_error() );
-	} else if ( result == 0 ) {
+	else if ( completion_bytes == 0 )
 		close( std::error_code( ECONNRESET , tcode::diagnostics::posix_category()) );
-	} else {
-		int wr_bytes = result;
-		it = _write_buffers.begin();
-		while ( result > 0 ) {
-			int move = it->rd_ptr( result );
-			result -= move;
+	else {
+		int bytes = completion_bytes;
+		auto it = _write_buffers.begin();
+		while( it != _write_buffers.end() && bytes > 0 ) {
+			bytes -= it->rd_ptr( bytes );
 			++it;
 		}
-		_write_buffers.erase(
-			std::remove_if( _write_buffers.begin() , _write_buffers.end() ,
+		_write_buffers.erase( 
+			std::remove_if( _write_buffers.begin() , _write_buffers.end() , 
 					[] ( tcode::buffer::byte_buffer& buf ) -> bool {
 						return buf.length() == 0;
 					}) , _write_buffers.end());
 		bool flush = _write_buffers.empty();
-		_pipeline.fire_filter_on_write( wr_bytes , flush );
+		_pipeline.fire_filter_on_write( completion_bytes , flush );
 	}
 }
 
 void channel::handle_read( void ){
 	while ( true ) {
-		if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+		if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 			return;
-		}
 
-		if ( _packet_buffer.get() == nullptr ){
+		if ( _packet_buffer.get() == nullptr )
 			_packet_buffer = new simple_packet_buffer( channel_config::READ_BUFFER_SIZE  );
-		}
 	
 		tcode::iovec iov = _packet_buffer->read_iovec();
 		int result = read( &vec , 1 );
-		if ( result < 0 ){
-			if ( errno == EAGAIN )
-				break;
-			else 
-				close( tcode::diagnostics::platform_error() );
-		} else if ( result == 0 ) {
+		if ( result < 0 && errno == EAGAIN )
+			break;
+		else if ( result < 0 )
+			close( tcode::diagnostics::platform_error() );
+		else if ( result == 0 )
 			close( std::error_code( ECONNRESET , tcode::diagnostics::posix_category()) );
-		} else {
-			if ( _packet_buffer->complete(completion_bytes)){
+		else {
+			if ( _packet_buffer->complete(completion_bytes))
 				return _pipeline.fire_filter_on_read( _packet_buffer->detach_packet());	
-			}
 		}	
-	}
-	
+	}	
 }
 
 void channel::handle_write( void ){
-	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG )) {
+	if ( !tcode::threading::atomic_bit_on( _flag , detail::NOT_CLOSED_FLAG ))
 		return;
-	}
+
 	write_reamins();
-	if ( _write_buffers.empty()) {
-		if ( _loop.dispatcher().bind( handle()
-			, EPOLLIN
-			, this )){
-		} else {
-			close( tcode::diagnostics::platform_error() );
-		}		
-	}
+	if ( _write_buffers.empty() && !_loop.dispatcher().bind( handle(), EPOLLIN, this ) ) 
+		close( tcode::diagnostics::platform_error() );
 }
+
 #endif
 
 }}}

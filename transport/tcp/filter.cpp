@@ -110,8 +110,8 @@ void filter::add_ref( void ) {
 	channel()->add_ref();
 }
 
-void filter::release( void ){
-	channel()->release();
+int filter::release( void ){
+	return channel()->release();
 }
 
 void filter::close( const tcode::diagnostics::error_code& ec ){

@@ -51,7 +51,7 @@ public:
 	void close( const std::error_code& ec );
 	
 	void add_ref( void );
-	void release( void );
+	int release( void );
 	
 	void fire_on_open();
 	void fire_on_end_reference( void );

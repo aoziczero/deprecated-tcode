@@ -33,8 +33,7 @@ public:
 	void fire( void );
 	void cancel( void );
 	
-	typedef tcode::rc_ptr< event_timer > pointer_type;
-
+	
 private:
 	event_timer( event_loop& l );
 private:
@@ -43,8 +42,10 @@ private:
 	handler _handler;
 	std::atomic< int > _flag;
 public:
-	static pointer_type create( event_loop& l);
+	static tcode::rc_ptr< event_timer > create_timer( event_loop& l);
 };
+
+typedef tcode::rc_ptr< event_timer > event_timer_ptr;
 
 }}
 
