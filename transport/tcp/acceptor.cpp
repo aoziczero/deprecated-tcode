@@ -3,6 +3,7 @@
 #include "pipeline.hpp"
 #include "pipeline_builder.hpp"
 #include "channel.hpp"
+#include <diagnostics/log/log.hpp>
 
 namespace tcode { namespace transport { namespace tcp {
 #if defined( TCODE_TARGET_WINDOWS )
@@ -91,6 +92,7 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 	}
 #endif
 	if ( !bind( bind_addr )){
+		LOG_E("acceptor" , "bind fail : %s" , tcode::diagnostics::platform_error().message().c_str());
 		close();
 		return false;
 	}

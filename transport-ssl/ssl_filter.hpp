@@ -21,7 +21,9 @@ public:
 
 	virtual void filter_on_open( const tcode::io::ip::address& addr );
 	virtual void filter_on_read( tcode::buffer::byte_buffer buf );
+	virtual void filter_on_write( int written , bool flush );
 	virtual void filter_do_write( tcode::buffer::byte_buffer buf );	
+	
 
 	bool is_fatal_error( int ret );
 	void send_pending( void );

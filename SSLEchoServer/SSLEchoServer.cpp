@@ -104,9 +104,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	tcode::transport::event_loop loop;
 	tcode::transport::tcp::acceptor acceptor(loop);
 	tcode::transport::tcp::acceptor_handler_ptr handler( new acceptor_handler_impl(loop));
-	if ( acceptor.listen( tcode::io::ip::address::any( 7543  , AF_INET ) , handler )){
+	if ( acceptor.listen( tcode::io::ip::address::any( 7542  , AF_INET ) , handler )){
 		loop.run();
+	} else {
+		LOG_E("ECHO" , "Listen Fail %s" , tcode::diagnostics::platform_error().message().c_str());
 	}
+	
 	return 0;
 }
 

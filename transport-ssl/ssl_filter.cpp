@@ -153,6 +153,12 @@ void ssl_filter::filter_do_write( tcode::buffer::byte_buffer buf  ){
 	send_pending();
 }
 
+void ssl_filter::filter_on_write( int written , bool flush ){
+	if ( _handshake == HANDSHAKE::COMPLETE ){
+		fire_filter_on_write( written , flush );
+	}
+}
+
 bool ssl_filter::is_fatal_error( int ret ) {
 	int er_code = SSL_get_error(_ssl, ret);
 	switch(er_code){

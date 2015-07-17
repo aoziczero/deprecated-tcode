@@ -18,16 +18,18 @@ bool atomic_bit_reset( Atomic& atomic , const int bit ){
 	int exp = 0;
 	int val = 0;
 	do {
-		bool success = atomic.compare_exchange_strong( exp , val );
-		if ( exp & bit ) {
-			if ( success ) {
+		if ( atomic.compare_exchange_strong( exp , val ) ) {
+			if (((exp & bit) != 0) && ((val & bit) == 0))
 				return true;
+			return false;
+		} else {
+			if (( exp & bit )== 0 ){
+				return false;
 			} else {
 				val = exp ^ bit;
 			}
-		} else {
-			return false;;
 		}
+		
 	} while ( true );
 }
 
@@ -35,17 +37,17 @@ bool atomic_bit_reset( Atomic& atomic , const int bit ){
 template< typename Atomic >
 bool atomic_bit_set( Atomic& atomic , const int bit ){
 	int exp = 0;
-	int val = 0;
+	int val = bit;
 	do {
-		bool success = atomic.compare_exchange_strong( exp , val );
-		if ( (exp & bit) == 0 ) {
-			if ( success ) {
+		if ( atomic.compare_exchange_strong( exp , val ) ){
+			if (((exp & bit) == 0 ) && ((val & bit) != 0))
 				return true;
-			} else {
-				val = exp | bit;
-			}
+			return false;
 		} else {
-			return false;;
+			if ( exp & bit )
+				return false;
+			else 
+				val = exp | bit;
 		}
 	} while ( true );
 }

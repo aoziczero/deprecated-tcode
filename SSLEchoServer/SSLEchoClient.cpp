@@ -106,8 +106,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	tcode::transport::tcp::connector conn;
 	tcode::transport::tcp::connector_handler_ptr handler( new connector_handler_impl( loop ));
 	std::vector< tcode::io::ip::address > addrs;
-	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7542));
 	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7543));
+	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7542));
 	conn.connect_sequence( addrs , tcode::time_span::seconds(10) , handler );
 	loop.run();
 	return 0;

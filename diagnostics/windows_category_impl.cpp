@@ -38,7 +38,10 @@ std::string windows_category_impl
         std::ostringstream os;
         os << "unknown error code: " << _Errval << ".";
         return os.str();
-    }
+    } 
+	char* pos = strrchr( buffer , '\r' );
+	if ( pos ) 
+		*pos = '\0';
 	return std::string( buffer );
 }
 
