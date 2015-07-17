@@ -21,24 +21,29 @@ public:
 	connector_handler( void );
 	virtual ~connector_handler( void );
 
-	virtual void connector_on_error( const tcode::diagnostics::error_code& ec );
-	virtual bool connector_do_continue( void ) = 0;
+	virtual void connector_on_error( const tcode::diagnostics::error_code& ec
+		, const tcode::io::ip::address& addr ) = 0;
+	virtual bool connector_do_continue( const tcode::io::ip::address& addr ) = 0;
 	
 	tcode::time_span timeout( void );
 	void timeout( const tcode::time_span& timeout );
 
-	bool do_connect(const std::vector< tcode::io::ip::address >& addrs );
+	void do_connect(const std::vector< tcode::io::ip::address >& addrs );
 	void do_connect();
+	bool do_connect(const tcode::io::ip::address& addr );
 	void handle_connect( const tcode::diagnostics::error_code& ec  );
 
 	void on_timer( const tcode::diagnostics::error_code& ec );
+	
+	void handle_error( const tcode::diagnostics::error_code& ec );
 #if defined( TCODE_TARGET_LINUX )
 	virtual void operator()( const int events );
 #endif
 private:
 	std::vector< tcode::io::ip::address > _address;
 	tcode::transport::event_loop* _channel_loop;
-	int _current_address;
+	int _current_address_index;
+	bool _connect_in_progress;
 	event_timer_ptr _timer;
 	tcode::time_span _timeout;
 	tcode::time_stamp _connect_time;

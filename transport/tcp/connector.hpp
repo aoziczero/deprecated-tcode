@@ -12,11 +12,11 @@ public:
 	connector(void);
 	~connector(void);		
 
-	bool connect( const tcode::io::ip::address& addr
+	void connect( const tcode::io::ip::address& addr
 		, const tcode::time_span& wait_time 
 		, const connector_handler_ptr handler );
 
-	bool connect_sequence( const std::vector< tcode::io::ip::address >& addr 
+	void connect_sequence( const std::vector< tcode::io::ip::address >& addr 
 		, const tcode::time_span& per_wait_time 
 		, const connector_handler_ptr handler );
 };

@@ -59,7 +59,11 @@ tcode::time_span event_loop::wake_up_time( void ){
 	if( _event_timers.empty() ) {
 		return tcode::time_span::days(1);
 	}
-	return tcode::time_stamp::now() - _event_timers.front()->expired_at();
+	tcode::time_stamp now = tcode::time_stamp::now();
+	if ( _event_timers.front()->expired_at() <= now ) {
+		return tcode::time_span::seconds(0);
+	}
+	return _event_timers.front()->expired_at() - now;
 }
 
 void event_loop::schedule_timer( void ){
@@ -69,6 +73,8 @@ void event_loop::schedule_timer( void ){
 		if (  ptr->expired_at() <= ts ){
 			_event_timers.pop_front();
 			(*ptr)();
+		}else {
+			break;
 		}
 	}
 }

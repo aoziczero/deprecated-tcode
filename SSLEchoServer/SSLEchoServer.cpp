@@ -100,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
     WSAStartup(MAKEWORD(2, 2), &wsaData);	
 
 	tcode::ssl::openssl_init();
-	
+	tcode::diagnostics::log::logger::instance();
 	tcode::transport::event_loop loop;
 	tcode::transport::tcp::acceptor acceptor(loop);
 	tcode::transport::tcp::acceptor_handler_ptr handler( new acceptor_handler_impl(loop));

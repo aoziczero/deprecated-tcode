@@ -15,21 +15,21 @@ connector::~connector(void){
 
 }
 
-bool connector::connect( const tcode::io::ip::address& addr
+void connector::connect( const tcode::io::ip::address& addr
 		, const tcode::time_span& wait_time 
 		, const connector_handler_ptr handler )
 {
 	std::vector< tcode::io::ip::address > addrs;
 	addrs.push_back(addr);
-	return connect_sequence( addrs , wait_time , handler );
+	connect_sequence( addrs , wait_time , handler );
 }
 
-bool connector::connect_sequence( const std::vector< tcode::io::ip::address >& addr 
+void connector::connect_sequence( const std::vector< tcode::io::ip::address >& addr 
 		, const tcode::time_span& per_wait_time 
 		, const connector_handler_ptr handler )
 {
 	handler->timeout(per_wait_time);
-	return handler->do_connect( addr );
+	handler->do_connect( addr );
 }
 
 

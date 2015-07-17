@@ -73,8 +73,13 @@ public:
 	{
 	}
 
-	virtual void connector_on_error( const std::error_code& ec ){
-		LOG_D("ECHO" , "acceptor_impl error : %s" , ec.message().c_str());
+	virtual void connector_on_error( const std::error_code& ec 
+		, const tcode::io::ip::address& addr  ){
+		LOG_D("ECHO" , "acceptor_impl error : %s : %s" , addr.ip_address().c_str() , ec.message().c_str());
+	}
+
+	virtual bool connector_do_continue( const tcode::io::ip::address& addr ){
+		return true;
 	}
 
 	virtual bool build( tcode::transport::tcp::pipeline& p ) {
@@ -96,17 +101,15 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);	
-
 	tcode::ssl::openssl_init();
-	
 	tcode::transport::event_loop loop;
-	tcode::transport::tcp::connector connector(loop);
+	tcode::transport::tcp::connector conn;
 	tcode::transport::tcp::connector_handler_ptr handler( new connector_handler_impl( loop ));
-	if ( connector.connect( tcode::io::ip::address::from( "127.0.0.1" , 7543)  
-			, handler , tcode::time_span::minutes(2) ))
-	{
-		loop.run();
-	}
+	std::vector< tcode::io::ip::address > addrs;
+	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7542));
+	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7543));
+	conn.connect_sequence( addrs , tcode::time_span::seconds(10) , handler );
+	loop.run();
 	return 0;
 }
 

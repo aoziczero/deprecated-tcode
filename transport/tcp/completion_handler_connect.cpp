@@ -25,7 +25,7 @@ void completion_handler_connect::cancel( void ){
 void completion_handler_connect::operator()( const tcode::diagnostics::error_code& ec 
 		, const int completion_bytes )
 {
-	if( _cancel.load() != 0 ) {
+	if( _cancel.load() == 0 ) {
 		_handler->handle_connect(ec);
 	} 
 	delete this;
