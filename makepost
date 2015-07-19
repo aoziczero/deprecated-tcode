@@ -1,0 +1,36 @@
+
+LIB_OBJS_DIR=$(OBJS_DIR)/$(LIB_NAME)
+LIB_DEPEND_FILE = $(LIB_OBJS_DIR)/$(DEPEND_FILE)
+LIB_OBJS=$(LIB_SRCS:%.cpp=$(LIB_OBJS_DIR)/%.o)
+LIB =$(LIB_OBJS_DIR)/lib$(LIB_NAME).a
+
+all : $(LIB)
+
+$(LIB): $(LIB_OBJS)
+	@echo "archive=$(LIB)"
+	$(AR) rvs $@ $(LIB_OBJS)
+	$(RANLIB) $@
+	@echo ""
+
+$(LIB_OBJS_DIR)/%.o : %.cpp
+	@echo "Compile=$(dir $@)"
+	$`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)
+	$(CXX) $(LIB_CPPFLAGS) -c $< -o $@
+
+clean:
+	$(RM) -rf $(LIB_OBJS)
+
+#depend :
+	#@`[ -d $(LIB_OBJS_DIR) ] || $(MKDIR) $(LIB_OBJS_DIR)`
+	#@$(RM) -f $(LIB_DEPEND_FILE)
+	#@for FILE in $(LIB_SRCS:%.cpp=%); do \
+	#	$(CXX) -MM -MT $(LIB_OBJS_DIR)/$$FILE.o $$FILE.cpp >> $(DEPEND_FILE); \
+	#done
+
+#ifneq ($(MAKECMDGOALS), clean)
+#ifneq ($(MAKECMDGOALS), depend)
+#ifneq ($(LIB_SRCS) $(TARGET_SRCS),)
+#-include $(DEPEND_FILE)
+#endif
+#endif
+#endif
