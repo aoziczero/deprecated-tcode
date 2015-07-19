@@ -15,7 +15,7 @@ bool atomic_bit_on( Atomic& atomic , const int bit ){
 
 template< typename Atomic >
 bool atomic_bit_reset( Atomic& atomic , const int bit ){
-	int exp = 0;
+	int exp = atomic.load();
 	int val = 0;
 	do {
 		if ( atomic.compare_exchange_strong( exp , val ) ) {
@@ -36,7 +36,7 @@ bool atomic_bit_reset( Atomic& atomic , const int bit ){
 
 template< typename Atomic >
 bool atomic_bit_set( Atomic& atomic , const int bit ){
-	int exp = 0;
+	int exp = atomic.load();
 	int val = bit;
 	do {
 		if ( atomic.compare_exchange_strong( exp , val ) ){

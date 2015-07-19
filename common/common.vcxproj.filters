@@ -56,6 +56,9 @@
     <ClInclude Include="base64.hpp">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="crc32.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib_allocator.cpp">
@@ -78,6 +81,9 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="base64.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.cpp">
       <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>

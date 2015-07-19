@@ -81,6 +81,9 @@
     <ClInclude Include="tcp\completion_handler_connect.hpp">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="tcp\completion_handler_accept.hpp">
+      <Filter>transport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -117,5 +120,6 @@
     <ClCompile Include="tcp\acceptor_handler.cpp" />
     <ClCompile Include="tcp\connector_handler.cpp" />
     <ClCompile Include="tcp\completion_handler_connect.cpp" />
+    <ClCompile Include="tcp\completion_handler_accept.cpp" />
   </ItemGroup>
 </Project>

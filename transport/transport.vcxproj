@@ -87,6 +87,7 @@
     <ClInclude Include="tcp\acceptor_handler.hpp" />
     <ClInclude Include="tcp\channel.hpp" />
     <ClInclude Include="tcp\channel_config.hpp" />
+    <ClInclude Include="tcp\completion_handler_accept.hpp" />
     <ClInclude Include="tcp\completion_handler_connect.hpp" />
     <ClInclude Include="tcp\completion_handler_read.hpp" />
     <ClInclude Include="tcp\completion_handler_write.hpp" />
@@ -116,6 +117,7 @@
     <ClCompile Include="tcp\acceptor_handler.cpp" />
     <ClCompile Include="tcp\channel.cpp" />
     <ClCompile Include="tcp\channel_config.cpp" />
+    <ClCompile Include="tcp\completion_handler_accept.cpp" />
     <ClCompile Include="tcp\completion_handler_connect.cpp" />
     <ClCompile Include="tcp\completion_handler_read.cpp" />
     <ClCompile Include="tcp\completion_handler_write.cpp" />

@@ -84,6 +84,7 @@
     <ClInclude Include="basic_handle.hpp" />
     <ClInclude Include="closure.hpp" />
     <ClInclude Include="container_of.hpp" />
+    <ClInclude Include="crc32.hpp" />
     <ClInclude Include="object_factory.hpp" />
     <ClInclude Include="rc_ptr.hpp" />
     <ClInclude Include="rtti.hpp" />
@@ -100,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
+    <ClCompile Include="crc32.cpp" />
     <ClCompile Include="lib_allocator.cpp" />
     <ClCompile Include="rtti.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -154,15 +154,15 @@ void logger::write( const record& r ) {
 		tcode::time::convert_to( r.time_stamp , st );
 		char buffer[4096];
 		int len = _snprintf_s(buffer , 4096, _TRUNCATE
-			, "[%04d%02d%02d %02d%02d%02d][%s][%s][%s][%s][%s:%d][%d]\r\n"
+			, "[%04d%02d%02d %02d%02d%02d][%s][%s][%s]\n" //[%s][%s:%d][%d]\r\n"
 			, st.wYear , st.wMonth , st.wDay , st.wHour , st.wMinute , st.wSecond
 			, to_string(r.level)
 			, r.tag
 			, r.message
-			, r.function
+			/*, r.function
 			, r.file
 			, r.line
-			, (int)r.tid
+			, (int)r.tid*/
 			);		
 		OutputDebugStringA( buffer );
 	}	    

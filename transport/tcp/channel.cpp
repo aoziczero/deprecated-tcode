@@ -18,6 +18,7 @@ namespace detail {
 const int NO_ERROR_FLAG = 0x10000000;
 const int NOT_CLOSED_FLAG = NO_ERROR_FLAG << 1;
 const int MAX_WRITEV_COUNT = 16;
+
 }
 
 channel::channel( event_loop& l
@@ -67,9 +68,14 @@ int channel::release( void ){
 void channel::fire_on_open( const tcode::io::ip::address& addr ){
 	add_ref();
 	if ( _loop.in_event_loop() ){
-		_loop.dispatcher().bind( handle());
-		_pipeline.fire_filter_on_open(addr);
-		read(nullptr);	
+		if ( _loop.dispatcher().bind( handle())) {
+			_pipeline.fire_filter_on_open(addr);
+			read(nullptr);	
+		} else {
+			tcode::diagnostics::error_code ec = tcode::diagnostics::platform_error();
+			_pipeline.fire_filter_on_open(addr);
+			close( ec );
+		}
 	} else {
 		_loop.execute([this,addr]{ fire_on_open(addr); });
 	}

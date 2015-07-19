@@ -39,7 +39,6 @@ void filter::filter_on_error( const std::error_code& ec ){
 }
 
 void filter::filter_on_end_reference( void ){
-	//fire_filter_on_end_reference();
 	delete this;
 }
 	

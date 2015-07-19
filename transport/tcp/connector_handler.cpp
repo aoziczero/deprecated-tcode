@@ -86,7 +86,7 @@ void connector_handler::do_connect(){
 		break;
 	}
 	if ( !good() ) {
-		return ;
+		 return handle_error( tcode::diagnostics::platform_error());
 	}
 	non_blocking non_block;
 	if ( !set_option( non_block )){
@@ -225,9 +225,8 @@ void connector_handler::operator()( const int events ){
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
 		 handle_connect( events & EPOLLERR ? tcode::diagnostics::epoll_err : tcode::diagnostics::epoll_hup );
 	} else {
-		if ( events & EPOLLOUT ) {
+		if ( events & EPOLLOUT ) 
 			handle_connect( tcode::diagnostics::success );
-		}
 	}	
 }
 #endif

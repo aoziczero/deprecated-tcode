@@ -1,12 +1,11 @@
 #ifndef __tcode_transport_tcp_channel_h__
 #define __tcode_transport_tcp_channel_h__
 
-
 #include <buffer/byte_buffer.hpp>
 #include <io/ip/basic_socket.hpp>
+#include <diagnostics/log/log.hpp>
 #include <transport/tcp/pipeline.hpp>
 #include <transport/tcp/packet_buffer.hpp>
-
 #include <atomic>
 
 #if defined( TCODE_TARGET_LINUX )

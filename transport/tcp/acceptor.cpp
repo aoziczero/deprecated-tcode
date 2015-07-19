@@ -4,55 +4,25 @@
 #include "pipeline_builder.hpp"
 #include "channel.hpp"
 #include <diagnostics/log/log.hpp>
-
-namespace tcode { namespace transport { namespace tcp {
 #if defined( TCODE_TARGET_WINDOWS )
-class completion_handler_accept
-	: public tcode::io::completion_handler
-{
-public:
-	completion_handler_accept( acceptor& pacceptor )
-		: _acceptor(pacceptor){
-		_acceptor.loop().links_add();
-	}
-
-	virtual ~completion_handler_accept( void ){
-		_acceptor.loop().links_release();
-	}
-	
-	virtual void operator()( const tcode::diagnostics::error_code& ec 
-			, const int completion_bytes )
-	{
-		_acceptor.handle_accept( ec , this );
-	}
-
-	SOCKET handle( void ){
-		return _handle;
-	}
-
-	void handle( SOCKET s ){
-		_handle = s;
-	}
-		
-	tcode::io::ip::address* address_ptr( void ) {
-		return _address;
-	}
-private:
-	acceptor& _acceptor;
-	SOCKET _handle;
-	tcode::io::ip::address _address[2];
-};
+#include "completion_handler_accept.hpp"
 #endif
 
+namespace tcode { namespace transport { namespace tcp {
+
+diagnostics::log::logger& acceptor::logger(){
+	static diagnostics::log::logger instance;
+	return instance;
+}
 
 acceptor::acceptor(tcode::transport::event_loop& l)
 	: _loop(l) 
 {
-	
+	LOGGER_T( logger() , "acceptor" , "create instance" );
 }
 
 acceptor::~acceptor(void){
-	
+	LOGGER_T( logger() , "acceptor" , "release instance" );
 }
 
 bool acceptor::listen( const tcode::io::ip::address& bind_addr
@@ -67,7 +37,9 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 	case AF_INET6:
 		open( AF_INET6 );
 		break;
-	default:
+	default:	
+		LOGGER_E( logger() , "acceptor" , "socket fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());
 		return false;
 	}
 	if ( !good() )
@@ -75,11 +47,15 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 
 	reuse_address reuse(true);	
 	if ( !set_option( reuse )){
+		LOGGER_E( logger() , "acceptor" , "reuse_address fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());
 		close();
 		return false;
 	}	
 	non_blocking non_block;
 	if ( !set_option( non_block )){
+		LOGGER_E( logger() , "acceptor" , "non_blocking fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());		
 		close();
 		return false;
 	}	
@@ -87,33 +63,43 @@ bool acceptor::listen( const tcode::io::ip::address& bind_addr
 #if defined( TCODE_TARGET_WINDOWS )
 	conditional_accept cond_accept( TRUE );
 	if ( !set_option( cond_accept )){
+		LOGGER_E( logger() , "acceptor" , "conditional_accept fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());		
 		close();
 		return false;
 	}
 #endif
 	if ( !bind( bind_addr )){
-		LOG_E("acceptor" , "bind fail : %s" , tcode::diagnostics::platform_error().message().c_str());
+		LOGGER_E( logger() , "acceptor" , "bind fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());		
 		close();
 		return false;
 	}
 		
 	if ( !tcode::io::ip::accept_base::listen()){
+		LOGGER_E( logger() , "acceptor" , "listen fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());		
 		close();
 		return false;
 	}
 #if defined( TCODE_TARGET_WINDOWS )
 	if ( !_loop.dispatcher().bind( handle())){
+		LOGGER_E( logger() , "acceptor" , "dispatcher bind fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());		
 		close();
 		return false;
 	}
 	do_accept( nullptr );
 #elif defined( TCODE_TARGET_LINUX )
 	if ( !_loop.dispatcher().bind( handle() , EPOLLIN ,  this )){
+		LOGGER_E( logger() , "acceptor" , "dispatcher bind fail : %s"
+			 , tcode::diagnostics::platform_error().message().c_str());		
 		close();
 		return false;
 	}
 	_loop.links_add();
 #endif
+	LOGGER_T( logger() , "acceptor" , "listen success!");
 	return true;;
 }
 
@@ -132,6 +118,7 @@ tcode::transport::event_loop& acceptor::loop( void ){
 #if defined( TCODE_TARGET_WINDOWS )
 void acceptor::do_accept(completion_handler_accept* h){
 	if ( handle() == tcode::io::ip::invalid_socket ) {
+		LOGGER_W( logger() , "acceptor" , "handle() == invalid_socket" );		
 		if ( h )
 			delete h;
 		return;
@@ -142,6 +129,8 @@ void acceptor::do_accept(completion_handler_accept* h){
 	tcode::io::ip::tcp_holder tcp_handle;
 	tcp_handle.open( _address_family );
 	if ( !tcp_handle.good()) {
+		LOGGER_E( logger() , "acceptor" , "create accept socket fail %s" 
+			 , tcode::diagnostics::platform_error().message().c_str());	
 		h->error_code( tcode::diagnostics::platform_error() );
 		_loop.execute_handler( h );
 		return;
@@ -164,6 +153,7 @@ void acceptor::do_accept(completion_handler_accept* h){
     {
         std::error_code ec = tcode::diagnostics::platform_error();
         if ( ec.value() != WSA_IO_PENDING ){
+			LOGGER_E( logger() , "acceptor" , "AcceptEx fail %s" , ec.message().c_str());	
 			h->error_code( tcode::diagnostics::platform_error() );
 			_loop.execute_handler( h );
 	    }
@@ -176,6 +166,7 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 	tcode::io::ip::tcp_holder tcp_handle;
 	tcp_handle.handle( handler->handle());
 	if ( ec ){
+		LOGGER_D( logger() , "acceptor" , "accept error %s"  , ec.message().c_str());	
 		tcp_handle.close();
 		_handler->acceptor_on_error( ec );
 	} else {
@@ -225,8 +216,11 @@ void acceptor::handle_accept( void ) {
 		fd.handle(::accept( handle() , addr.sockaddr() , addr.sockaddr_length_ptr() ));
 	} while((fd.handle()==-1)&&(errno==EINTR));
 
-	if ( fd.handle() < 0 ) 
+	if ( fd.handle() < 0 ) {
+		LOGGER_E( logger() , "acceptor" , "accept fail %s"
+			 , tcode::diagnostics::platform_error().message().c_str());	
 		return;
+	}
 
 	if ( _handler->condition( fd.handle() , addr )){
 		tcode::io::ip::tcp_holder::non_blocking non_block;

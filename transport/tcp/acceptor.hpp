@@ -3,6 +3,8 @@
 
 #include <transport/tcp/acceptor_handler.hpp>
 #include <diagnostics/tcode_error_code.hpp>
+#include <diagnostics/log/log.hpp>
+
 #if defined( TCODE_TARGET_LINUX )
 #include <io/epoll.hpp>
 #endif
@@ -39,6 +41,8 @@ private:
 	tcode::transport::event_loop& _loop;
 	acceptor_handler_ptr _handler;
 	int _address_family;	
+public:
+	static diagnostics::log::logger& logger();
 };
 
 }}}

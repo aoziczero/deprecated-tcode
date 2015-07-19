@@ -34,7 +34,6 @@ public:
 	void fire_filter_on_read( tcode::buffer::byte_buffer& buf );
 	void fire_filter_on_write( int written , bool flush );
 	void fire_filter_on_error( const std::error_code& ec );
-	void fire_filter_on_end_reference( void );;
 	
 	void fire_filter_do_write( tcode::buffer::byte_buffer& buf );
 	//void fire_filter_do_writev( const std::vector< tcode::buffer::byte_buffer>& bufs );	
