@@ -116,10 +116,10 @@ void epoll::post_handler::post( tcode::io::completion_handler* op )
 
 void epoll::post_handler::drain( void ){
 	tcode::slist::queue< tcode::io::completion_handler > drain;
+	eventfd_t val = 0;
+	eventfd_read( _event_fd , &val );
 	do {
 		tcode::threading::scoped_lock<> guard( _lock );
-		eventfd_t val = 0;
-		eventfd_read( _event_fd , &val );
 		drain.add_tail( std::move(_posted));
 	}while(0);
 	while( !drain.empty()){

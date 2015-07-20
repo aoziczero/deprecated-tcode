@@ -13,5 +13,5 @@ OBJS_DIR  = ./../build/debug
 DBG_FLAGS = -DDEBUG -g
 endif
 
-LIB_CPPFLAGS=-std=c++11 -I./../ $(DBG_FLAGS) -fpermissive
+LIB_INCLUDES= -I./../
 
