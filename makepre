@@ -13,5 +13,9 @@ OBJS_DIR  = ./../build/debug
 DBG_FLAGS = -DDEBUG -g
 endif
 
+LD_DIRS=-L./../gtest/lib 
+LD_LIBS=-lgtest
+LD_LIBS+=-lpthread
+
 LIB_INCLUDES= -I./../
 
