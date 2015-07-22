@@ -23,13 +23,11 @@ bool atomic_bit_reset( Atomic& atomic , const int bit ){
 				return true;
 			return false;
 		} else {
-			if (( exp & bit )== 0 ){
+			if (( exp & bit )== 0 )
 				return false;
-			} else {
+			else
 				val = exp ^ bit;
-			}
 		}
-		
 	} while ( true );
 }
 
