@@ -29,7 +29,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SSLEchoServer.cpp">
+    <ClCompile Include="SSLEchoClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,0 +1,21 @@
+include ./../makepre
+
+TARGET_LD_DIR=-L$(OBJS_DIR)/tcode.common \
+	-L$(OBJS_DIR)/tcode.threading \
+	-L$(OBJS_DIR)/tcode.buffer \
+	-L$(OBJS_DIR)/tcode.diagnostics \
+	-L$(OBJS_DIR)/tcode.io \
+	-L$(OBJS_DIR)/tcode.transport
+	
+TARGET_LD_LIBS= -lpthread \
+	-ltcode.transport \
+	-ltcode.buffer \
+	-ltcode.diagnostics \
+	-ltcode.io \
+	-ltcode.threading \
+	-ltcode.common
+
+TARGET_NAME=shellexecuteserver
+TARGET_SRCS=shellexecuteserver.cpp\
+	
+include ./../makepost

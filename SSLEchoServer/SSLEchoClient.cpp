@@ -26,6 +26,7 @@
 #include <transport-ssl/openssl.hpp>
 #include <transport-ssl/context.hpp>
 #include <transport-ssl/ssl_filter.hpp>
+#include <transport/tcp/filters/size_filter.hpp>
 #include <diagnostics/log/log.hpp>
 
 class echo_filter 
@@ -64,12 +65,36 @@ private:
 
 };
 
+
+class test_shell_run_filter 
+	: public tcode::transport::tcp::filter
+{
+public:
+	test_shell_run_filter( void ){
+	}
+	virtual ~test_shell_run_filter( void ){
+	}
+	virtual void filter_on_open( const tcode::io::ip::address& addr ){
+		LOG_T("ECHO" , "filter_on_open %s" , addr.ip_address().c_str() );
+		tcode::buffer::byte_buffer hello(10);
+		hello.write_msg("arp\0");
+		fire_filter_do_write(hello);
+	}
+	
+	virtual void filter_on_read( tcode::buffer::byte_buffer buf ){
+		LOG_T("ECHO" , "filter_on_read:\n %s" , buf.rd_ptr() );
+	}
+	
+private:
+
+};
+
 class connector_handler_impl 
 	: public tcode::transport::tcp::connector_handler {
 public:
 	connector_handler_impl( tcode::transport::event_loop& l ) 
 		: _loop( l )
-		, _ssl_context( SSLv23_client_method() )
+		//, _ssl_context( SSLv23_client_method() )
 	{
 	}
 
@@ -83,9 +108,9 @@ public:
 	}
 
 	virtual bool build( tcode::transport::tcp::pipeline& p ) {
-		p.add(new tcode::transport::tcp::ssl_filter( _ssl_context.impl()
-			, tcode::transport::tcp::ssl_filter::HANDSHAKE::CONNECT ));
-		p.add( new echo_filter());
+		p.add( new tcode::transport::tcp::size_filter());
+		//p.add(new tcode::transport::tcp::ssl_filter( _ssl_context.impl() , tcode::transport::tcp::ssl_filter::HANDSHAKE::CONNECT ));
+		p.add( new test_shell_run_filter());
 		return true;
 	}
 
@@ -94,7 +119,7 @@ public:
 	}
 private:
 	tcode::transport::event_loop& _loop;
-	tcode::ssl::context _ssl_context;
+	//tcode::ssl::context _ssl_context;
 };
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -106,8 +131,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	tcode::transport::tcp::connector conn;
 	tcode::transport::tcp::connector_handler_ptr handler( new connector_handler_impl( loop ));
 	std::vector< tcode::io::ip::address > addrs;
-	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7543));
-	addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7542));
+	//addrs.push_back(tcode::io::ip::address::from( "127.0.0.1" , 7543));
+	addrs.push_back(tcode::io::ip::address::from( "192.168.0.222" , 7543));
 	conn.connect_sequence( addrs , tcode::time_span::seconds(10) , handler );
 	loop.run();
 	return 0;

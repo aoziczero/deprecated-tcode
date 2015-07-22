@@ -68,6 +68,10 @@ int channel::release( void ){
 void channel::fire_on_open( const tcode::io::ip::address& addr ){
 	add_ref();
 	if ( _loop.in_event_loop() ){
+		_loop.dispatcher().bind( handle());
+		_pipeline.fire_filter_on_open(addr);
+		read(nullptr);	
+/*
 		if ( _loop.dispatcher().bind( handle())) {
 			_pipeline.fire_filter_on_open(addr);
 			read(nullptr);	
@@ -75,7 +79,7 @@ void channel::fire_on_open( const tcode::io::ip::address& addr ){
 			tcode::diagnostics::error_code ec = tcode::diagnostics::platform_error();
 			_pipeline.fire_filter_on_open(addr);
 			close( ec );
-		}
+		}*/
 	} else {
 		_loop.execute([this,addr]{ fire_on_open(addr); });
 	}

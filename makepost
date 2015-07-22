@@ -1,37 +1,92 @@
-
 LIB_CPPFLAGS=-std=c++11 $(LIB_INCLUDES) $(DBG_FLAGS) -fpermissive
 LIB_OBJS_DIR=$(OBJS_DIR)/$(LIB_NAME)
 LIB_DEPEND_FILE=$(LIB_OBJS_DIR)/$(DEPEND_FILE)
 LIB_OBJS=$(LIB_SRCS:%.cpp=$(LIB_OBJS_DIR)/%.o)
-LIB =$(LIB_OBJS_DIR)/lib$(LIB_NAME).a
 
-all : $(LIB)
+ifdef SHARED_LIB
 
-$(LIB): $(LIB_OBJS)
+SHARED_SO_NAME=lib$(LIB_NAME).so.$(MAJOR_VER)
+SHARED_SO_REAL_NAME=$(SHARED_SO_NAME).$(MINOR_VER)
+LIB_FULL_NAME=$(LIB_OBJS_DIR)/$(SHARED_SO_REAL_NAME)
+
+else
+
+LIB_FILE_NAME=lib$(LIB_NAME).a
+LIB_FULL_NAME=$(LIB_OBJS_DIR)/$(LIB_FILE_NAME)
+
+endif
+
+TARGET_CPPFLAGS=-std=c++11 $(TARGET_INCLUDES) $(DBG_FLAGS)
+TARGET_LDFLAGS= $(TARGET_LD_DIR) $(TARGET_LD_LIBS)
+TARGET_OBJS_DIR=$(OBJS_DIR)/$(TARGET_NAME)
+TARGET_OBJS=$(TARGET_SRCS:%.cpp=$(TARGET_OBJS_DIR)/%.o)
+TARGET_DEPEND_FILE=$(TARGET_OBJS_DIR)/$(DEPEND_FILE)
+TARGET_FULL_NAME=$(TARGET_OBJS_DIR)/$(TARGET_NAME)
+
+all : lib target
+
+lib : $(LIB_FULL_NAME)
+
+$(LIB_FULL_NAME): $(LIB_OBJS)
+ifdef SHARED_LIB
+	$(CXX) -shared -Wl,-soname,$(SHARED_SO_NAME) -o $@ $(LIB_OBJS)
+else
 	@echo "archive=$@"
 	$(AR) rvs $@ $(LIB_OBJS)
 	$(RANLIB) $@
 	@echo ""
+endif
 
 $(LIB_OBJS_DIR)/%.o : %.cpp
 	@echo "Compile=$(dir $@)"
 	@`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)`
+ifdef SHARED_LIB
+	$(CXX) $(LIB_CPPFLAGS) -fPIC -c $< -o $@
+else
 	$(CXX) $(LIB_CPPFLAGS) -c $< -o $@
+endif
+
+target : $(TARGET_FULL_NAME)
+
+$(TARGET_FULL_NAME):$(TARGET_OBJS)
+	$(CXX) -o $@ $(TARGET_OBJS) $(TARGET_CPPFLAGS) $(TARGET_LDFLAGS) 
+
+$(TARGET_OBJS_DIR)/%.o : %.cpp
+	@echo "Compile=$(dir $@)"
+	@`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)`
+	$(CXX) $(TARGET_CPPFLAGS) -c $< -o $@
 
 clean:
-	$(RM) -rf $(LIB_OBJS) $(LIB_DEPEND_FILE)
+ifdef LIB_NAME
+	$(RM) -rf $(LIB_OBJS) $(LIB_FULL_NAME)
+endif
+ifdef TARGET_NAME
+	$(RM) -rf $(TARGET_OBJS) $(TARGET_FULL_NAME)
+endif
 
 depend :
+ifdef LIB_NAME
 	@`[ -d $(LIB_OBJS_DIR) ] || $(MKDIR) $(LIB_OBJS_DIR)`
 	@$(RM) -f $(LIB_DEPEND_FILE)
 	@for FILE in $(LIB_SRCS:%.cpp=%); do \
 		$(CXX) $(LIB_CPPFLAGS) -MM -MT $(LIB_OBJS_DIR)/$$FILE.o $$FILE.cpp >> $(LIB_DEPEND_FILE); \
 	done
+endif
+ifdef TARGET_NAME
+	@`[ -d $(TARGET_OBJS_DIR) ] || $(MKDIR) $(TARGET_OBJS_DIR)`
+	@$(RM) -f $(TARGET_DEPEND_FILE)
+	@for FILE in $(TARGET_SRCS:%.cpp=%); do \
+		$(CXX) $(TARGET_CPPFLAGS) -MM -MT $(TARGET_OBJS_DIR)/$$FILE.o $$FILE.cpp >> $(TARGET_DEPEND_FILE); \
+	done
+endif
 
 #ifneq ($(MAKECMDGOALS), clean)
 #ifneq ($(MAKECMDGOALS), depend)
 #ifneq ($(LIB_SRCS),)
 -include $(LIB_DEPEND_FILE)
+#endif
+#ifneq ($(TARGET_SRCS),)
+-include $(TARGET_DEPEND_FILE)
 #endif
 #endif
 #endif
