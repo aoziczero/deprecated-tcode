@@ -1,15 +1,22 @@
-CXX=/usr/bin/g++-5
-AR=/usr/bin/ar
-RANLIB=/usr/bin/ranlib
 RM=rm
 MKDIR=mkdir -p
 DEPEND_FILE=depend
-
+ifdef TARGET_ARM
+CXX=/usr/bin/arm-linux-gnueabihf-g++-5
+AR=/usr/bin/arm-linux-gnueabihf-ar
+RANLIB=/usr/bin/arm-linux-gnueabihf-ranlib
+TARGET_ARCH=arm
+else
+CXX=/usr/bin/g++-5
+AR=/usr/bin/ar
+RANLIB=/usr/bin/ranlib
+TARGET_ARCH=x86
+endif
 ifeq ( $(RELEASE),1)
-OBJS_DIR  = ./../build/release
+OBJS_DIR  = ./../build/$(TARGET_ARCH)/release
 DBG_FLAGS = -DNDEBUG 
 else
-OBJS_DIR  = ./../build/debug
+OBJS_DIR  = ./../build/$(TARGET_ARCH)/debug
 DBG_FLAGS = -DDEBUG -g
 endif
 

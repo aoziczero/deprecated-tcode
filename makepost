@@ -31,7 +31,7 @@ depend :
 #ifneq ($(MAKECMDGOALS), clean)
 #ifneq ($(MAKECMDGOALS), depend)
 #ifneq ($(LIB_SRCS),)
-#-include $(DEPEND_FILE)
+-include $(LIB_DEPEND_FILE)
 #endif
 #endif
 #endif
