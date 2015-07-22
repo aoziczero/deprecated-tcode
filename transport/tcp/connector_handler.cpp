@@ -191,7 +191,7 @@ void connector_handler::on_timer( const tcode::diagnostics::error_code& ec ){
 #if defined( TCODE_TARGET_WINDOWS )
 			_completion_handler->cancel();
 #elif defined( TCODE_TARGET_LINUX )
-			_channel_loop->disaptcher().unbind(handle());				
+			_channel_loop->dispatcher().unbind(handle());				
 #endif
 			_connect_in_progress = false;
 			close();

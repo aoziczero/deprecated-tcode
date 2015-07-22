@@ -202,7 +202,7 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 
 void acceptor::operator()( const int events ){
 	if ( events & ( EPOLLERR | EPOLLHUP )) {
-		 on_error( events & EPOLLERR ? tcode::diagnostics::epoll_err 
+		 _handler->acceptor_on_error( events & EPOLLERR ? tcode::diagnostics::epoll_err 
 			: tcode::diagnostics::epoll_hup );
 	} else {
 		if ( events & EPOLLIN ) handle_accept();
@@ -217,8 +217,9 @@ void acceptor::handle_accept( void ) {
 	} while((fd.handle()==-1)&&(errno==EINTR));
 
 	if ( fd.handle() < 0 ) {
-		LOGGER_E( logger() , "acceptor" , "accept fail %s"
-			 , tcode::diagnostics::platform_error().message().c_str());	
+		tcode::diagnostics::error_code ec(tcode::diagnostics::platform_error());
+		_handler->acceptor_on_error( ec );
+		LOGGER_D( logger() , "acceptor" , "accept fail %s" , ec.message().c_str());	
 		return;
 	}
 
@@ -229,7 +230,7 @@ void acceptor::handle_accept( void ) {
 		if ( _handler->build( pl ) ) {
 			tcode::transport::tcp::channel* channel 
 					= new tcode::transport::tcp::channel( 
-							_builder->channel_loop() , pl ,fd.handle());
+							_handler->channel_loop() , pl ,fd.handle());
 			channel->fire_on_open( addr );
 		} else {
 			fd.close();

@@ -24,7 +24,8 @@ void size_filter::filter_on_read( tcode::buffer::byte_buffer buf )
 			break;
 		}
 		_read_buffer.read( &size , sizeof(size_type));
-		fire_filter_on_read( _read_buffer.sub_buffer( 0 , size));
+		auto packet = _read_buffer.sub_buffer( 0 , size);
+		fire_filter_on_read(packet);
 	}
 	_read_buffer.fit();
 }

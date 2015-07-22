@@ -8,7 +8,7 @@ LIB =$(LIB_OBJS_DIR)/lib$(LIB_NAME).a
 all : $(LIB)
 
 $(LIB): $(LIB_OBJS)
-	@echo "archive=$(LIB)"
+	@echo "archive=$@"
 	$(AR) rvs $@ $(LIB_OBJS)
 	$(RANLIB) $@
 	@echo ""

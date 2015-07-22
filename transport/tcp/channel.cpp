@@ -344,7 +344,7 @@ void channel::handle_read( void ){
 			_packet_buffer = new simple_packet_buffer( channel_config::READ_BUFFER_SIZE  );
 	
 		tcode::iovec iov = _packet_buffer->read_iovec();
-		int result = read( &vec , 1 );
+		int result = read( &iov , 1 );
 		if ( result < 0 && errno == EAGAIN )
 			break;
 		else if ( result < 0 )
@@ -352,8 +352,11 @@ void channel::handle_read( void ){
 		else if ( result == 0 )
 			close( std::error_code( ECONNRESET , tcode::diagnostics::posix_category()) );
 		else {
-			if ( _packet_buffer->complete(completion_bytes))
-				return _pipeline.fire_filter_on_read( _packet_buffer->detach_packet());	
+			if ( _packet_buffer->complete(result)) {
+				auto packet = _packet_buffer->detach_packet();
+				_pipeline.fire_filter_on_read( packet );	
+			}
+				
 		}	
 	}	
 }
