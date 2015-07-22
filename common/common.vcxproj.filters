@@ -59,6 +59,7 @@
     <ClInclude Include="crc32.hpp">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="big_integer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib_allocator.cpp">
@@ -86,6 +87,7 @@
     <ClCompile Include="crc32.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="big_integer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README" />

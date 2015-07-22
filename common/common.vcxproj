@@ -82,6 +82,7 @@
     <ClInclude Include="aligned_storage.hpp" />
     <ClInclude Include="base64.hpp" />
     <ClInclude Include="basic_handle.hpp" />
+    <ClInclude Include="big_integer.hpp" />
     <ClInclude Include="closure.hpp" />
     <ClInclude Include="container_of.hpp" />
     <ClInclude Include="crc32.hpp" />
@@ -101,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
+    <ClCompile Include="big_integer.cpp" />
     <ClCompile Include="crc32.cpp" />
     <ClCompile Include="lib_allocator.cpp" />
     <ClCompile Include="rtti.cpp" />
