@@ -153,15 +153,14 @@ void connector_handler::handle_connect( const tcode::diagnostics::error_code& ec
 	_connect_in_progress = false;
 	tcode::diagnostics::error_code er = ec;
 	if ( !er ) {
-		tcode::transport::tcp::pipeline pl;
-		if ( build( pl ) ) {
-			tcode::transport::tcp::channel* channel 
-				= new tcode::transport::tcp::channel( 
-						*_channel_loop ,  pl , handle( tcode::io::ip::invalid_socket ));
+		tcode::transport::tcp::channel* channel = new tcode::transport::tcp::channel( 
+						*_channel_loop , handle());
+		if ( build( channel->pipeline() ) ) {
 			channel->fire_on_open(_address[_current_address_index]);
 			_timer->cancel();
 			return;
-		}
+		} 
+		delete channel;
 		er = tcode::diagnostics::build_fail;
 	}
 	close();

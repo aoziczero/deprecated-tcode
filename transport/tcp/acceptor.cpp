@@ -183,14 +183,14 @@ void acceptor::handle_accept( const tcode::diagnostics::error_code& ec
 		if ( _handler->condition( tcp_handle.handle() , handler->address_ptr()[1] )){
 			tcode::io::ip::tcp_holder::update_accept_context ctx(handle());
 			tcp_handle.set_option( ctx );
-			tcode::transport::tcp::pipeline pl;
-			if ( _handler->build( pl ) ) {
-				tcode::transport::tcp::channel* channel 
+			tcode::transport::tcp::channel* channel 
 					= new tcode::transport::tcp::channel( 
-							_handler->channel_loop() ,pl ,tcp_handle.handle());
+							_handler->channel_loop() ,tcp_handle.handle());
+			if ( _handler->build( channel->pipeline() ) ) {
 				channel->fire_on_open( handler->address_ptr()[1] );
 			} else {
 				tcp_handle.close();
+				delete channel;
 			}
 		} else {
 			tcp_handle.close();
@@ -210,33 +210,34 @@ void acceptor::operator()( const int events ){
 }
 
 void acceptor::handle_accept( void ) {
-	tcode::io::ip::tcp_holder fd;
+	tcode::io::ip::tcp_holder tcp_handle;
 	tcode::io::ip::address addr;
 	do {
-		fd.handle(::accept( handle() , addr.sockaddr() , addr.sockaddr_length_ptr() ));
-	} while((fd.handle()==-1)&&(errno==EINTR));
+		tcp_handle.handle(::accept( handle() , addr.sockaddr() , addr.sockaddr_length_ptr() ));
+	} while((tcp_handle.handle()==-1)&&(errno==EINTR));
 
-	if ( fd.handle() < 0 ) {
+	if ( tcp_handle.handle() < 0 ) {
 		tcode::diagnostics::error_code ec(tcode::diagnostics::platform_error());
 		_handler->acceptor_on_error( ec );
 		LOGGER_D( logger() , "acceptor" , "accept fail %s" , ec.message().c_str());	
 		return;
 	}
 
-	if ( _handler->condition( fd.handle() , addr )){
+	if ( _handler->condition( tcp_handle.handle() , addr )){
 		tcode::io::ip::tcp_holder::non_blocking non_block;
-		fd.set_option( non_block );
-		tcode::transport::tcp::pipeline pl;
-		if ( _handler->build( pl ) ) {
-			tcode::transport::tcp::channel* channel 
-					= new tcode::transport::tcp::channel( 
-							_handler->channel_loop() , pl ,fd.handle());
-			channel->fire_on_open( addr );
+		tcp_handle.set_option( non_block );
+
+		tcode::transport::tcp::channel* channel 
+				= new tcode::transport::tcp::channel( 
+						_handler->channel_loop() ,tcp_handle.handle());
+		if ( _handler->build( channel->pipeline() ) ) {
+			channel->fire_on_open( handler->address_ptr()[1] );
 		} else {
-			fd.close();
+			tcp_handle.close();
+			delete channel;
 		}
 	} else {
-		fd.close();
+		tcp_handle.close();
 	}
 }
 

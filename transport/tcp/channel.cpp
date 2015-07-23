@@ -22,9 +22,8 @@ const int MAX_WRITEV_COUNT = 16;
 }
 
 channel::channel( event_loop& l
-	, const tcp::pipeline& p 
-	, tcode::io::ip::socket_type fd  ) : _loop( l )
-	, _pipeline(p)
+	, tcode::io::ip::socket_type fd  ) 
+	: _loop( l )
 {
 	handle( fd );	
 	_flag.store( detail::NO_ERROR_FLAG | detail::NOT_CLOSED_FLAG );
@@ -71,7 +70,7 @@ void channel::fire_on_open( const tcode::io::ip::address& addr ){
 		_loop.dispatcher().bind( handle());
 		_pipeline.fire_filter_on_open(addr);
 		read(nullptr);	
-/*
+		/* iocp connector ดย fail
 		if ( _loop.dispatcher().bind( handle())) {
 			_pipeline.fire_filter_on_open(addr);
 			read(nullptr);	

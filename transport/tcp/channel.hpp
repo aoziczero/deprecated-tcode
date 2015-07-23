@@ -32,7 +32,6 @@ class channel
 {
 public:
 	explicit channel( event_loop& l 
-					, const tcp::pipeline& p 
 					, tcode::io::ip::socket_type fd );
 #if defined( TCODE_TARGET_WINDOWS )
 	~channel( void );

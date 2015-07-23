@@ -31,6 +31,8 @@ public:
 	void fire_filter_do_write( filter* pfilter , tcode::buffer::byte_buffer& buf );
 
 	pipeline& add( filter* pfilter );
+	pipeline& add_inbound( filter* base , filter* pfilter );
+	pipeline& add_outbound( filter* base , filter* pfilter );
 	
 	void channel( tcp::channel* chan );
 	tcp::channel* channel( void );

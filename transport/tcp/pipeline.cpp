@@ -181,6 +181,7 @@ void pipeline::fire_filter_do_write( filter* pfilter , tcode::buffer::byte_buffe
 }
 
 pipeline& pipeline::add( filter* pfilter ){
+	pfilter->pipeline(this);
 	if( _inbound == nullptr )
 		_inbound = pfilter;
 	else {
@@ -196,13 +197,34 @@ pipeline& pipeline::add( filter* pfilter ){
 	return *this;
 }
 
+pipeline& pipeline::add_inbound( filter* base , filter* pfilter ){
+	pfilter->pipeline(this);
+	pfilter->inbound( base->inbound() );
+	pfilter->outbound(base);
+
+	base->inbound(pfilter);
+	
+	if ( pfilter->inbound() ) {
+		pfilter->inbound()->outbound(pfilter);
+	}
+	return *this;
+}
+
+pipeline& pipeline::add_outbound( filter* base , filter* pfilter ){
+	pfilter->pipeline(this);
+	pfilter->inbound( base );
+	pfilter->outbound(base->outbound());
+
+	base->outbound(pfilter);
+	
+	if ( pfilter->outbound() ) {
+		pfilter->outbound()->inbound(pfilter);
+	}
+	return *this;
+}
+
 void pipeline::channel( tcp::channel* chan ){
 	_channel = chan;
-	filter* pfilter = _inbound;
-	while( pfilter != nullptr ){
-		pfilter->pipeline( this );
-		pfilter = pfilter->inbound();
-	}	
 }
 
 tcp::channel* pipeline::channel( void ){
