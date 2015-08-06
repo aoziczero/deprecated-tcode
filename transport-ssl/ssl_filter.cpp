@@ -24,6 +24,7 @@ ssl_filter::ssl_filter( SSL_CTX* ctx  , HANDSHAKE hs )
 	, _wbio( BIO_new( BIO_s_mem()))
 	, _handshake( hs )
 {	
+	SSL_set_bio( _ssl , _rbio , _wbio );
 }
 
 ssl_filter::~ssl_filter( void ){
@@ -31,8 +32,7 @@ ssl_filter::~ssl_filter( void ){
 	SSL_free( _ssl );
 }
 
-void ssl_filter::begin_handshake( void ) {
-	SSL_set_bio( _ssl , _rbio , _wbio );
+void ssl_filter::begin_handshake( void ) {	
 	int ret = SSL_read( _ssl , nullptr , 0 );
 	if ( is_fatal_error( ret ) ){
 		end_handshake();

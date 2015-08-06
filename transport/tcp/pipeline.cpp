@@ -198,6 +198,8 @@ pipeline& pipeline::add( filter* pfilter ){
 }
 
 pipeline& pipeline::add_inbound( filter* base , filter* pfilter ){
+	if ( base == nullptr || pfilter == nullptr ) 
+		return *this;
 	pfilter->pipeline(this);
 	pfilter->inbound( base->inbound() );
 	pfilter->outbound(base);
@@ -211,6 +213,8 @@ pipeline& pipeline::add_inbound( filter* base , filter* pfilter ){
 }
 
 pipeline& pipeline::add_outbound( filter* base , filter* pfilter ){
+	if ( base == nullptr || pfilter == nullptr ) 
+		return *this;
 	pfilter->pipeline(this);
 	pfilter->inbound( base );
 	pfilter->outbound(base->outbound());
@@ -220,6 +224,24 @@ pipeline& pipeline::add_outbound( filter* base , filter* pfilter ){
 	if ( pfilter->outbound() ) {
 		pfilter->outbound()->inbound(pfilter);
 	}
+	return *this;
+}
+
+pipeline& pipeline::remove( filter* pfilter ){
+	if ( pfilter == nullptr ) 
+		return *this;
+	filter* in = pfilter->inbound();
+	filter* out = pfilter->outbound();
+	
+	if ( in ) 
+		in->outbound(out);
+	
+	if ( out ) 
+		out->inbound(in);
+	
+	if ( pfilter == _inbound ) 
+		_inbound = out;
+
 	return *this;
 }
 

@@ -72,6 +72,10 @@ public:
 	std::size_t write_fmt( const char* msg , ... );
 
 	tcode::buffer::byte_buffer sub_buffer( const std::size_t start , const std::size_t len );
+	tcode::buffer::byte_buffer duplicate(void);
+	tcode::buffer::byte_buffer copy(void);
+private:
+	byte_buffer( block::handle handle , const position& pos );
 private:
 	block::handle _block;
 	position _pos;

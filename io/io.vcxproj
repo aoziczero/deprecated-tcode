@@ -87,6 +87,7 @@
     <ClInclude Include="completion_port.hpp" />
     <ClInclude Include="ip\resolver.hpp" />
     <ClInclude Include="ip\socket.hpp" />
+    <ClInclude Include="select.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

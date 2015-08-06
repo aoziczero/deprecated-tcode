@@ -230,4 +230,18 @@ tcode::buffer::byte_buffer byte_buffer::sub_buffer( const std::size_t start , co
 	return tcode::buffer::byte_buffer( rd_ptr() + start , len );
 }
 
+tcode::buffer::byte_buffer byte_buffer::duplicate(void){
+	return tcode::buffer::byte_buffer(*this);
+}
+
+tcode::buffer::byte_buffer byte_buffer::copy(void){
+	return tcode::buffer::byte_buffer( block::copy( _block ) , _pos );
+}
+
+byte_buffer::byte_buffer( block::handle handle , const position& pos )
+	: _block(handle) , _pos(pos)
+{
+
+}
+
 }}

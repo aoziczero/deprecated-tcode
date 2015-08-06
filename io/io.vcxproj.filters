@@ -34,6 +34,7 @@
     </ClInclude>
     <ClInclude Include="completion_handler_one_shot.hpp" />
     <ClInclude Include="io.hpp" />
+    <ClInclude Include="select.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />

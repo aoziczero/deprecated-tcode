@@ -29,10 +29,13 @@ public:
 	void fire_filter_on_write( filter* pfilter , int written , bool flush );
 	void fire_filter_on_error( filter* pfilter , const std::error_code& ec );
 	void fire_filter_do_write( filter* pfilter , tcode::buffer::byte_buffer& buf );
-
+	
 	pipeline& add( filter* pfilter );
+		
+	// in_pipeline() 내에 서 호출할것
 	pipeline& add_inbound( filter* base , filter* pfilter );
 	pipeline& add_outbound( filter* base , filter* pfilter );
+	pipeline& remove( filter* pfilter );
 	
 	void channel( tcp::channel* chan );
 	tcp::channel* channel( void );
