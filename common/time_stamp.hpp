@@ -4,9 +4,9 @@
 namespace tcode{
 
 class time_span;
-//! 1970³â 1 ¿ù 1 ÀÏ 0 ½Ã ÀÌÈÄ microsecond ´ÜÀ§·Î 1½Ä Áõ°¡ 
-//! utc ±âÁØ 
-//! local time / dst µîÀº ¿ÜºÎ Å¬·¡½º·Î Ã³¸®
+//! 1970¿ 1 ¿ 1 ¿ 0 ¿ ¿¿ microsecond ¿¿¿ 1¿ ¿¿ 
+//! utc ¿¿ 
+//! local time / dst ¿¿ ¿¿ ¿¿¿¿ ¿¿
 class time_stamp{
 public:
 	time_stamp( void );

@@ -231,7 +231,7 @@ void acceptor::handle_accept( void ) {
 				= new tcode::transport::tcp::channel( 
 						_handler->channel_loop() ,tcp_handle.handle());
 		if ( _handler->build( channel->pipeline() ) ) {
-			channel->fire_on_open( handler->address_ptr()[1] );
+			channel->fire_on_open( addr  );
 		} else {
 			tcp_handle.close();
 			delete channel;
