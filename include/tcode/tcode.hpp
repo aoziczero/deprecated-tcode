@@ -1,17 +1,13 @@
 #ifndef __tcode_common_define_h__
 #define __tcode_common_define_h__
 
-//#include <common/compile_time_error.hpp>
+#include <tcode/tmp/compile_time_error.hpp>
 
 //! assert msg
 #ifndef TCODE_ASSERT
 #define TCODE_ASSERT( expr , msg ) assert( expr && msg )
 #endif
 
-//! compile time check
-#ifndef STATIC_CHECK
-#define STATIC_CHECK( expr , msg ) { tcode::tmp::compile_time_error< (expr) != 0 > ERROR_##msg;(void)ERROR_##msg;}
-#endif
 
 //! 복사 금지
 #ifndef DISALLOW_COPY

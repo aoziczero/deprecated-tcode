@@ -25,6 +25,8 @@ DBG_FLAG=-DDEBUG -g
 endif
 
 TCODE_SRCS=tcode.cpp\
+           io/pipe.cpp\
+           io/fd.cpp
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
@@ -52,6 +54,12 @@ TCODE_CFLAGS=-I$(TCODE_DIR)/include -std=c++11 -fpermissive
 
 TEST_NAME=testtcode
 TEST_SRCS=main.cpp\
+          test_compile_time_error.cpp\
+          test_error.cpp\
+          test_pipe.cpp\
+          test_fd.cpp
+
+           
 
 GTEST_DIR=../external/gtest
 
@@ -108,8 +116,8 @@ depend:
 	@`[ -d $(TCODE_SHARED_OBJS_DIR) ] || $(MKDIR) $(TCODE_SHARED_OBJS_DIR)`
 	@ $(RM) -f $(TCODE_STATIC_DEPEND_FILE) $(TCODE_SHARED_DEPEND_FILE)
 	@ for FILE in $(TCODE_SRCS:%.cpp=%);do\
-		$(CC) $(TCODE_CFLAGS) -MM -MT $(TCODE_STATIC_OBJS_DIR)/$$FILE.o $(TCODE_SRC_DIR)/$$FILE.c >> $(TCODE_STATIC_DEPEND_FILE);\
-		$(CC) $(TCODE_CFLAGS) -MM -MT $(TCODE_SHARED_OBJS_DIR)/$$FILE.o $(TCODE_SRC_DIR)/$$FILE.c >> $(TCODE_SHARED_DEPEND_FILE);\
+		$(CC) $(TCODE_CFLAGS) -MM -MT $(TCODE_STATIC_OBJS_DIR)/$$FILE.o $(TCODE_SRC_DIR)/$$FILE.cpp >> $(TCODE_STATIC_DEPEND_FILE);\
+		$(CC) $(TCODE_CFLAGS) -MM -MT $(TCODE_SHARED_OBJS_DIR)/$$FILE.o $(TCODE_SRC_DIR)/$$FILE.cpp >> $(TCODE_SHARED_DEPEND_FILE);\
 	done
 
 -include $(TCODE_STATIC_OBJS_DIR)/$(DEPEND_FILE)
