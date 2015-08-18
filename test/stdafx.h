@@ -82,3 +82,4 @@ private:
 
 static gout_impl gout;
 static gendl_impl gendl;
+

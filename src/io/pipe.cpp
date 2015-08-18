@@ -7,7 +7,7 @@ namespace tcode { namespace io {
 
 pipe::pipe( void ){
     int p[2];
-    pipe2( p , O_NONBLOCK );        
+    ::pipe( p );        
     _pipe[0].handle(p[0]);
     _pipe[1].handle(p[1]);
 }

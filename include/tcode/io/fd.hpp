@@ -1,5 +1,5 @@
 #ifndef __tcode_io_fd_h__
-#define __tcoce_io_fd_h__
+#define __tcode_io_fd_h__
 
 namespace tcode { namespace io { 
 

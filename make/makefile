@@ -2,6 +2,8 @@ RM=rm
 MKDIR=mkdir -p
 DEPEND_FILE=depend
 
+OS := $(shell uname)
+
 ifdef TARGET_ARM
 CC=g++
 AR=ar
@@ -50,7 +52,13 @@ TCODE_SHARED_OBJS=$(TCODE_SRCS:%.cpp=$(TCODE_SHARED_OBJS_DIR)/%.o)
 TCODE_STATIC_DEPEND_FILE=$(TCODE_STATIC_OBJS_DIR)/$(DEPEND_FILE)
 TCODE_SHARED_DEPEND_FILE=$(TCODE_SHARED_OBJS_DIR)/$(DEPEND_FILE)
 
+
 TCODE_CFLAGS=-I$(TCODE_DIR)/include -std=c++11 -fpermissive
+ifeq ($(OS),Darwin)
+TCODE_SHARED_CFLAGS=-shared -Wl,-install_name,
+else
+TCODE_SHARED_CFLAGS=-shared -Wl,-soname,
+endif
 
 TEST_NAME=testtcode
 TEST_SRCS=main.cpp\
@@ -70,8 +78,11 @@ TEST_OBJS=$(TEST_SRCS:%.cpp=$(TEST_OBJS_DIR)/%.o)
 TEST_DEPEND_FILE=$(TEST_OBJS_DIR)/$(DEPEND_FILE)
 
 TEST_CFLAGS=$(TCODE_CFLAGS) -I$(GTEST_DIR)/include
+ifeq ($(OS),Darwin)
+TEST_LDFLAGS=-L$(GTEST_DIR)/lib -lgtestmac -lpthread 
+else
 TEST_LDFLAGS=-L$(GTEST_DIR)/lib -lgtest -lpthread
-
+endif
 all: $(TCODE_STATIC) $(TCODE_SHARED) $(TEST_OUT) 
 
 test: $(TEST_OUT)
@@ -92,7 +103,7 @@ $(TCODE_STATIC):$(TCODE_STATIC_OBJS)
 	@echo ""
 
 $(TCODE_SHARED):$(TCODE_SHARED_OBJS)
-	$(CC) -shared -Wl,-soname,$(TCODE_SO_NAME) -o $@ $(TCODE_SHARED_OBJS)
+	$(CC) $(TCODE_SHARED_CFLAGS)$(TCODE_SO_NAME) -o $@ $(TCODE_SHARED_OBJS)
 
 $(TCODE_STATIC_OBJS_DIR)/%.o: $(TCODE_SRC_DIR)/%.cpp
 	@echo "Compile=$(dir $@)"
@@ -105,7 +116,7 @@ $(TCODE_SHARED_OBJS_DIR)/%.o:  $(TCODE_SRC_DIR)/%.cpp
 	$(CC) $(TCODE_CFLAGS) -fPIC -c $< -o $@
 
 clean:
-	$(RM) -rf $(TCODE_STATIC_OBJS) $(TCODE_STATIC) $(TCODE_SHARED_OBJS) $(TCODE_SHARED)
+	$(RM) -rf $(TCODE_STATIC_OBJS) $(TCODE_STATIC) $(TCODE_SHARED_OBJS) $(TCODE_SHARED) $(TEST_OBJS)
 
 temp:
 	@echo $(TCODE_SRCS)
