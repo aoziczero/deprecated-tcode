@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include <tcode/io/ip/address.hpp>
-#include <netdb.h>
-
 namespace tcode { namespace io { namespace ip {
 namespace detail {
 
@@ -42,7 +40,6 @@ const char* inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     return dst;
 }
 
-/*
 bool inet_pton( int af
 	, const char* addr
 	, int port
@@ -68,7 +65,6 @@ bool inet_pton( int af
 	}
 	return false;;
 }
-*/
 
 }
     address::address( void )
@@ -85,7 +81,7 @@ bool inet_pton( int af
         memset(&addr , 0x00 , _len );
         addr.sin_addr.s_addr = INADDR_ANY;
         addr.sin_port = htons(any.port);
-        addr.sin_family = any.family;
+        addr.sin_family = AF_INET; 
         memcpy( &_address , &addr , _len );
     }
 
@@ -106,11 +102,20 @@ bool inet_pton( int af
         memcpy( &_address , &addr , _len );
     }
         
+    address::address( const int af , const dns& dns , const uint16_t port )
+        : _len( sizeof(_address))
+    {
+        detail::inet_pton( af , dns.domain , port , *this );
+    }
     struct sockaddr* address::sockaddr( void ) const{
         return reinterpret_cast< struct sockaddr* >(  
 	    	const_cast< sockaddr_storage* >( &_address ));
     }
    
+    socklen_t&      address::sockaddr_length( void ) {
+        return _len;    
+    }
+
     std::string address::ip( void ){
     	char buffer[4096] = {0,};
     	std::string ip = detail::inet_ntop(
@@ -127,9 +132,50 @@ bool inet_pton( int af
     int	address::family( void ) const {
 	    return ((struct sockaddr_in*)sockaddr())->sin_family;
     }
-    address::any::any( int f , int p )
-        : port(p) , family(f)
+    address::any::any( int p )
+        : port(p)     
     {
     }
 
+    address::dns::dns( const char* d )
+        : domain(d)
+    {
+    }
+    
+    std::vector<address> address::from_dns( const int af
+                , const dns& dns 
+                , const uint16_t port 
+                , const int type
+                , const int flags )
+    {
+    	std::vector<address> addrs;
+
+        struct addrinfo hint = {0,};
+        struct addrinfo* res = nullptr;
+        struct addrinfo* temp = nullptr;
+
+        hint.ai_family = af;
+        hint.ai_socktype = type;
+        hint.ai_flags = flags;
+        char port_string[12];
+#if defined( _WIN32 )
+        sprintf_s( port_string , "%d" , port );
+#else
+        sprintf( port_string , "%d" , port );
+#endif
+        int err = getaddrinfo( dns.domain , port_string , &hint, &res);
+        if ( err == 0 ) {
+            temp = res;
+            while (temp) {
+                address a( temp->ai_addr
+                        , static_cast<int>(temp->ai_addrlen));	
+                addrs.push_back( a );
+                temp = temp->ai_next;
+            }
+            if ( res ) {
+                freeaddrinfo(res);
+            }
+        }
+        return addrs;
+    }
 }}}
