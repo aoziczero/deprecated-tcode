@@ -28,7 +28,10 @@ endif
 
 TCODE_SRCS=tcode.cpp\
            io/pipe.cpp\
-           io/fd.cpp
+           io/fd.cpp\
+		   io/engine.cpp\
+		   io/handler.cpp\
+		   io/ip/address.cpp\
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
@@ -65,9 +68,11 @@ TEST_SRCS=main.cpp\
           test_compile_time_error.cpp\
           test_error.cpp\
           test_pipe.cpp\
-          test_fd.cpp
+          test_fd.cpp\
+		  test_io_engine.cpp\
+		  test_io_handler.cpp\
+		  test_io_ip_address.cpp
 
-           
 
 GTEST_DIR=../external/gtest
 
