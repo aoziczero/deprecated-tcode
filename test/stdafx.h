@@ -68,7 +68,7 @@ public:
 	gout_impl& operator<< ( const std::size_t& val ) {
 		_message += std::to_string(val);
 		return *this;
-	}
+    }
 	gout_impl& operator<< ( const gendl_impl& ) {
 		testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[   USER   ] ");
 		testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, _message.c_str());

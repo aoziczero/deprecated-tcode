@@ -32,6 +32,10 @@ TCODE_SRCS=tcode.cpp\
 		   io/engine.cpp\
 		   io/handler.cpp\
 		   io/ip/address.cpp\
+		   io/option.cpp\
+		   time/timestamp.cpp\
+		   time/timespan.cpp\
+		   time/ctime_adapter.cpp\
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
@@ -71,7 +75,8 @@ TEST_SRCS=main.cpp\
           test_fd.cpp\
 		  test_io_engine.cpp\
 		  test_io_handler.cpp\
-		  test_io_ip_address.cpp
+		  test_io_ip_address.cpp\
+		  test_time.cpp\
 
 
 GTEST_DIR=../external/gtest

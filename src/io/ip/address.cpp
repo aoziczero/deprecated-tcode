@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <tcode/io/ip/address.hpp>
+
 namespace tcode { namespace io { namespace ip {
 namespace detail {
 
