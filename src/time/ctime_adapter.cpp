@@ -25,10 +25,19 @@ namespace tcode {
     {
         time_t t = tick();     
         char buf[128] = {0,};
+        struct tm gm;
+        gmtime_r( &t , &gm);
+        ::strftime( buf , 128 , fmt.c_str() ,&gm);
+        return std::string(buf);
+    } 
+    
+    std::string ctime_adapter::local_strftime( const std::string& fmt )
+    {
+        time_t t = tick();     
+        char buf[128] = {0,};
         struct tm local;
         localtime_r( &t , &local );
         ::strftime( buf , 128 , fmt.c_str() ,&local );
         return std::string(buf);
-    } 
-
+    }
 }

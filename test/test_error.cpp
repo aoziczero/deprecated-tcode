@@ -3,6 +3,6 @@
 
 TEST( tcode_error , error_code ) {
     std::error_code ec( ETIMEDOUT , std::generic_category());
-    gprintf( "%s\n" , ec.message().c_str());
+    gout << "ETIMEDOUT : " << ec.message() << gendl;
 }
 

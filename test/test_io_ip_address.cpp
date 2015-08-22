@@ -11,7 +11,7 @@ TEST( tcode_io_ip_address , any ){
     ASSERT_STREQ( bindaddr.ip().c_str() , "0.0.0.0");
     ASSERT_EQ( bindaddr.port() , 7543 );
     ASSERT_EQ( bindaddr.family() , AF_INET);
-    gout << bindaddr.ip() << gendl;
+    gout << "any addr : " << bindaddr.ip() << gendl;
 }
 
 TEST( tcode_io_ip_address , from_ip ) {
@@ -27,7 +27,7 @@ TEST( tcode_io_ip_address , from_dns_v4) {
             , tcode::io::ip::address::dns( "google.co.kr" )
             , 5431 );
 
-    gout << target.ip() << gendl;
+    gout << "google ip : " << target.ip() << gendl;
 }
 
 TEST( tcode_io_ip_address , from_dns_v6) {
@@ -35,7 +35,7 @@ TEST( tcode_io_ip_address , from_dns_v6) {
             , tcode::io::ip::address::dns( "google.co.kr" )
             , 5431 );
 
-    gout << target.ip() << gendl;
+    gout << "google ipv6 : " << target.ip() << gendl;
 }
 
 TEST( tcode_io_ip_address , from_dns_list_unspec ) {
@@ -44,9 +44,10 @@ TEST( tcode_io_ip_address , from_dns_list_unspec ) {
             , tcode::io::ip::address::dns( "google.co.kr" )
             , 5431 );
 
+    ASSERT_FALSE( addrs.empty());
     auto it = addrs.begin();
     while ( it != addrs.end()){
-        gout << it->ip() << gendl;
+//        gout << it->ip() << gendl;
         ++it;
     }
 }
@@ -57,9 +58,10 @@ TEST( tcode_io_ip_address , from_dns_list_v4_v6) {
             , tcode::io::ip::address::dns( "google.co.kr" )
             , 5431 );
 
+    ASSERT_FALSE( addrs.empty());
     auto it = addrs.begin();
     while ( it != addrs.end()){
-        gout << "v4:" << it->ip() << gendl;
+    //    gout << "v4:" << it->ip() << gendl;
         ++it;
     }
     addrs = tcode::io::ip::address::from_dns(
@@ -67,9 +69,10 @@ TEST( tcode_io_ip_address , from_dns_list_v4_v6) {
             , tcode::io::ip::address::dns( "google.co.kr" )
             , 5431 );
 
+    ASSERT_FALSE( addrs.empty());
     it = addrs.begin();
     while ( it != addrs.end()){
-        gout << "v6:" << it->ip() << gendl;
+    //    gout << "v6:" << it->ip() << gendl;
         ++it;
     }
 
