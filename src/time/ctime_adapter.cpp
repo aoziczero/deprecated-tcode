@@ -14,30 +14,23 @@ namespace tcode {
         return static_cast< time_t >(_timestamp.tick() / 1000 / 1000);
     }
 
-    std::string ctime_adapter::ctime( void  )
-    {
+    std::string ctime_adapter::ctime( void  ){
         time_t t = tick();
         char buf[64] = {0,};
         ctime_r( &t , buf );
         return std::string(buf);
     }
-    std::string ctime_adapter::strftime( const std::string& fmt )
-    {
+    
+    std::string ctime_adapter::strftime( const std::string& fmt , bool local ) {
         time_t t = tick();     
         char buf[128] = {0,};
-        struct tm gm;
-        gmtime_r( &t , &gm);
-        ::strftime( buf , 128 , fmt.c_str() ,&gm);
+        struct tm tm;
+        if ( local )
+            localtime_r( &t , &tm );
+        else
+            gmtime_r( &t , &tm);
+        ::strftime( buf , 128 , fmt.c_str() ,&tm);
         return std::string(buf);
     } 
-    
-    std::string ctime_adapter::local_strftime( const std::string& fmt )
-    {
-        time_t t = tick();     
-        char buf[128] = {0,};
-        struct tm local;
-        localtime_r( &t , &local );
-        ::strftime( buf , 128 , fmt.c_str() ,&local );
-        return std::string(buf);
-    }
+
 }

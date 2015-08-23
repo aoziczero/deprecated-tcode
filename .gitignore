@@ -6,6 +6,8 @@
 #python temp
 *.pyc
 
+doc
+
 # User-specific files
 *.suo
 *.user

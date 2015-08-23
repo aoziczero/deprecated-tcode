@@ -33,7 +33,7 @@ namespace tcode {
 
         timespan  operator-( const timestamp& rhs ) const;
         
-        std::string to_string( void ) const;
+        std::string to_string( bool local = false ) const;
         
         static timestamp now( void );
     private:

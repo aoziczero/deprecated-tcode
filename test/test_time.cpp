@@ -13,7 +13,7 @@ TEST( tcode_timestamp , now ){
 
 TEST( tcode_timestamp , timespan ){
     tcode::timestamp ts1 = tcode::timestamp::now();
-    gout << "1:" <<  (ts1 + tcode::timespan::days(0) ).to_string() << gendl;
-    gout << "2:" <<  (ts1 + tcode::timespan::days(2) ).to_string() << gendl;
-    gout << "3:" <<  (ts1 + tcode::timespan::days(2) ).to_string() << gendl;
+    gout << "1:" <<  (ts1 + tcode::timespan::days(0) ).to_string(false) << gendl;
+    gout << "2:" <<  (ts1 + tcode::timespan::days(2) ).to_string(false) << gendl;
+    gout << "3:" <<  (ts1 + tcode::timespan::days(2) ).to_string(false) << gendl;
 }

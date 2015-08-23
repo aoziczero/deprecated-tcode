@@ -76,14 +76,12 @@ namespace tcode {
         return timespan( _tick - rhs._tick );
     }
 
-
-
     int64_t timestamp::tick( void ) const {
         return _tick;
     }
 
-    std::string timestamp::to_string( void ) const {
-        return ctime_adapter(*this).strftime( "%Y-%m-%d, %H:%M:%S");
+    std::string timestamp::to_string( bool local ) const {
+        return ctime_adapter(*this).strftime( "%Y-%m-%d, %H:%M:%S" , local);
     }
 
     timestamp timestamp::now( void ) {

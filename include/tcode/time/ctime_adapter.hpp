@@ -16,9 +16,7 @@ namespace tcode {
         time_t tick( void ) const;
         
         std::string ctime(void);
-        std::string strftime( const std::string& fmt );
-        std::string local_strftime( const std::string& fmt );
-        std::string to_string( void );
+        std::string strftime( const std::string& fmt , bool local = false );
     private:
         timestamp _timestamp;
     };
