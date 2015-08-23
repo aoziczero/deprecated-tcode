@@ -66,7 +66,6 @@
 //	#if __cplusplus > 199711L
 //	#define TCODE_CPP_0x11_SUPPORT		
 //	#endif
-/*
 #elif defined(__APPLE__)
 //! 애플 관련 설정
     #ifndef TCODE_APPLE
@@ -91,7 +90,6 @@
     // POSIX
 #elif defined(__ANDROID__)
 	#define TCODE_ANDROID
-*/    
 #endif
 
 #endif

@@ -9,7 +9,7 @@
     
 #elif defined( TCODE_APPLE )
 #include <mach/clock.h>
-#include <mach/mach.com>
+#include <mach/mach.h>
 #endif
 
 namespace tcode {
@@ -113,7 +113,7 @@ namespace tcode {
         clock_get_time( cclock , &mts );
         mach_port_deallocate(mach_task_self() , cclock );
         ts.tv_sec = mts.tv_sec;
-        tv.tv_nsec = mts.tv_nsec;
+        ts.tv_nsec = mts.tv_nsec;
         value = ( ts.tv_sec * 1000 * 1000 ) + (ts.tv_nsec / 1000);
         return timestamp(value);
 #endif

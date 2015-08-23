@@ -79,13 +79,13 @@ namespace tcode { namespace io { namespace option {
     typedef sock_opt< ip_mreq	, IPPROTO_IP	, IP_ADD_MEMBERSHIP		> multi_cast_join;
     typedef sock_opt< ip_mreq	, IPPROTO_IP	, IP_DROP_MEMBERSHIP	> multi_cast_drop;
             
-            
     typedef sock_opt< uint8_t	, IPPROTO_IPV6	, IPV6_MULTICAST_LOOP	> multi_cast_loop_ipv6;
     typedef sock_opt< uint8_t	, IPPROTO_IPV6	, IPV6_MULTICAST_HOPS	> multi_cast_ttl_ipv6;
     typedef sock_opt< in6_addr	, IPPROTO_IPV6	, IPV6_MULTICAST_IF		> multi_cast_if_ipv6;
+#if defined( TCODE_LINUX )
     typedef sock_opt< ipv6_mreq	, IPPROTO_IPV6	, IPV6_ADD_MEMBERSHIP	> multi_cast_join_ipv6;
     typedef sock_opt< ipv6_mreq	, IPPROTO_IPV6	, IPV6_DROP_MEMBERSHIP	> multi_cast_drop_ipv6;
-    
+#endif 
     typedef sock_opt< int       , IPPROTO_TCP	, TCP_NODELAY		> tcp_no_delay;
 
 #if defined( TCODE_WIN32 )
