@@ -1,9 +1,8 @@
 #include "stdafx.h"
-#include "address.hpp"
+#include <tcode/io/ip/address.hpp>
 
 namespace tcode { namespace io { namespace ip {
 namespace detail {
-
 
 const char* inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     sockaddr_storage storage;
@@ -42,7 +41,6 @@ const char* inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     return dst;
 }
 
-
 bool inet_pton( int af
 	, const char* addr
 	, int port
@@ -69,95 +67,120 @@ bool inet_pton( int af
 	return false;;
 }
 
-
 }
+    address::address( void )
+        : _len(sizeof(_address)){
+    }
+    
+    address::~address( void ){
+    }
 
-address::address( void )
-	: _length( sizeof( sockaddr_storage))
-{
-	memset( sockaddr() , 0x00 , sizeof( sockaddr_storage ));
-}
+    address::address( const any& any ) 
+        : _len(sizeof(sockaddr_in))
+    {
+        struct sockaddr_in addr;
+        memset(&addr , 0x00 , _len );
+        addr.sin_addr.s_addr = INADDR_ANY;
+        addr.sin_port = htons(any.port);
+        addr.sin_family = AF_INET; 
+        memcpy( &_address , &addr , _len );
+    }
 
-address::address( const address& rhs ) {
-	memcpy( sockaddr() , rhs.sockaddr() , rhs.sockaddr_length());
-	_length = rhs.sockaddr_length();
-}
+    address::address( struct sockaddr* addr , int len ) 
+        : _len(len)
+    {
+        memcpy( &_address , addr , _len );
+    }
 
-address& address::operator=(const address& rhs) {
-	memcpy( sockaddr() , rhs.sockaddr() , rhs.sockaddr_length());
-	_length = rhs.sockaddr_length();
-	return *this;
-}
+    address::address( const char* ip , const uint16_t port )
+        :_len(sizeof(sockaddr_in))
+    {
+        struct sockaddr_in addr;
+        memset(&addr , 0x00 , _len );
+        addr.sin_addr.s_addr = inet_addr(ip);
+        addr.sin_port = htons(port);
+        addr.sin_family = AF_INET;
+        memcpy( &_address , &addr , _len );
+    }
+        
+    address::address( const int af , const dns& dns , const uint16_t port )
+        : _len( sizeof(_address))
+    {
+        detail::inet_pton( af , dns.domain , port , *this );
+    }
+    struct sockaddr* address::sockaddr( void ) const{
+        return reinterpret_cast< struct sockaddr* >(  
+	    	const_cast< sockaddr_storage* >( &_address ));
+    }
+   
+    socklen_t      address::sockaddr_length( void ) const {
+        return _len;    
+    }
+    
+    socklen_t*      address::sockaddr_length_ptr( void ) {
+        return &_len;    
+    }
 
-address::address( struct sockaddr* addr , int len ) {
-	memcpy( sockaddr() , addr , len);
-	_length = len;
-}
+    std::string address::ip( void ){
+    	char buffer[4096] = {0,};
+    	std::string ip = detail::inet_ntop(
+              family() 		
+            , &(((struct sockaddr_in*)sockaddr())->sin_addr) 
+    		, buffer
+    		, 4096);
+    	return ip;
+    }
+    int address::port( void ) const {
+    	return ntohs(((struct sockaddr_in*)sockaddr())->sin_port );
+    }
 
-address::~address( void ){
+    int	address::family( void ) const {
+	    return ((struct sockaddr_in*)sockaddr())->sin_family;
+    }
+    address::any::any( int p )
+        : port(p)     
+    {
+    }
 
-}
+    address::dns::dns( const char* d )
+        : domain(d)
+    {
+    }
+    
+    std::vector<address> address::from_dns( const int af
+                , const dns& dns 
+                , const uint16_t port 
+                , const int type
+                , const int flags )
+    {
+    	std::vector<address> addrs;
 
-struct sockaddr*	address::sockaddr( void ) const{
-	return reinterpret_cast< struct sockaddr* >(  
-		const_cast< sockaddr_storage* >( &_address ));
-}
+        struct addrinfo hint = {0,};
+        struct addrinfo* res = nullptr;
+        struct addrinfo* temp = nullptr;
 
-const int		address::sockaddr_length( void ) const{
-	return _length;
-}
-
-void			address::sockaddr_length( int v ) {
-	_length = v;
-}
-
-socklen_t*		address::sockaddr_length_ptr( void ){
-	return &_length;
-}
-
-
-std::string address::ip_address( void ) const {
-	char buffer[4096] = {0,};
-	std::string ip = detail::inet_ntop(
-		  family()
-		, &(((struct sockaddr_in*)sockaddr())->sin_addr) 
-		, buffer
-		, 4096);
-	return ip;
-}
-
-
-int address::port( void ) const {
-	return ntohs(((struct sockaddr_in*)sockaddr())->sin_port );
-}
-
-int	address::family( void ) const {
-	return ((struct sockaddr_in*)sockaddr())->sin_family;
-}
-
-
-std::string address::to_string(void) const {
-	return ip_address() + ":" + std::to_string(port());
-}
-
-address address::any( int port , int family ) {
-	if ( family == AF_INET ) {
-		struct sockaddr_in addr;
-		memset( &addr , 0x00 , sizeof( addr ));
-		addr.sin_addr.s_addr = INADDR_ANY;
-		addr.sin_port = htons(port);
-		addr.sin_family = AF_INET;	
-		return address( reinterpret_cast<struct sockaddr*>(&addr) , sizeof( addr ));
-	}
-	return address();
-}
-
-address address::from( const char* address , int port , int family  ){
-	ip::address addr;
-	if ( detail::inet_pton( family , address , port , addr ) ) {
-		return addr;
-	} 
-	return any( port , family );
-}
-
+        hint.ai_family = af;
+        hint.ai_socktype = type;
+        hint.ai_flags = flags;
+        char port_string[12];
+#if defined( _WIN32 )
+        sprintf_s( port_string , "%d" , port );
+#else
+        sprintf( port_string , "%d" , port );
+#endif
+        int err = getaddrinfo( dns.domain , port_string , &hint, &res);
+        if ( err == 0 ) {
+            temp = res;
+            while (temp) {
+                address a( temp->ai_addr
+                        , static_cast<int>(temp->ai_addrlen));	
+                addrs.push_back( a );
+                temp = temp->ai_next;
+            }
+            if ( res ) {
+                freeaddrinfo(res);
+            }
+        }
+        return addrs;
+    }
 }}}
