@@ -41,6 +41,7 @@ TCODE_SRCS=tcode.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
+		   threading/spinlock.cpp\
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
