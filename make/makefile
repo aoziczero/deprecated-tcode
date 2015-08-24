@@ -27,12 +27,14 @@ DBG_FLAG=-DDEBUG -g
 endif
 
 TCODE_SRCS=tcode.cpp\
+		   io/io.cpp\
            io/pipe.cpp\
            io/fd.cpp\
 		   io/engine.cpp\
 		   io/handler.cpp\
+		   io/ip/ip.cpp\
 		   io/ip/address.cpp\
-		   io/option.cpp\
+		   io/ip/tcp/connector.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
@@ -72,11 +74,12 @@ TEST_SRCS=main.cpp\
           test_compile_time_error.cpp\
           test_error.cpp\
           test_pipe.cpp\
-          test_fd.cpp\
+		  test_time.cpp\
 		  test_io_engine.cpp\
 		  test_io_handler.cpp\
+		  test_io_ip_handle.cpp\
 		  test_io_ip_address.cpp\
-		  test_time.cpp\
+		  test_io_ip_tcp_connector.cpp\
 
 
 GTEST_DIR=../external/gtest

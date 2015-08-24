@@ -94,7 +94,9 @@
 
 #endif
 
+
 namespace tcode {
+
 
 bool init( void );
 

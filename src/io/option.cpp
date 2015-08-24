@@ -9,7 +9,7 @@
 #endif
 namespace tcode { namespace io { namespace option {
 
-    bool block::set_option( native_handle fd )
+    bool block::set_option( int fd )
     {
 #if defined( TCODE_WIN32 )
         unsigned long opt = 0;
@@ -20,7 +20,7 @@ namespace tcode { namespace io { namespace option {
 #endif
     }
  
-    bool nonblock::set_option( native_handle fd )
+    bool nonblock::set_option( int fd )
     {
 #if defined( TCODE_WIN32 )
         unsigned long opt = 1;
@@ -31,10 +31,5 @@ namespace tcode { namespace io { namespace option {
 #endif
     }
 
-    linger_remove_time_wait::linger_remove_time_wait( void )
-    {
-        option().l_onoff = 1;
-        option().l_linger = 0;
-    }
-
+    
 }}}

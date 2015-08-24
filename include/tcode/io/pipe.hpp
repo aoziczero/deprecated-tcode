@@ -1,7 +1,7 @@
 #ifndef __tcode_io_pipe_h__
 #define __tcode_io_pipe_h__
 
-#include <tcode/io/fd.hpp>
+#include <tcode/io/io.hpp>
 
 namespace tcode { namespace io { 
 
@@ -20,11 +20,11 @@ public:
     ~pipe( void );
 
     //! 읽기용 fd
-    int rd_pipe( void );
+    handle rd_pipe( void );
     //! 쓰기용 fd
-    int wr_pipe( void );
+    handle wr_pipe( void );
 private:
-    int _pipe[2];
+    handle _pipe[2];
 };
 
 }}

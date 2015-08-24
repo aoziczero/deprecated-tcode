@@ -1,24 +1,26 @@
 #include "stdafx.h"
 #include <tcode/io/pipe.hpp>
 #include <unistd.h>
-#include <fcntl.h> 
 
 namespace tcode { namespace io { 
 
 pipe::pipe( void ){
-    ::pipe( _pipe );        
+    int p[2];
+    ::pipe( p );        
+    _pipe[0] = p[0];
+    _pipe[1] = p[1];
 }
     
 pipe::~pipe( void ){
-    close(_pipe[0]);
-    close(_pipe[1]);
+    _pipe[0].close();
+    _pipe[1].close();
 }
 
-int pipe::rd_pipe( void ){
+handle pipe::rd_pipe( void ){
     return _pipe[0];
 }
 
-int pipe::wr_pipe( void ){
+handle pipe::wr_pipe( void ){
     return _pipe[1];
 }
 
