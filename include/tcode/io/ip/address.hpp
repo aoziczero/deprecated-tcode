@@ -39,7 +39,9 @@ namespace tcode { namespace io { namespace ip {
         ~address( void );
 
         struct sockaddr* sockaddr( void ) const;
-        socklen_t&       sockaddr_length( void );
+        socklen_t        sockaddr_length( void ) const;
+        socklen_t*       sockaddr_length_ptr( void );
+
 
         std::string ip( void );
         int		    port( void ) const;

@@ -20,11 +20,11 @@ public:
     ~pipe( void );
 
     //! 읽기용 fd
-    handle rd_pipe( void );
+    int rd_pipe( void );
     //! 쓰기용 fd
-    handle wr_pipe( void );
+    int wr_pipe( void );
 private:
-    handle _pipe[2];
+    int _pipe[2];
 };
 
 }}

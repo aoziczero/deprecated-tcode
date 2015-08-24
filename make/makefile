@@ -28,12 +28,15 @@ endif
 
 TCODE_SRCS=tcode.cpp\
 		   io/io.cpp\
+		   io/option.cpp\
            io/pipe.cpp\
            io/fd.cpp\
 		   io/engine.cpp\
 		   io/handler.cpp\
 		   io/ip/ip.cpp\
+		   io/ip/option.cpp\
 		   io/ip/address.cpp\
+		   io/ip/simple_select.cpp\
 		   io/ip/tcp/connector.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
@@ -77,7 +80,6 @@ TEST_SRCS=main.cpp\
 		  test_time.cpp\
 		  test_io_engine.cpp\
 		  test_io_handler.cpp\
-		  test_io_ip_handle.cpp\
 		  test_io_ip_address.cpp\
 		  test_io_ip_tcp_connector.cpp\
 

@@ -113,8 +113,12 @@ bool inet_pton( int af
 	    	const_cast< sockaddr_storage* >( &_address ));
     }
    
-    socklen_t&      address::sockaddr_length( void ) {
+    socklen_t      address::sockaddr_length( void ) const {
         return _len;    
+    }
+    
+    socklen_t*      address::sockaddr_length_ptr( void ) {
+        return &_len;    
     }
 
     std::string address::ip( void ){

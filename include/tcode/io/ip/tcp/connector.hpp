@@ -1,7 +1,7 @@
 #ifndef __tcode_io_ip_tcp_connector_h__
 #define __tcode_io_ip_tcp_connector_h__
 
-#include <tcode/io/ip/address.hpp>
+#include <tcode/io/ip/ip.hpp>
 
 namespace tcode { namespace io { 
 
@@ -11,7 +11,8 @@ namespace ip { namespace tcp {
 
     class connector {
     public:
-        int connnect( const address& addr , const tcode::timespan& ts ); 
+        ip::socket_type connect( const ip::address& addr 
+                , const tcode::timespan& ts ); 
     private:
 
     };
