@@ -30,6 +30,7 @@ TCODE_SRCS=tcode.cpp\
 		   io/io.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
+		   io/poll.cpp\
 		   io/engine.cpp\
 		   io/ip/ip.cpp\
 		   io/ip/option.cpp\
@@ -84,6 +85,7 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_connector.cpp\
 		  test_spinlock.cpp\
 		  test_function.cpp\
+		  test_io_poll.cpp\
 
 
 GTEST_DIR=../external/gtest

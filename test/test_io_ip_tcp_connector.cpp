@@ -33,9 +33,9 @@ void on_connect( const std::error_code& ec ) {
 }
 
 TEST( tcode_io_ip_tcp_connector , connect ){
-    tcode::io::engine e;
-    tcode::io::ip::tcp::socket fd(e);
-    tcode::io::ip::tcp::connector c(fd);
+//    tcode::io::engine e;
+//    tcode::io::ip::tcp::socket fd(e);
+//    tcode::io::ip::tcp::connector c(fd);
    // c.connect( google , on_connect );
    // e.run( tcode::timespan::seconds(10));
 //    tcode::io::engine e;

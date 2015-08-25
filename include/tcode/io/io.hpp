@@ -3,6 +3,10 @@
 
 namespace tcode { namespace io {
 
+    enum {
+        EV_READ = 0x01, 
+        EV_WRITE = 0x02,
+    };
 
 }}
 
