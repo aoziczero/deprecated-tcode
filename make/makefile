@@ -30,18 +30,18 @@ TCODE_SRCS=tcode.cpp\
 		   io/io.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
-           io/fd.cpp\
 		   io/engine.cpp\
-		   io/handler.cpp\
 		   io/ip/ip.cpp\
 		   io/ip/option.cpp\
 		   io/ip/address.cpp\
 		   io/ip/simple_select.cpp\
 		   io/ip/tcp/connector.cpp\
+		   io/ip/tcp/socket.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
 		   threading/spinlock.cpp\
+
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
@@ -80,9 +80,10 @@ TEST_SRCS=main.cpp\
           test_pipe.cpp\
 		  test_time.cpp\
 		  test_io_engine.cpp\
-		  test_io_handler.cpp\
 		  test_io_ip_address.cpp\
 		  test_io_ip_tcp_connector.cpp\
+		  test_spinlock.cpp\
+		  test_function.cpp\
 
 
 GTEST_DIR=../external/gtest

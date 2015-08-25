@@ -9,12 +9,17 @@ namespace tcode { namespace io {
 
 namespace ip { namespace tcp {
 
+    class socket;
     class connector {
     public:
+        connector( socket& s );
+        ~connector( void );
+        /*
         ip::socket_type connect( const ip::address& addr 
                 , const tcode::timespan& ts ); 
+                */
     private:
-
+        socket& _socket;
     };
 
 }}}}

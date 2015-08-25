@@ -4,14 +4,18 @@
 #include <tcode/tcode.hpp>
 
 #if defined( TCODE_WIN32 )
+
 #elif defined( TCODE_APPLE )
 #include <libkern/OSAtomic.h>
 #else
-#include <pthead.h>
+#include <pthread.h>
 #endif
 
 namespace tcode { namespace threading {
-
+    /*!
+     *  @class  spinlock
+     *  @bried  os 별 spinlock wrapper
+     */
     class spinlock{
     public:
         spinlock( void );

@@ -5,6 +5,14 @@
 
 namespace tcode { namespace io { namespace ip { namespace tcp {
 
+    connector::connector( socket& s ) 
+        : _socket(s)
+    {
+    }
+
+    connector::~connector( void ) {
+    }
+/*
     ip::socket_type connector::connect( const ip::address& addr 
         , const tcode::timespan& ts ) {
         ip::socket_type fd = ip::socket( addr.family() ,SOCK_STREAM , IPPROTO_TCP );        
@@ -38,5 +46,5 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         }
         return ip::invalid_socket;
     }
-
+*/
 }}}}
