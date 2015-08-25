@@ -88,6 +88,10 @@ namespace tcode {
         typedef const T* type;
     };
 
+    /*!
+     *  @class  function
+     *  @brief  
+     */
     template < typename Handler >
     class function;
 
