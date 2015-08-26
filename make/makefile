@@ -27,22 +27,26 @@ DBG_FLAG=-DDEBUG -g
 endif
 
 TCODE_SRCS=tcode.cpp\
+		   error.cpp\
+		   time/timestamp.cpp\
+		   time/timespan.cpp\
+		   time/ctime_adapter.cpp\
+		   threading/spinlock.cpp\
 		   io/io.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
+		   io/epoll.cpp\
 		   io/engine.cpp\
+		   io/timer.cpp\
+		   io/timer_id.cpp\
 		   io/ip/ip.cpp\
 		   io/ip/option.cpp\
 		   io/ip/address.cpp\
 		   io/ip/simple_select.cpp\
 		   io/ip/tcp/connector.cpp\
 		   io/ip/tcp/socket.cpp\
-		   time/timestamp.cpp\
-		   time/timespan.cpp\
-		   time/ctime_adapter.cpp\
-		   threading/spinlock.cpp\
-
+		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
@@ -67,7 +71,7 @@ TCODE_STATIC_DEPEND_FILE=$(TCODE_STATIC_OBJS_DIR)/$(DEPEND_FILE)
 TCODE_SHARED_DEPEND_FILE=$(TCODE_SHARED_OBJS_DIR)/$(DEPEND_FILE)
 
 
-TCODE_CFLAGS=-I$(TCODE_DIR)/include -std=c++11 -fpermissive
+TCODE_CFLAGS=-I$(TCODE_DIR)/include -std=c++11 -fpermissive $(DBG_FLAG)
 ifeq ($(OS),Darwin)
 TCODE_SHARED_CFLAGS=-shared -Wl,-install_name,
 else
@@ -78,14 +82,16 @@ TEST_NAME=testtcode
 TEST_SRCS=main.cpp\
           test_compile_time_error.cpp\
           test_error.cpp\
-          test_pipe.cpp\
 		  test_time.cpp\
+		  test_function.cpp\
+		  test_threading_spinlock.cpp\
+		  test_io_pipe.cpp\
+		  test_io_poll.cpp\
+		  test_io_epoll.cpp\
 		  test_io_engine.cpp\
+		  test_io_timer.cpp\
 		  test_io_ip_address.cpp\
 		  test_io_ip_tcp_connector.cpp\
-		  test_spinlock.cpp\
-		  test_function.cpp\
-		  test_io_poll.cpp\
 
 
 GTEST_DIR=../external/gtest

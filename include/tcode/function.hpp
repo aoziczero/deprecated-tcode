@@ -143,6 +143,12 @@ namespace tcode {
             Handler _handler;\
         };\
     public:\
+        function( void )\
+            : _context(nullptr)\
+            , _call( &function::function_ptr_call)\
+            , _control( &function::function_ptr_control )\
+        {\
+        }\
         function( raw_handler_type raw_handler ) \
             : _context( reinterpret_cast< void* >(raw_handler))\
             , _call( &function::function_ptr_call)\
@@ -214,7 +220,9 @@ namespace tcode {
         }\
         \
         R operator()( TP ) {\
-            return _call(TF2);\
+            if ( _context )\
+                return _call(TF2);\
+            return R();\
         }\
         \
         static void* function_ptr_control( handler_ops op ,  void* ctx ) {\

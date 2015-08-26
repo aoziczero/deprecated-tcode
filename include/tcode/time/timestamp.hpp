@@ -13,7 +13,7 @@ namespace tcode {
      */
     class timestamp {
     public:
-        explicit timestamp(const int64_t tick);
+        explicit timestamp(const int64_t tick = 0 );
         timestamp( const timestamp& rhs );
         timestamp& operator=( const timestamp& rhs );
 
