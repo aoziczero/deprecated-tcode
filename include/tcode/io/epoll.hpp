@@ -11,6 +11,19 @@ namespace tcode { namespace io {
 
     class epoll {
     public:
+        struct handle_data;
+        typedef handle_data* handle;
+
+        epoll( void );
+        ~epoll( void );
+
+    private:
+        int _epoll;
+    };
+
+    /*
+    class epoll {
+    public:
         epoll( void );
         ~epoll( void );
 
@@ -24,7 +37,10 @@ namespace tcode { namespace io {
         io::pipe _pipe;
         tcode::function< void (int)> _pipe_handler;
     };
-
+    */
+    
+    
+    
 }}
 
 #endif

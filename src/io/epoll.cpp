@@ -6,6 +6,21 @@
 
 namespace tcode { namespace io {
 
+    struct epoll::handle_data {
+        int fd;
+
+    };
+
+    epoll::epoll( void )
+        : _epoll( epoll_create(256))
+    {
+    }
+
+    epoll::~epoll( void ){
+        ::close( _epoll );
+    }
+
+    /*
     epoll::epoll( void )
         : _pipe_handler( [this] ( int ev ) {
                 wake_up_handler( ev );
@@ -85,6 +100,7 @@ namespace tcode { namespace io {
         while ( read( _pipe.rd_pipe() , &ch , 1 ) == 1 )
             ;
     }
+    */
 
     
 }}

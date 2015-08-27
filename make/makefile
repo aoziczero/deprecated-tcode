@@ -33,19 +33,21 @@ TCODE_SRCS=tcode.cpp\
 		   time/ctime_adapter.cpp\
 		   threading/spinlock.cpp\
 		   io/io.cpp\
+		   io/completion_handler.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
 		   io/epoll.cpp\
-		   io/engine.cpp\
-		   io/timer.cpp\
-		   io/timer_id.cpp\
-		   io/ip/ip.cpp\
-		   io/ip/option.cpp\
-		   io/ip/address.cpp\
-		   io/ip/simple_select.cpp\
-		   io/ip/tcp/connector.cpp\
-		   io/ip/tcp/socket.cpp\
+		   
+			#io/timer.cpp\
+		   #io/timer_id.cpp\
+		   #io/ip/ip.cpp\
+		   #io/ip/option.cpp\
+		   #io/ip/address.cpp\
+		   #io/ip/simple_select.cpp\
+		   #io/ip/tcp/connector.cpp\
+		   #io/ip/tcp/socket.cpp\
+		   #io/engine.cpp\
 		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
@@ -87,12 +89,12 @@ TEST_SRCS=main.cpp\
 		  test_threading_spinlock.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
-		  test_io_epoll.cpp\
-		  test_io_engine.cpp\
-		  test_io_timer.cpp\
-		  test_io_ip_address.cpp\
-		  test_io_ip_tcp_connector.cpp\
-
+		  
+			#test_io_ip_address.cpp\
+		  #test_io_epoll.cpp\
+		  #test_io_timer.cpp\
+		  #test_io_engine.cpp\
+		  #test_io_ip_tcp_connector.cpp\
 
 GTEST_DIR=../external/gtest
 
