@@ -3,23 +3,76 @@
 #include <tcode/io/option.hpp>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <tcode/io/reactor_completion_handler.hpp>
 
 namespace tcode { namespace io {
+namespace {
+    const int epoll_max_event = 256;
+}
 
-    struct epoll::handle_data {
+    struct epoll::descriptor{
         int fd;
+        tcode::slist::queue< reactor_completion_handler > handler_queue[2];
 
+
+        void complete( int ev );
     };
 
+    void epoll::descriptor::complete( int ev ) {
+        int epollev[] = { EPOLLIN , EPOLLOUT };
+        for ( int i = 0 ; i < 2 ; ++i ) {
+            if ( !epollev[i] & ev ) 
+                continue;
+            if ( handler_queue[i].empty() )
+                continue;
+            while ( !handler_queue[i].empty() ) {
+                reactor_completion_handler* rch = handler_queue[i].front();
+                if ( !(*rch)()) {
+                    break;
+                }
+                handler_queue[i].pop_front();
+            }
+        }
+    }
+
     epoll::epoll( void )
-        : _epoll( epoll_create(256))
+        : _handle( epoll_create(epoll_max_event))
     {
+        struct epoll_event e;
+        e.events = EPOLLOUT | EPOLLONESHOT ;
+        e.data.ptr = nullptr;
+        epoll_ctl( _handle , EPOLL_CTL_ADD , _wake_up.wr_pipe() , &e );
     }
 
     epoll::~epoll( void ){
-        ::close( _epoll );
+        ::close( _handle );
     }
 
+    int epoll::run( const tcode::timespan& ts ){
+        struct epoll_event events[epoll_max_event];
+        int nofd  = epoll_wait( _handle 
+            , events
+            , epoll_max_event
+            , static_cast<int>(ts.total_milliseconds()));
+        if ( nofd <= 0  ) {
+            return 0; 
+        }
+        for ( int i = 0 ; i < nofd; ++i ){
+            epoll::descriptor_type desc =
+                static_cast< epoll::descriptor_type >( events[i].data.ptr );
+            if ( desc ) {
+                desc->complete( events[i].events );
+            }
+        }
+        return nofd;
+    }
+    
+    void epoll::wake_up( void ){
+        struct epoll_event e;
+        e.events = EPOLLOUT | EPOLLONESHOT;
+        e.data.ptr = nullptr;
+        epoll_ctl( _handle , EPOLL_CTL_MOD , _wake_up.wr_pipe() , &e );
+    }
     /*
     epoll::epoll( void )
         : _pipe_handler( [this] ( int ev ) {

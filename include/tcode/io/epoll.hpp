@@ -6,19 +6,22 @@
 #include <tcode/function.hpp>
 #include <tcode/time/timespan.hpp>
 
-
 namespace tcode { namespace io {
 
     class epoll {
     public:
-        struct handle_data;
-        typedef handle_data* handle;
+        struct descriptor;
+        typedef descriptor* descriptor_type;
 
         epoll( void );
         ~epoll( void );
 
+        int run( const tcode::timespan& ts );
+
+        void wake_up( void );
     private:
-        int _epoll;
+        int _handle;
+        tcode::io::pipe _wake_up;
     };
 
     /*

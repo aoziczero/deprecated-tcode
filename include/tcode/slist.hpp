@@ -5,6 +5,24 @@ namespace tcode {
 
     class slist {
     public:
+        template < typename Type >
+        class node {
+        public:
+            node( void )
+                : _next(nullptr)
+            {
+            }
+
+            Type*& next( void ){
+                return _next;
+            }
+        protected:
+            ~node( void ) {
+            }
+        private:
+            Type* _next;
+        };
+
         template < typename Node >
         class queue {
         public:
@@ -13,7 +31,7 @@ namespace tcode {
             {
                 _tail = _head;
                 while ( _tail->next() != nullptr )
-                    _tail = tail->next();
+                    _tail = _tail->next();
             }
 
             queue( queue&& q ) 
@@ -55,6 +73,20 @@ namespace tcode {
                     std::swap( node , _head );
                     node->next() = nullptr;
                 }
+            }
+
+            bool empty( void ) const {
+                return _head == nullptr;
+            }
+
+            int size( void ) const {
+                int sz = 0;
+                Node* n = _head;
+                while ( n ){
+                    ++sz;
+                    n = n->next();
+                }
+                return sz;
             }
         private:
             Node* _head;

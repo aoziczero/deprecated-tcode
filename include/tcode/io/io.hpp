@@ -10,6 +10,8 @@ namespace tcode { namespace io {
         EV_WRITE = 0x02,
     };
 
+    enum { ev_read = 0 , ev_write = 1 , ev_accept = 0 , ev_connect = 1};
+
     typedef tcode::function< void (int) > event_handler;
 
 }}

@@ -34,6 +34,7 @@ TCODE_SRCS=tcode.cpp\
 		   threading/spinlock.cpp\
 		   io/io.cpp\
 		   io/completion_handler.cpp\
+		   io/reactor_completion_handler.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
@@ -89,6 +90,7 @@ TEST_SRCS=main.cpp\
 		  test_threading_spinlock.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
+		  test_epoll_wakeup.cpp\
 		  
 			#test_io_ip_address.cpp\
 		  #test_io_epoll.cpp\
