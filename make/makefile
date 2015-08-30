@@ -91,6 +91,7 @@ TEST_SRCS=main.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
 		  test_epoll_wakeup.cpp\
+		  test_epoll_et.cpp
 		  
 			#test_io_ip_address.cpp\
 		  #test_io_epoll.cpp\

@@ -88,6 +88,19 @@ namespace tcode {
                 }
                 return sz;
             }
+            
+            void splice( queue& q ) {
+                if ( q.empty() )
+                    return;
+                if ( empty() ) {
+                    _head = q._head;
+                    _tail = q._tail;
+                } else {
+                    _tail->next() = q._head;
+                    _tail = q._tail;
+                }
+                q._head = q._tail = nullptr;
+            }
         private:
             Node* _head;
             Node* _tail;

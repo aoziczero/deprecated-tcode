@@ -9,17 +9,15 @@ namespace tcode { namespace io {
         : public completion_handler< reactor_completion_handler >
     {
     public:
-        typedef typename completion_handler<
-            reactor_completion_handler
-        >::call_function call_function;
+        typedef completion_handler< reactor_completion_handler > base_type;
 
-        typedef bool (*io_function)( reactor_completion_handler*  );
+        typedef bool (*io_function)( reactor_completion_handler* , void* );
 
-        reactor_completion_handler( call_function fn ,
+        reactor_completion_handler( base_type::call_function fn ,
                 io_function iofn );
         ~reactor_completion_handler( void );
 
-        bool operator()( void );
+        bool do_reactor_io( void* handle );
     private:
         io_function _io_function; 
     };

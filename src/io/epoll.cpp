@@ -10,7 +10,7 @@ namespace {
     const int epoll_max_event = 256;
 }
 
-    struct epoll::descriptor{
+    struct epoll::_descriptor{
         int fd;
         tcode::slist::queue< reactor_completion_handler > handler_queue[2];
 
@@ -18,19 +18,20 @@ namespace {
         void complete( int ev );
     };
 
-    void epoll::descriptor::complete( int ev ) {
+    void epoll::_descriptor::complete( int events ) {
         int epollev[] = { EPOLLIN , EPOLLOUT };
         for ( int i = 0 ; i < 2 ; ++i ) {
-            if ( !epollev[i] & ev ) 
-                continue;
-            if ( handler_queue[i].empty() )
-                continue;
-            while ( !handler_queue[i].empty() ) {
-                reactor_completion_handler* rch = handler_queue[i].front();
-                if ( !(*rch)()) {
-                    break;
+            if ( events & epollev[i] ){
+                while ( !handler_queue[i].empty() ) {
+                    reactor_completion_handler* rch = 
+                       handler_queue[i].front();
+                    if ( rch->do_reactor_io(this) ) {
+                        handler_queue[i].pop_front();
+                        rch->complete(this);
+                    } else {
+                        break;
+                    }
                 }
-                handler_queue[i].pop_front();
             }
         }
     }
@@ -58,8 +59,8 @@ namespace {
             return 0; 
         }
         for ( int i = 0 ; i < nofd; ++i ){
-            epoll::descriptor_type desc =
-                static_cast< epoll::descriptor_type >( events[i].data.ptr );
+            epoll::descriptor desc =
+                static_cast< epoll::descriptor >( events[i].data.ptr );
             if ( desc ) {
                 desc->complete( events[i].events );
             }
@@ -73,6 +74,20 @@ namespace {
         e.data.ptr = nullptr;
         epoll_ctl( _handle , EPOLL_CTL_MOD , _wake_up.wr_pipe() , &e );
     }
+
+    bool epoll::bind( int fd , descriptor& d ) {
+        d = new descriptor();
+        d->fd = fd;
+    }
+
+    void epoll::unbind( int fd , descriptor& d ) {
+        tcode::slist::queue< reactor_completion_handler > handlers;
+       
+        handlers.splice( d->handler_queue[0] );
+        handlers.splice( d->handler_queue[1] );
+
+    }
+
     /*
     epoll::epoll( void )
         : _pipe_handler( [this] ( int ev ) {

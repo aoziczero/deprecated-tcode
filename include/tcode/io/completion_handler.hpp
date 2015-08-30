@@ -7,19 +7,19 @@ namespace tcode { namespace io {
 
 template < typename Handler >
 class completion_handler 
-    : public tcode::slist::node< Handler >     
+    : public tcode::slist::node< Handler >        
 {
 public:
-    typedef void (*call_function)( void* handle 
-            , int ev 
-            , completion_handler* handler );
+    typedef void (*call_function)( completion_handler* 
+            , void* );
 
     completion_handler( call_function fn)
         : _call_function( fn )
     {
     }
-    void operator()( void* handle , int ev ) {
-        _call_function( handle , ev , this );
+
+    void complete( void* handle ) {
+        _call_function( this , handle );
     }
 protected:
     ~completion_handler( void ){

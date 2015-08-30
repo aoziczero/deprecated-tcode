@@ -10,8 +10,8 @@ namespace tcode { namespace io {
 
     class epoll {
     public:
-        struct descriptor;
-        typedef descriptor* descriptor_type;
+        struct _descriptor;
+        typedef _descriptor* descriptor;
 
         epoll( void );
         ~epoll( void );
@@ -19,6 +19,10 @@ namespace tcode { namespace io {
         int run( const tcode::timespan& ts );
 
         void wake_up( void );
+
+        bool bind( int fd , descriptor& d );
+        void unbind( int fd , descriptor& d );
+
     private:
         int _handle;
         tcode::io::pipe _wake_up;
