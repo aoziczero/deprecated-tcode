@@ -2,7 +2,7 @@
 #include <tcode/io/epoll.hpp>
 #include <tcode/io/pipe.hpp>
 #include <thread>
-
+/*
 TEST( tcode_io_epoll , ctor ){
     tcode::io::epoll epoll;
 
@@ -12,6 +12,8 @@ TEST( tcode_io_epoll , ctor ){
     tcode::function< void (int)> event_handler( [&evt]( int ev ){
         evt = ev; 
     });
+
+
 
     epoll.bind( pipe.rd_pipe() , tcode::io::EV_READ , &event_handler );
 
@@ -23,7 +25,7 @@ TEST( tcode_io_epoll , ctor ){
     epoll.unbind( pipe.rd_pipe());
 
 }
-
+*/
 TEST( tcode_io_epoll , wake_up ){
     tcode::io::epoll epoll;
     std::thread t( [&epoll]{
@@ -32,4 +34,12 @@ TEST( tcode_io_epoll , wake_up ){
 
     epoll.wake_up();
     t.join();
+}
+
+TEST( tcode_io_epoll , execute ){
+    tcode::io::epoll ep;
+    ep.execute( tcode::operation::wrap( [] {
+                }));
+    ASSERT_EQ( 1,ep.run( tcode::timespan::seconds(1)));
+
 }

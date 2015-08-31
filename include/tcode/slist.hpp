@@ -30,8 +30,18 @@ namespace tcode {
                 : _head ( head )
             {
                 _tail = _head;
-                while ( _tail->next() != nullptr )
+                while ( _tail && (_tail->next() != nullptr ))
                     _tail = _tail->next();
+            }
+
+            queue( const queue& q )
+                : _head( q._head ) , _tail( q._tail ){
+            }
+
+            queue& operator=( const queue& rhs ) {
+                _head = rhs._head;
+                _tail = rhs._tail;
+                return *this;
             }
 
             queue( queue&& q ) 

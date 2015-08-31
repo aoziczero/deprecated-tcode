@@ -10,23 +10,26 @@ class completion_handler
     : public tcode::slist::node< Handler >        
 {
 public:
-    typedef void (*call_function)( completion_handler* 
+    typedef void (*completion_function)( completion_handler* 
             , void* );
 
-    completion_handler( call_function fn)
-        : _call_function( fn )
+    completion_handler( completion_function fn)
+        : _completion_function( fn )
     {
     }
 
     void complete( void* handle ) {
-        _call_function( this , handle );
+        _completion_function( this , handle );
     }
 protected:
     ~completion_handler( void ){
     }
 private:
-    call_function _call_function;
+    completion_function _completion_function;
 };
+
+void* completion_handler_alloc( int sz );
+void  completion_handler_free( void* p );
 
 }}
 

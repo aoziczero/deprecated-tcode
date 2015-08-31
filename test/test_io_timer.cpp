@@ -3,8 +3,6 @@
 
 TEST( timer , call ) {
     tcode::io::engine e;
-    //ASSERT_TRUE( tcode::io::id_alloc.load() ==  0 );
-    //ASSERT_TRUE( tcode::io::id_free.load() ==  0 );
     ASSERT_TRUE( tcode::io::test_alive_ids() == 0 );
     {
         tcode::io::timer t(e);
@@ -21,8 +19,6 @@ TEST( timer , call ) {
                     gout << "Timer!" << gendl;
                  });
         t.fire();
-        //ASSERT_TRUE( tcode::io::id_alloc.load() ==  1 );
-        //ASSERT_TRUE( tcode::io::id_free.load() ==  0 );
     
         std::thread thread( [&t] {
                     sleep(2);
@@ -33,9 +29,4 @@ TEST( timer , call ) {
         thread.join();
     }
     ASSERT_TRUE( tcode::io::test_alive_ids() == 0 );
-    //gout << tcode::io::id_add_ref.load() << gendl;
-    //gout << tcode::io::id_release.load() << gendl;
-    //ASSERT_EQ( tcode::io::id_alloc.load() , 1 );
-    //ASSERT_EQ( tcode::io::id_free.load() , 1 );
-            
 }

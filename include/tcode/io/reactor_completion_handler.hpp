@@ -13,7 +13,7 @@ namespace tcode { namespace io {
 
         typedef bool (*io_function)( reactor_completion_handler* , void* );
 
-        reactor_completion_handler( base_type::call_function fn ,
+        reactor_completion_handler( base_type::completion_function fn ,
                 io_function iofn );
         ~reactor_completion_handler( void );
 

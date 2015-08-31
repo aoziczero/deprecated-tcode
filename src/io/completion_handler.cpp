@@ -3,4 +3,12 @@
 
 namespace tcode { namespace io {
 
+    void* completion_handler_alloc( int sz ){
+        return operator new(sz);
+    }
+
+    void completion_handler_free( void* p ) {
+        operator delete( p );
+    }
+
 }}

@@ -25,28 +25,23 @@ namespace tcode { namespace io {
     class engine {
     public:
 #if defined ( TCODE_WIN32 )
-        typedef io::completion_port impl;
+        typedef io::completion_port impl_type;
 #elif defined( TCODE_LINUX )
-        typedef io::epoll impl;
+        typedef io::epoll impl_type;
 #elif defined( TCODE_APPLE )
-        typedef io::kqueue impl;
+        typedef io::kqueue impl_type;
 #else
 
 #endif
+        typedef impl_type::descriptor descriptor;
+        typedef impl_type::native_descriptor native_descriptor;
     public:
         engine( void );
         ~engine( void );
 
-        typedef tcode::function<void () > operation;
-
-        void post( const operation& op );
-
         void run( void );
 
         bool in_run_loop( void );
-
-        bool bind( int fd , int ev , tcode::io::event_handler* handler);
-        void unbind( int fd );
 
         void active_inc( void );
         void active_dec( void );
@@ -55,22 +50,40 @@ namespace tcode { namespace io {
         void timer_cancel( timer::id* id );
         void timer_drain( void );
         tcode::timespan next_wake_up_time( void );
+
+        impl_type& impl( void );
     private:
-        impl _impl;
+        template < typename Handler >
+        class op : public tcode::operation{
+        public:
+            op( engine& e , const Handler& h )
+                : operation( op::exec )
+                , _engine(e)
+                , _handler( h )
+            { _engine.active_inc(); }
+            ~op( void ) {  _engine.active_dec(); }
+            static void exec( operation* op_base ) {
+                op* pop( static_cast< op* >(op_base));
+                Handler h( std::move( pop->_handler ));
+                pop->~op();
+                operation::free( pop );
+                h();
+            }
+        private:
+            engine& _engine;
+            Handler _handler;
+        };
+    public:
+        template< typename Handler >
+        void execute( const Handler& handler ){
+            void* ptr = tcode::operation::alloc(sizeof( op<Handler>));
+            new (ptr) engine::op<Handler>( *this , handler );
+            impl().execute( reinterpret_cast<tcode::operation*>(ptr) );
+        }
+    private:
+        impl_type _impl;
         std::thread::id _run_thread_id;
         std::atomic<int> _active;
-        class op_queue {
-        public:
-            op_queue( void );
-            ~op_queue( void );
-            void post( const operation& op );
-            int drain( void );
-        private:
-            tcode::threading::spinlock _lock;
-            std::vector< operation > _ops;
-            std::vector< operation > _swap;
-        };
-        op_queue _op_queue;
         std::list< timer::id* > _timers;
     };
 

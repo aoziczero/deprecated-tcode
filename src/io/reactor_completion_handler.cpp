@@ -4,7 +4,7 @@
 namespace tcode { namespace io {
 
     reactor_completion_handler::reactor_completion_handler(
-            base_type::call_function fn , io_function iofn ) 
+            base_type::completion_function fn , io_function iofn ) 
         : base_type( fn ) , _io_function( iofn )
     {
     }

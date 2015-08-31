@@ -5,13 +5,25 @@
 #include <tcode/io/pipe.hpp>
 #include <tcode/function.hpp>
 #include <tcode/time/timespan.hpp>
+#include <tcode/operation.hpp>
+#include <tcode/threading/spinlock.hpp>
 
 namespace tcode { namespace io {
+namespace ip {
+
+    namespace tcp {
+        class reactor_completion_handler_connect_base;
+    }
+   
+    namespace udp {
+    }
+}
 
     class epoll {
     public:
         struct _descriptor;
         typedef _descriptor* descriptor;
+        typedef int native_descriptor;
 
         epoll( void );
         ~epoll( void );
@@ -21,11 +33,17 @@ namespace tcode { namespace io {
         void wake_up( void );
 
         bool bind( int fd , descriptor& d );
-        void unbind( int fd , descriptor& d );
+        void unbind( descriptor& d );
 
+        void execute( tcode::operation* op ); 
+
+        void connect( descriptor& d 
+                , ip::tcp::reactor_completion_handler_connect_base* op );
     private:
         int _handle;
         tcode::io::pipe _wake_up;
+        tcode::threading::spinlock _lock;
+        tcode::slist::queue< tcode::operation > _op_queue; 
     };
 
     /*

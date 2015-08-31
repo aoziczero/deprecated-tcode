@@ -24,6 +24,22 @@ namespace tcode { namespace threading {
         void lock( void );
         void unlock( void );
         bool trylock( void );
+
+        class guard{
+        public:
+            guard( spinlock& lock )
+                : _lock( lock )
+            {
+                _lock.lock();
+            }
+
+            ~guard( void ) {
+                _lock.unlock();
+            }
+        private:
+            spinlock& _lock;
+        };
+
     private:
 #if defined( TCODE_WIN32 )
         CRITICAL_SECTION _lock;

@@ -1,32 +1,29 @@
 #ifndef __tcode_io_ip_tcp_socket_h__
 #define __tcode_io_ip_tcp_socket_h__
 
-#include <tcode/io/ip/ip.hpp>
+#include <tcode/io/engine.hpp>
+#include <tcode/io/ip/tcp/reactor_completion_handler_connect.hpp>
 
-#include <tcode/function.hpp>
-
-namespace tcode { namespace io { 
-
-    class engine;
-    
-namespace ip { namespace tcp {
+namespace tcode { namespace io { namespace ip { namespace tcp {
 
     class socket {
     public:
         socket( engine& e );
         ~socket( void );
-
-        bool open( int family );
-        void close( const tcode::function< void () >& onclose );
-
-
-        void do_close( ip::socket_type fd );
-
-        ip::socket_type native_handle( void );
-        ip::socket_type native_handle( ip::socket_type handle );
+    
+        template < typename Handler >
+        void connect( const tcode::io::ip::address& addr 
+                , const Handler& handler )
+        {
+            void* ptr = tcode::io::completion_handler_alloc( 
+                    sizeof( reactor_completion_handler_connect<Handler>));
+            new (ptr) reactor_completion_handler_connect<Handler>( addr , handler );
+            _engine.impl().connect( _descriptor , 
+                    reinterpret_cast< reactor_completion_handler_connect_base* >(ptr));
+        }
     private:
         engine& _engine;
-        std::atomic< ip::socket_type > _handle;
+        engine::descriptor _descriptor;
     };
 
 }}}}

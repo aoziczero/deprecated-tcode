@@ -28,6 +28,7 @@ endif
 
 TCODE_SRCS=tcode.cpp\
 		   error.cpp\
+		   operation.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
@@ -39,12 +40,14 @@ TCODE_SRCS=tcode.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
 		   io/epoll.cpp\
+		   io/engine.cpp\
+		   io/timer.cpp\
+		   io/timer_id.cpp\
+		   io/ip/address.cpp\
 		   
 			#io/timer.cpp\
-		   #io/timer_id.cpp\
 		   #io/ip/ip.cpp\
 		   #io/ip/option.cpp\
-		   #io/ip/address.cpp\
 		   #io/ip/simple_select.cpp\
 		   #io/ip/tcp/connector.cpp\
 		   #io/ip/tcp/socket.cpp\
@@ -91,12 +94,13 @@ TEST_SRCS=main.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
 		  test_epoll_wakeup.cpp\
-		  test_epoll_et.cpp
+		  test_epoll_et.cpp\
+		  test_operation.cpp\
+		  test_io_epoll.cpp\
+		  test_io_timer.cpp\
+		  test_io_engine.cpp\
+		  test_io_ip_address.cpp\
 		  
-			#test_io_ip_address.cpp\
-		  #test_io_epoll.cpp\
-		  #test_io_timer.cpp\
-		  #test_io_engine.cpp\
 		  #test_io_ip_tcp_connector.cpp\
 
 GTEST_DIR=../external/gtest

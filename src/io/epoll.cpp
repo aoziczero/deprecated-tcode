@@ -4,6 +4,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <tcode/io/reactor_completion_handler.hpp>
+#include <tcode/io/ip/tcp/reactor_completion_handler_connect.hpp>
 
 namespace tcode { namespace io {
 namespace {
@@ -58,14 +59,31 @@ namespace {
         if ( nofd <= 0  ) {
             return 0; 
         }
+        bool execute_op = false;
         for ( int i = 0 ; i < nofd; ++i ){
             epoll::descriptor desc =
                 static_cast< epoll::descriptor >( events[i].data.ptr );
             if ( desc ) {
                 desc->complete( events[i].events );
+            } else {
+                execute_op = true;
             }
         }
-        return nofd;
+        if ( execute_op ){
+            tcode::slist::queue< tcode::operation > ops;
+            do {
+                tcode::threading::spinlock::guard guard(_lock);
+                if ( _op_queue.empty() )
+                    return 0;
+                ops.splice( _op_queue );
+            }while(0);
+            while( !ops.empty() ){
+                tcode::operation* op = ops.front();
+                ops.pop_front();
+                (*op)();
+            }
+        }
+        return 0;
     }
     
     void epoll::wake_up( void ){
@@ -76,15 +94,52 @@ namespace {
     }
 
     bool epoll::bind( int fd , descriptor& d ) {
-        d = new descriptor();
+        d = new _descriptor();
         d->fd = fd;
+        struct epoll_event e;
+        e.events = EPOLLIN | EPOLLOUT | EPOLLET;
+        e.data.ptr = d;
+        return epoll_ctl( _handle , EPOLL_CTL_ADD , fd , &e ) == 0;
     }
 
-    void epoll::unbind( int fd , descriptor& d ) {
+    void epoll::unbind( descriptor& d ) {
+        if ( d == nullptr )
+            return;
+
+        epoll_ctl( _handle , EPOLL_CTL_DEL , d->fd , nullptr );
+        ::close( d->fd );
+        
         tcode::slist::queue< reactor_completion_handler > handlers;
-       
         handlers.splice( d->handler_queue[0] );
         handlers.splice( d->handler_queue[1] );
+
+        delete d;
+        d = nullptr;
+        if ( handlers.empty() ) {
+            return; 
+        }
+        execute( tcode::operation::wrap(
+                    [ handlers ]{
+                        tcode::slist::queue< reactor_completion_handler > ops(
+                               handlers );
+                        while ( !ops.empty()){
+                            reactor_completion_handler* ch = ops.front();
+                            ops.pop_front();
+                            ch->complete( nullptr );
+                        }
+                    }));
+    }
+
+    void epoll::execute( tcode::operation* op ) {
+        tcode::threading::spinlock::guard guard(_lock);
+        _op_queue.push_back(op);
+        wake_up();
+    }
+
+    void epoll::connect( 
+            epoll::descriptor& desc 
+            , ip::tcp::reactor_completion_handler_connect_base* op )
+    {
 
     }
 

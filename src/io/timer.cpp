@@ -39,7 +39,8 @@ namespace tcode { namespace io {
     }
 
     void timer::cancel( void ) {
-        _id->engine.timer_cancel(_id);
+        if( _id->refcount.load() != 1 ) 
+            _id->engine.timer_cancel(_id);
     }
 
 }}
