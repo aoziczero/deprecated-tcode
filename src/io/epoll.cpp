@@ -97,6 +97,7 @@ namespace {
     }
 
     bool epoll::bind( descriptor d ) {
+        _active.inc();
         struct epoll_event e;
         e.events = EPOLLIN | EPOLLOUT | EPOLLET;
         e.data.ptr = d;
@@ -121,7 +122,7 @@ namespace {
         
         tcode::slist::queue< tcode::operation > ops;
         for ( int i = 0 ;i < 2 ; ++i ) {
-            while ( !d->op_queue[i].empty()){
+            while ( !desc->op_queue[i].empty()){
                 tcode::io::operation* op = static_cast< io::operation* >(
                         desc->op_queue[i].front());
                 desc->op_queue[i].pop_front();
@@ -131,6 +132,7 @@ namespace {
         }
 
         delete desc;
+        _active.dec();
 
         if ( ops.empty() ) return;
        
@@ -184,7 +186,6 @@ namespace {
             op->error() = tcode::last_error();
             execute(op);
         }
-
     }
 
 /*

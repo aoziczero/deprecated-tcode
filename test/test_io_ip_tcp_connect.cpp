@@ -21,7 +21,6 @@ TEST( tcode_io_ip_tcp_socket , connect ) {
     
     fd.connect( google ,[&fd]( const std::error_code& ec
                 , const tcode::io::ip::address& addr ) {
-                        gout << ec.message() << gendl;
                         on_connect( fd , ec , addr );
                     } );
     e.run();
