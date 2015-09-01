@@ -3,7 +3,7 @@
 
 namespace tcode {
 
-    operation::operation( operation::execute_impl fn )
+    operation::operation( operation::execute_handler fn )
         : _execute( fn )
     {
     }

@@ -6,8 +6,8 @@
 
 namespace tcode { namespace io { 
     
-    engine::engine( void ){
-        _active.store(0);
+    engine::engine( void )
+        : _impl(_active){
     } 
 
     engine::~engine( void ){
@@ -15,7 +15,7 @@ namespace tcode { namespace io {
 
     void engine::run( void ) {
         _run_thread_id = std::this_thread::get_id();
-        while ( _active.load() || !_timers.empty() ){
+        while ( _active.count() || !_timers.empty() ){
             _impl.run( next_wake_up_time());
             timer_drain();
         }
@@ -24,17 +24,10 @@ namespace tcode { namespace io {
     bool engine::in_run_loop( void ) {
         return _run_thread_id == std::this_thread::get_id();    
     }
-    
-    void engine::active_inc( void ){
-        _active.fetch_add(1);
-    }
-    void engine::active_dec( void ){
-        _active.fetch_sub(1);
-    }
 
     void engine::timer_schedule( timer::id* id ){
+        id->add_ref();
         if ( in_run_loop() ){
-            id->add_ref();
             std::list< timer::id* >::iterator it = 
                 std::upper_bound( _timers.begin() , _timers.end(), id 
                     , [] ( const timer::id* v , const timer::id* cmp ) ->bool {
@@ -42,7 +35,6 @@ namespace tcode { namespace io {
                     });
             _timers.insert( it , id );
         } else {
-            id->add_ref();
             execute( [this,id] {
                 timer_schedule( id );
                 id->release();
@@ -87,14 +79,17 @@ namespace tcode { namespace io {
             return tcode::timespan::seconds(1);
         tcode::timestamp now = tcode::timestamp::now();
         tcode::timestamp due = _timers.front()->due_time;
-        if ( due  <= now ) 
+        if ( due <= now ) 
             return tcode::timespan::seconds(0);
         return due - now; 
     }
 
-
     engine::impl_type& engine::impl( void ){
         return _impl;
+    }
+
+    tcode::active_ref& engine::active( void ) {
+        return _active;
     }
 
 }}

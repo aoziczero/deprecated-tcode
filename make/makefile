@@ -29,13 +29,14 @@ endif
 TCODE_SRCS=tcode.cpp\
 		   error.cpp\
 		   operation.cpp\
+		   active_ref.cpp\
+		   allocator.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
 		   threading/spinlock.cpp\
 		   io/io.cpp\
-		   io/completion_handler.cpp\
-		   io/reactor_completion_handler.cpp\
+		   io/operation.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
@@ -44,13 +45,11 @@ TCODE_SRCS=tcode.cpp\
 		   io/timer.cpp\
 		   io/timer_id.cpp\
 		   io/ip/address.cpp\
+		   io/ip/tcp/socket.cpp\
+		   io/ip/option.cpp\
 		   
-			#io/timer.cpp\
 		   #io/ip/ip.cpp\
-		   #io/ip/option.cpp\
 		   #io/ip/simple_select.cpp\
-		   #io/ip/tcp/connector.cpp\
-		   #io/ip/tcp/socket.cpp\
 		   #io/engine.cpp\
 		   
 
@@ -100,6 +99,7 @@ TEST_SRCS=main.cpp\
 		  test_io_timer.cpp\
 		  test_io_engine.cpp\
 		  test_io_ip_address.cpp\
+		  test_io_ip_tcp_connect.cpp\
 		  
 		  #test_io_ip_tcp_connector.cpp\
 

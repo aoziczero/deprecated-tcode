@@ -7,6 +7,8 @@ namespace tcode {
 
     extern std::error_code error_aborted;
 
+    std::error_code last_error( void );
+    
 }
 
 #endif

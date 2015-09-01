@@ -5,12 +5,16 @@
 
 namespace tcode {
 
+    /*!
+     * @class operation
+     * @brief 
+     */
     class operation
-        : public tcode::slist::node< operation>
+        : public tcode::slist::node< operation >
     {
     public:
-        typedef void (*execute_impl)( operation* );
-        operation( execute_impl fn );
+        typedef void (*execute_handler)( operation* );
+        operation( execute_handler fn );
         void operator()( void );
 
         template < typename Handler >
@@ -25,7 +29,7 @@ namespace tcode {
     protected:
         ~operation( void );
     private:
-        execute_impl _execute;
+        execute_handler _execute;
     };
 
 

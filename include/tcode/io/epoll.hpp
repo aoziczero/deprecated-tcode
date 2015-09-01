@@ -1,6 +1,7 @@
 #ifndef __tcode_io_epoll_h__
 #define __tcode_io_epoll_h__
 
+#include <tcode/active_ref.hpp>
 #include <tcode/io/io.hpp>
 #include <tcode/io/pipe.hpp>
 #include <tcode/function.hpp>
@@ -12,34 +13,43 @@ namespace tcode { namespace io {
 namespace ip {
 
     namespace tcp {
-        class reactor_completion_handler_connect_base;
+        class operation_connect_base;
     }
    
     namespace udp {
     }
 }
-
+    /*!
+     * @class epoll
+     * @brief
+     */
     class epoll {
     public:
+        /*!
+         * @class descriptor
+         * @brief 
+         */
         struct _descriptor;
         typedef _descriptor* descriptor;
-        typedef int native_descriptor;
 
-        epoll( void );
+        //! ctor
+        epoll( active_ref& active );
+        //! dtor
         ~epoll( void );
 
         int run( const tcode::timespan& ts );
 
         void wake_up( void );
 
-        bool bind( int fd , descriptor& d );
+        bool bind( descriptor d );
         void unbind( descriptor& d );
 
         void execute( tcode::operation* op ); 
 
         void connect( descriptor& d 
-                , ip::tcp::reactor_completion_handler_connect_base* op );
+                , ip::tcp::operation_connect_base* op );
     private:
+        active_ref& _active;
         int _handle;
         tcode::io::pipe _wake_up;
         tcode::threading::spinlock _lock;

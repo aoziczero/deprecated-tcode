@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include <tcode/io/epoll.hpp>
-#include <tcode/io/option.hpp>
+#include <tcode/io/ip/option.hpp>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <tcode/io/reactor_completion_handler.hpp>
-#include <tcode/io/ip/tcp/reactor_completion_handler_connect.hpp>
+#include <tcode/io/operation.hpp>
+#include <tcode/io/ip/tcp/operation_connect.hpp>
 
 namespace tcode { namespace io {
 namespace {
@@ -13,9 +13,7 @@ namespace {
 
     struct epoll::_descriptor{
         int fd;
-        tcode::slist::queue< reactor_completion_handler > handler_queue[2];
-
-
+        tcode::slist::queue< tcode::operation > op_queue[2];
         void complete( int ev );
     };
 
@@ -23,12 +21,12 @@ namespace {
         int epollev[] = { EPOLLIN , EPOLLOUT };
         for ( int i = 0 ; i < 2 ; ++i ) {
             if ( events & epollev[i] ){
-                while ( !handler_queue[i].empty() ) {
-                    reactor_completion_handler* rch = 
-                       handler_queue[i].front();
-                    if ( rch->do_reactor_io(this) ) {
-                        handler_queue[i].pop_front();
-                        rch->complete(this);
+                while ( !op_queue[i].empty() ) {
+                    io::operation* op = static_cast< io::operation* >( 
+                       op_queue[i].front());
+                    if ( op->post_proc(this) ) {
+                        op_queue[i].pop_front();
+                        (*op)();
                     } else {
                         break;
                     }
@@ -37,8 +35,9 @@ namespace {
         }
     }
 
-    epoll::epoll( void )
+    epoll::epoll( active_ref& ac )
         : _handle( epoll_create(epoll_max_event))
+        , _active( ac )
     {
         struct epoll_event e;
         e.events = EPOLLOUT | EPOLLONESHOT ;
@@ -59,6 +58,7 @@ namespace {
         if ( nofd <= 0  ) {
             return 0; 
         }
+        int run = nofd;
         bool execute_op = false;
         for ( int i = 0 ; i < nofd; ++i ){
             epoll::descriptor desc =
@@ -67,6 +67,7 @@ namespace {
                 desc->complete( events[i].events );
             } else {
                 execute_op = true;
+                --run;
             }
         }
         if ( execute_op ){
@@ -74,16 +75,18 @@ namespace {
             do {
                 tcode::threading::spinlock::guard guard(_lock);
                 if ( _op_queue.empty() )
-                    return 0;
+                    return run;
                 ops.splice( _op_queue );
             }while(0);
             while( !ops.empty() ){
                 tcode::operation* op = ops.front();
                 ops.pop_front();
                 (*op)();
+                _active.dec();
+                ++run;
             }
         }
-        return 0;
+        return run;
     }
     
     void epoll::wake_up( void ){
@@ -93,57 +96,98 @@ namespace {
         epoll_ctl( _handle , EPOLL_CTL_MOD , _wake_up.wr_pipe() , &e );
     }
 
-    bool epoll::bind( int fd , descriptor& d ) {
-        d = new _descriptor();
-        d->fd = fd;
+    bool epoll::bind( descriptor d ) {
         struct epoll_event e;
         e.events = EPOLLIN | EPOLLOUT | EPOLLET;
         e.data.ptr = d;
-        return epoll_ctl( _handle , EPOLL_CTL_ADD , fd , &e ) == 0;
+        return epoll_ctl( _handle , EPOLL_CTL_ADD , d->fd , &e ) == 0;
     }
 
     void epoll::unbind( descriptor& d ) {
-        if ( d == nullptr )
-            return;
+        descriptor desc;
+        do { 
+            tcode::threading::spinlock::guard guard(_lock);
+            if ( d == nullptr ) 
+                return;
+            desc = d;
+            d = nullptr;
+        }while(0);
 
-        epoll_ctl( _handle , EPOLL_CTL_DEL , d->fd , nullptr );
-        ::close( d->fd );
-        
-        tcode::slist::queue< reactor_completion_handler > handlers;
-        handlers.splice( d->handler_queue[0] );
-        handlers.splice( d->handler_queue[1] );
-
-        delete d;
-        d = nullptr;
-        if ( handlers.empty() ) {
-            return; 
+        if ( desc->fd != -1 ) {
+            epoll_ctl( _handle , EPOLL_CTL_DEL , desc->fd , nullptr );
+            ::close( desc->fd );
+            desc->fd = -1;
         }
-        execute( tcode::operation::wrap(
-                    [ handlers ]{
-                        tcode::slist::queue< reactor_completion_handler > ops(
-                               handlers );
-                        while ( !ops.empty()){
-                            reactor_completion_handler* ch = ops.front();
-                            ops.pop_front();
-                            ch->complete( nullptr );
-                        }
-                    }));
+        
+        tcode::slist::queue< tcode::operation > ops;
+        for ( int i = 0 ;i < 2 ; ++i ) {
+            while ( !d->op_queue[i].empty()){
+                tcode::io::operation* op = static_cast< io::operation* >(
+                        desc->op_queue[i].front());
+                desc->op_queue[i].pop_front();
+                op->error() = tcode::error_aborted;
+                ops.push_back(op);
+            }
+        }
+
+        delete desc;
+
+        if ( ops.empty() ) return;
+       
+        do {
+            tcode::threading::spinlock::guard guard(_lock);
+            while( !ops.empty()){
+                tcode::operation* op = ops.front();
+                ops.pop_front();
+                _op_queue.push_back( op );
+                _active.inc();
+            }
+        }while(0);
+        wake_up();
     }
 
     void epoll::execute( tcode::operation* op ) {
-        tcode::threading::spinlock::guard guard(_lock);
-        _op_queue.push_back(op);
+        do {
+            tcode::threading::spinlock::guard guard(_lock);
+            _op_queue.push_back(op);
+        } while(0);
+        _active.inc();
         wake_up();
     }
 
     void epoll::connect( 
             epoll::descriptor& desc 
-            , ip::tcp::reactor_completion_handler_connect_base* op )
+            , ip::tcp::operation_connect_base* op )
     {
+        int fd = socket( op->address().family() , SOCK_STREAM , IPPROTO_TCP );
+        if ( fd == -1 ) {
+            op->error() = tcode::last_error(); 
+            execute( op );
+            return;
+        }
+        
+        tcode::io::ip::option::non_blocking nb;
+        nb.set_option( fd );
+
+        int r;
+        do {
+            r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
+        }while((r == -1) && (errno == EINTR));
+        if ( (r == 0 ) || (errno == EINPROGRESS )){
+            epoll::_descriptor* d = new epoll::_descriptor();
+            d->fd = fd;
+            d->op_queue[1].push_back( op );
+            desc = d;
+            bind( d );
+        } else {
+            ::close(fd);
+            op->error() = tcode::last_error();
+            execute(op);
+        }
 
     }
 
-    /*
+/*
     epoll::epoll( void )
         : _pipe_handler( [this] ( int ev ) {
                 wake_up_handler( ev );

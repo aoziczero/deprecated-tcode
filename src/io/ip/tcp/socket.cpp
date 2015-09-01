@@ -11,9 +11,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     socket::~socket( void ) {
 
     }
-    
-    bool socket::bind( io::engine::native_descriptor nfd ){
-        return _engine.impl().bind( nfd , _descriptor );
-    }
 
+    void socket::close( void ) {
+        _engine.impl().unbind( _descriptor );
+    }
+    
 }}}}
