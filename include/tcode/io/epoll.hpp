@@ -14,6 +14,9 @@ namespace ip {
 
     namespace tcp {
         class operation_connect_base;
+        class operation_write_base;
+        class operation_read_base;
+        class operation_accept_base;
     }
    
     namespace udp {
@@ -48,6 +51,12 @@ namespace ip {
 
         void connect( descriptor& d 
                 , ip::tcp::operation_connect_base* op );
+        void write( descriptor& desc 
+                , ip::tcp::operation_write_base* op );
+        void read( descriptor& desc
+                , ip::tcp::operation_read_base* op );
+        void accept( descriptor& desc
+                , ip::tcp::operation_accept_base* op );
     private:
         active_ref& _active;
         int _handle;

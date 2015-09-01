@@ -14,8 +14,29 @@ namespace {
     struct epoll::_descriptor{
         int fd;
         tcode::slist::queue< tcode::operation > op_queue[2];
+        std::atomic<int> refcount;
+
+        _descriptor( void );
+
+        void add_ref( void );
+        void release( void );
+
         void complete( int ev );
     };
+
+    void epoll::_descriptor::_descriptor( void ) {
+        refcount.store(1);
+    }
+
+    void epoll::_descriptor::add_ref( void ) {
+        refcount.fetch_add(1);
+    }
+
+    void epoll::_descriptor::release( epoll& ep ){
+        if ( refcount.fetch_sub(1) == 1 ) {
+            delete this;
+        }
+    }
 
     void epoll::_descriptor::complete( int events ) {
         int epollev[] = { EPOLLIN , EPOLLOUT };
@@ -176,17 +197,29 @@ namespace {
             r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
         }while((r == -1) && (errno == EINTR));
         if ( (r == 0 ) || (errno == EINPROGRESS )){
-            epoll::_descriptor* d = new epoll::_descriptor();
-            d->fd = fd;
-            d->op_queue[1].push_back( op );
-            desc = d;
-            bind( d );
+            desc = new epoll::_descriptor();
+            desc->fd = fd;
+            desc->op_queue[1].push_back( op );
+            bind( desc );
         } else {
             ::close(fd);
             op->error() = tcode::last_error();
             execute(op);
         }
     }
+
+    void epoll::write( epoll::descriptor& desc 
+            , ip::tcp::operation_write_base* op)
+    {
+
+    }
+    void epoll::read( descriptor& desc
+            , ip::tcp::operation_read_base* op ){
+    }
+    void epoll::accept( descriptor& desc
+            , ip::tcp::operation_accept_base* op ){
+    }
+    p
 
 /*
     epoll::epoll( void )

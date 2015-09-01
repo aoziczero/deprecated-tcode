@@ -4,10 +4,10 @@
 namespace tcode {
 
     struct allocator{
+        allocator( void );
+
         void* (*alloc)( const std::size_t );
         void  (*free)( void* );
-
-        static allocator malloc_allocator( void );
     };
 
 }

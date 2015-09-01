@@ -3,11 +3,9 @@
 
 namespace tcode {
 
-    allocator allocator::malloc_allocator(){
-        allocator a;
-        a.alloc = std::malloc;
-        a.free = std::free;
-        return a;
+    allocator::allocator( void ) {
+        alloc = std::malloc;
+        free = std::free;
     }
 
 }
