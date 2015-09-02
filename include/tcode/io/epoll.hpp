@@ -1,9 +1,8 @@
 #ifndef __tcode_io_epoll_h__
 #define __tcode_io_epoll_h__
 
-#include <tcode/active_ref.hpp>
-#include <tcode/io/io.hpp>
 #include <tcode/io/pipe.hpp>
+#include <tcode/io/buffer.hpp>
 #include <tcode/function.hpp>
 #include <tcode/time/timespan.hpp>
 #include <tcode/operation.hpp>
@@ -22,6 +21,7 @@ namespace ip {
     namespace udp {
     }
 }
+    class engine;
     /*!
      * @class epoll
      * @brief
@@ -36,7 +36,7 @@ namespace ip {
         typedef _descriptor* descriptor;
 
         //! ctor
-        epoll( active_ref& active );
+        epoll( engine& e );
         //! dtor
         ~epoll( void );
 
@@ -44,25 +44,33 @@ namespace ip {
 
         void wake_up( void );
 
-        bool bind( descriptor d );
-        void unbind( descriptor& d );
+        bool bind( const descriptor& desc );
+        void unbind( descriptor& desc );
 
         void execute( tcode::operation* op ); 
 
-        void connect( descriptor& d 
+        void connect( descriptor& desc 
                 , ip::tcp::operation_connect_base* op );
-        void write( descriptor& desc 
+        void write( descriptor desc 
                 , ip::tcp::operation_write_base* op );
-        void read( descriptor& desc
+        void read( descriptor desc
                 , ip::tcp::operation_read_base* op );
-        void accept( descriptor& desc
+        void accept( descriptor desc
                 , ip::tcp::operation_accept_base* op );
     private:
-        active_ref& _active;
+        void op_add( tcode::operation* op );
+        void op_run( tcode::operation* op );
+    private:
+        engine& _engine;
         int _handle;
         tcode::io::pipe _wake_up;
         tcode::threading::spinlock _lock;
         tcode::slist::queue< tcode::operation > _op_queue; 
+    public:
+        int writev( descriptor desc , tcode::io::buffer* buf , int cnt 
+                , std::error_code& ec );
+        int readv( descriptor desc , tcode::io::buffer* buf , int cnt 
+                , std::error_code& ec ); 
     };
 
     /*

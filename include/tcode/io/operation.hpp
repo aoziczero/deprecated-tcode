@@ -1,6 +1,7 @@
 #ifndef __tcode_io_operation_h__
 #define __tcode_io_operation_h__
 
+#include <tcode/io/io_define.hpp>
 #include <tcode/operation.hpp>
 
 #include <system_error>
@@ -11,11 +12,13 @@ namespace tcode { namespace io {
         : public tcode::operation 
     {
     public:
-        typedef bool (*post_proc_handler)( io::operation* , void* desc );
+        typedef bool (*post_proc_handler)( io::operation* 
+                , io::multiplexer* mux 
+                , io::descriptor desc );
 
         operation( tcode::operation::execute_handler exh
                 , post_proc_handler pph );
-        bool post_proc( void* desc );
+        bool post_proc( io::multiplexer* mux , io::descriptor desc  );
 
         std::error_code& error(void);
     protected:

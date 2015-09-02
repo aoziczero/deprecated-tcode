@@ -21,9 +21,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 
         ~operation_connect_base( void ){}
 
-        static bool post_connect( io::operation* op , 
-                
-                void* handle )
+        static bool post_connect( io::operation* op
+                , io::multiplexer* mux 
+                , io::descriptor desc )
         {
             return true;
         }

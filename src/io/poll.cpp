@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <tcode/io/io.hpp>
 #include <tcode/io/poll.hpp>
 #include <tcode/io/option.hpp>
 #include <tuple>
@@ -21,8 +22,8 @@ namespace tcode { namespace io {
 
     bool poll::bind( int fd , int ev , tcode::function< void (int) >* handler ){
         int pollev = 0;
-        if ( ev & EV_READ ) pollev = POLLIN;
-        if ( ev & EV_WRITE ) pollev |= POLLOUT;
+        if ( ev & EV_READ) pollev = POLLIN;
+        if ( ev & EV_WRITE) pollev |= POLLOUT;
         for ( std::size_t i = 0 ; i < _fds.size() ; ++i ) {
             if ( _fds[i].fd == fd ) {
                 _fds[i].events = pollev;

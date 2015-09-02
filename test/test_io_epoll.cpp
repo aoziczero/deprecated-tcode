@@ -28,7 +28,7 @@ TEST( tcode_io_epoll , ctor ){
 }
 */
 TEST( tcode_io_epoll , wake_up ){
-    tcode::active_ref e;
+    tcode::io::engine e;
     tcode::io::epoll epoll(e);
     std::thread t( [&epoll]{
                 epoll.run( tcode::timespan::seconds(60));
@@ -39,7 +39,7 @@ TEST( tcode_io_epoll , wake_up ){
 }
 
 TEST( tcode_io_epoll , execute ){
-    tcode::active_ref e;
+    tcode::io::engine e;
     tcode::io::epoll ep(e);
     ep.execute( tcode::operation::wrap( [] {
                 }));

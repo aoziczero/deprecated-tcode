@@ -2,6 +2,7 @@
 #include <tcode/io/poll.hpp>
 #include <tcode/io/pipe.hpp>
 #include <thread>
+#include <tcode/io/io.hpp>
 
 TEST( tcode_io_poll , ctor ){
     tcode::io::poll poll;

@@ -7,7 +7,7 @@
 namespace tcode { namespace io { 
     
     engine::engine( void )
-        : _impl(_active){
+        : _mux(*this){
     } 
 
     engine::~engine( void ){
@@ -16,7 +16,7 @@ namespace tcode { namespace io {
     void engine::run( void ) {
         _run_thread_id = std::this_thread::get_id();
         while ( _active.count() || !_timers.empty() ){
-            _impl.run( next_wake_up_time());
+            _mux.run( next_wake_up_time());
             timer_drain();
         }
     }
@@ -84,8 +84,8 @@ namespace tcode { namespace io {
         return due - now; 
     }
 
-    engine::impl_type& engine::impl( void ){
-        return _impl;
+    io::multiplexer& engine::mux( void ){
+        return _mux;
     }
 
     tcode::active_ref& engine::active( void ) {

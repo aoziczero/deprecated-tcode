@@ -13,7 +13,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     }
 
     void socket::close( void ) {
-        _engine.impl().unbind( _descriptor );
+        _engine.mux().unbind( _descriptor );
     }
     
 }}}}

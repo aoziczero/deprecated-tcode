@@ -3,12 +3,46 @@
 #include <tcode/io/ip/tcp/socket.hpp>
 #include <tcode/io/engine.hpp>
 
+char request[] = "GET / HTTP/1.1\r\n\r\n";
+
+void on_read(
+        tcode::io::ip::tcp::socket& fd 
+        , const std::error_code& ec 
+        , int read 
+        , char* buf )
+{
+    gout << "Read:" << read << ":"  << ec.message() << gendl;
+    delete [] buf;
+    fd.close();
+}
+ 
+void on_send( 
+        tcode::io::ip::tcp::socket& fd 
+        , const std::error_code& ec 
+        , int write )
+{
+    gout << "Write:" << write << ":"  << ec.message() << gendl;
+}
+
 void on_connect( tcode::io::ip::tcp::socket& fd
        , const std::error_code& ec 
        , const tcode::io::ip::address& addr )
 {
     gout << ec.message() << gendl;
-    fd.close();
+    char* buf = new char[4096];
+    fd.read( tcode::io::buffer( buf , 4096 )
+            , [&fd , buf] ( const std::error_code& ec 
+                , int read ) 
+            {
+                on_read( fd , ec , read , buf );
+            });
+
+    fd.write( tcode::io::buffer( request , strlen( request ))
+            , [&fd] ( const std::error_code& ec 
+                , int write )
+            {
+                on_send( fd , ec , write );
+            });
 }
 
 TEST( tcode_io_ip_tcp_socket , connect ) {

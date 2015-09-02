@@ -50,6 +50,13 @@ namespace tcode {
                 q._tail = nullptr;
             }
 
+            queue& operator=( queue&& q )
+            {
+                _head = q._head;
+                _tail = q._tail;
+                q._head = q._tail = nullptr;
+            }
+
             void push_back( Node* n ){
                 if ( _head == nullptr )
                     _head = _tail = n;

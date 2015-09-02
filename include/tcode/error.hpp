@@ -6,6 +6,7 @@
 namespace tcode {
 
     extern std::error_code error_aborted;
+    extern std::error_code error_disconnected;
 
     std::error_code last_error( void );
     

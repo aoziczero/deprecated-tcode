@@ -14,8 +14,8 @@ namespace tcode { namespace io {
 
     }
 
-    bool operation::post_proc( void* desc ){
-        return _post_proc( this , desc );
+    bool operation::post_proc( io::multiplexer* mux ,  io::descriptor desc ){
+        return _post_proc( this , mux , desc );
     }
 
     std::error_code& operation::error( void ) {

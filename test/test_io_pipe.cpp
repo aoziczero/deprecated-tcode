@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <tcode/io/pipe.hpp>
 #include <tcode/io/option.hpp>
-
+#include <tcode/io/io.hpp>
 TEST( tcode_io_pipe , open ) {
     tcode::io::pipe pi;
     ASSERT_TRUE( pi.rd_pipe() != -1 );

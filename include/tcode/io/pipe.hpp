@@ -1,8 +1,6 @@
 #ifndef __tcode_io_pipe_h__
 #define __tcode_io_pipe_h__
 
-#include <tcode/io/io.hpp>
-
 namespace tcode { namespace io { 
 
 /*!

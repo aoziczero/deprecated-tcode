@@ -36,6 +36,7 @@ TCODE_SRCS=tcode.cpp\
 		   time/ctime_adapter.cpp\
 		   threading/spinlock.cpp\
 		   io/io.cpp\
+		   io/buffer.cpp\
 		   io/operation.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
@@ -47,7 +48,10 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/address.cpp\
 		   io/ip/tcp/socket.cpp\
 		   io/ip/option.cpp\
+		   io/ip/tcp/operation_write.cpp\
+		   io/ip/tcp/operation_read.cpp\
 		   
+
 		   #io/ip/ip.cpp\
 		   #io/ip/simple_select.cpp\
 		   #io/engine.cpp\
