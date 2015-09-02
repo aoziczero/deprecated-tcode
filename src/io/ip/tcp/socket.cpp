@@ -7,6 +7,13 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     socket::socket( io::engine& e )
         : _engine( e ) {
     }
+
+    socket::socket( socket&& s ) 
+        : _engine( s._engine )
+        , _descriptor( std::move(s._descriptor))
+    {
+        
+    }
     
     socket::~socket( void ) {
 

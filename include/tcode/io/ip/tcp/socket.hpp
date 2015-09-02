@@ -11,6 +11,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     class socket {
     public:
         socket( engine& e );
+
+        socket( socket&& rhs );
+
         ~socket( void );
     
         template < typename Handler >
