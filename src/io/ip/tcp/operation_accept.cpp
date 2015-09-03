@@ -22,10 +22,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
                     , _address
                     , error());
 
-        if (error()) return true;
-        if (r<0) return false;
-
-        return true;
+        if (error() || r >= 0 )
+            return true;
+        return false;
     }
 
     bool operation_accept_base::post_accept( io::operation* op_base

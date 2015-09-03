@@ -54,6 +54,9 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/tcp/operation_write.cpp\
 		   io/ip/tcp/operation_read.cpp\
 		   io/ip/tcp/operation_accept.cpp\
+		   io/ip/udp/socket.cpp\
+		   io/ip/udp/operation_read.cpp\
+		   io/ip/udp/operation_write.cpp\
 		   
 
 		   #io/ip/simple_select.cpp\
@@ -108,6 +111,7 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_address.cpp\
 		  test_io_ip_tcp_connect.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
+		  test_io_ip_udp.cpp\
 		  
 		  #test_io_ip_tcp_connector.cpp\
 

@@ -10,6 +10,8 @@
 #include <tcode/io/ip/tcp/operation_write.hpp>
 #include <tcode/io/ip/tcp/operation_read.hpp>
 #include <tcode/io/ip/tcp/operation_accept.hpp>
+#include <tcode/io/ip/udp/operation_write.hpp>
+#include <tcode/io/ip/udp/operation_read.hpp>
 #include <sys/epoll.h>
 #include <unistd.h>
 
@@ -274,6 +276,66 @@ namespace tcode { namespace io {
                 desc->release(this);
             }));
     }
+    
+    bool epoll::bind( descriptor& desc
+            , const ip::address& addr ) 
+    {
+        int fd = socket( addr.family() , SOCK_DGRAM , IPPROTO_UDP );
+        if ( fd == -1 )
+            return false;
+        tcode::io::ip::option::non_blocking nb;
+        nb.set_option(fd);
+        tcode::io::ip::option::reuse_address reuse( true );
+        reuse.set_option( fd );
+        if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) < 0 ){
+            ::close(fd);
+            return false;
+        }
+        desc = new epoll::_descriptor( this , fd );
+        bind( desc );
+        return true;
+    }
+
+    void epoll::write( descriptor& desc 
+            , ip::udp::operation_write_base* op )
+    {   
+        if ( desc == nullptr ) {
+            int fd = socket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP);
+            if ( fd == -1 ){
+                op->error() = tcode::last_error();
+                execute( op );
+                return;
+            }
+            desc = new epoll::_descriptor( this , fd );
+            bind( desc );
+        }
+        
+        desc->add_ref();
+        execute( tcode::operation::wrap(
+            [this,desc,op]{
+                desc->op_queue[tcode::io::ev_write].push_back(op);
+                desc->complete( this , EPOLLOUT );
+                desc->release(this);
+            }));
+    }
+    
+    void epoll::read( descriptor desc
+            , ip::udp::operation_read_base* op )
+    {
+        if ( desc == nullptr ) {
+            op->error() = std::error_code( EBADF , std::generic_category());
+            execute(op);
+            return;
+        }
+        desc->add_ref();
+        execute( tcode::operation::wrap(
+            [this,desc,op]{
+                desc->op_queue[tcode::io::ev_read].push_back(op);
+                desc->complete( this , EPOLLIN);
+                desc->release(this);
+            }));
+    }
+
 
     void epoll::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
@@ -289,20 +351,19 @@ namespace tcode { namespace io {
             , tcode::io::buffer* buf , int cnt
             , std::error_code& ec )
     {
-        ec = std::error_code();
         if ( desc->fd == -1 ) {
             ec = std::error_code( EBADF , std::generic_category() );
-            return -1;
+        } else {
+            int r = 0;
+            do {
+                r = ::writev( desc->fd , buf , cnt );
+            }while((r == -1) && (errno == EINTR));
+            if ( r >= 0 ) return r;
+            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
+                ec = std::error_code();
+            else
+                ec = std::error_code( errno , std::generic_category());
         }
-        int r = 0;
-        do {
-            r = ::writev( desc->fd , buf , cnt );
-        }while((r == -1) && (errno == EINTR));
-        if ( r >= 0 )
-            return r;
-        if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-            return -1;
-        ec = std::error_code( errno , std::generic_category());
         return -1;
     }
 
@@ -310,23 +371,23 @@ namespace tcode { namespace io {
             , tcode::io::buffer* buf , int cnt
             , std::error_code& ec )
     {
-        ec = std::error_code();
         if ( desc->fd == -1 ) {
             ec = std::error_code( EBADF , std::generic_category() );
-            return -1;
+        } else {
+            int r = 0;
+            do {
+                r = ::readv( desc->fd , buf , cnt );
+            }while((r == -1) && (errno == EINTR));
+            if ( r > 0 ) return r;
+            if ( r == 0 ){
+                ec = tcode::error_disconnected;
+            } else {
+                if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
+                    ec = std::error_code();
+                else
+                    ec = std::error_code( errno , std::generic_category());
+            }
         }
-        int r = 0;
-        do {
-            r = ::readv( desc->fd , buf , cnt );
-        }while((r == -1) && (errno == EINTR));
-        if ( r > 0 ) return r;
-        if ( r == 0 ){
-            ec = tcode::error_disconnected;
-            return r;
-        }
-        if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-            return -1;
-        ec = std::error_code( errno , std::generic_category());
         return -1;
     }
 
@@ -335,26 +396,71 @@ namespace tcode { namespace io {
             , ip::address& addr
             , std::error_code& ec )
     {
-        ec = std::error_code(); 
         if ( listen->fd == -1 ) {
             ec = std::error_code( EBADF , std::generic_category() );
-            return 0;
+        } else {
+            int fd = -1;
+            do {
+                fd = ::accept( listen->fd
+                        , addr.sockaddr() 
+                        , addr.sockaddr_length_ptr());
+            }while( ( fd == -1 ) && ( errno == EINTR ));
+            if ( fd != -1 ) {
+                accepted = new epoll::_descriptor( this , fd );
+                bind( accepted );
+                return 0;
+            }
+            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
+                ec = std::error_code(); 
+            else
+                ec = std::error_code( errno , std::generic_category());
         }
-
-        int fd = -1;
-        do {
-            fd = ::accept( listen->fd
-                    , addr.sockaddr() 
-                    , addr.sockaddr_length_ptr());
-        }while( ( fd == -1 ) && ( errno == EINTR ));
-        if ( fd != -1 ) {
-            accepted = new epoll::_descriptor( this , fd );
-            bind( accepted );
-            return 0;
-        }
-        if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-            return -1;
-        ec = std::error_code( errno , std::generic_category());
         return -1;
+    }
+
+    int epoll::read( descriptor desc 
+            , tcode::io::buffer& buf 
+            , tcode::io::ip::address& addr 
+            , std::error_code& ec )
+    {
+        if ( desc->fd == -1 ) {
+            ec = std::error_code( EBADF , std::generic_category() );
+        } else {
+            int r = 0;
+            do {
+                r = ::recvfrom( desc->fd , buf.buf() , buf.len(),0
+                        , addr.sockaddr() , addr.sockaddr_length_ptr());
+            }while((r == -1) && (errno == EINTR));
+            if ( r >= 0 ) return r;
+            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
+                ec = std::error_code(); 
+            else
+                ec = std::error_code( errno , std::generic_category());
+        }
+        return -1;
+    }
+
+    int epoll::write( descriptor desc 
+            , tcode::io::buffer& buf 
+            , tcode::io::ip::address& addr 
+            , std::error_code& ec )
+    {
+        if ( desc->fd == -1 ) {
+            ec = std::error_code( EBADF , std::generic_category() );
+        } else {
+            int r = 0;
+            do {
+                r = ::sendto( desc->fd , buf.buf() , buf.len() , 0
+                        , addr.sockaddr() , addr.sockaddr_length());
+            }while((r == -1) && (errno == EINTR));
+            if ( r >= 0 ) return r;
+            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
+                ec = std::error_code(); 
+            else
+                ec = std::error_code( errno , std::generic_category());
+        }
+        return -1;
+
+        return 0;
     }
 }}

@@ -21,6 +21,8 @@ namespace ip {
     }
    
     namespace udp {
+        class operation_read_base;
+        class operation_write_base;
     }
 }
     class engine;
@@ -71,6 +73,17 @@ namespace ip {
         void accept( descriptor listen
                 , ip::tcp::operation_accept_base* op );
     public:
+        //!
+        bool bind( descriptor& desc
+                , const ip::address& addr );
+        //!
+        void write( descriptor& desc 
+                , ip::udp::operation_write_base* op );
+        //!
+        void read( descriptor desc
+                , ip::udp::operation_read_base* op );
+
+    public:
         //! post operation write
         int writev( descriptor desc , tcode::io::buffer* buf , int cnt 
                 , std::error_code& ec );
@@ -82,7 +95,14 @@ namespace ip {
                 , descriptor& accepted 
                 , ip::address& addr
                 , std::error_code& ec );
-
+        int read( descriptor desc 
+                , tcode::io::buffer& buf 
+                , tcode::io::ip::address& addr 
+                , std::error_code& ec );
+        int write( descriptor desc 
+                , tcode::io::buffer& buf 
+                , tcode::io::ip::address& addr 
+                , std::error_code& ec);
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );
@@ -92,7 +112,7 @@ namespace ip {
         tcode::io::pipe _wake_up;
         tcode::threading::spinlock _lock;
         tcode::slist::queue< tcode::operation > _op_queue; 
-        };
+    };
 
     /*
     class epoll {

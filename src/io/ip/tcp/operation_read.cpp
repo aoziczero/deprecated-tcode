@@ -23,9 +23,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             , io::descriptor desc )
     {
         _read = mux->readv( desc , _buffer , _buffer_count , error() );
-        if (error()) return true;
-        if (_read<0) return false;
-        return true;
+        if ( error() || _read >= 0 )
+            return true;
+        return false;
     }
 
     bool operation_read_base::post_read_impl_fixed_len( io::multiplexer* mux
@@ -33,8 +33,10 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     {
         int read = mux->readv( desc , _buffer , _buffer_count , error() );
 
-        if (error()) return true;
-        if (read<0) return false;
+        if ( error() ) 
+            return true;
+        if ( read < 0 ) 
+            return false;
         
         int readskip = read;
         int remain = 0;

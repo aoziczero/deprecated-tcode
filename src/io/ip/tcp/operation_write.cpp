@@ -20,8 +20,10 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     {
         int write = mux->writev( desc , _buffer , _buffer_count , error() );
 
-        if (error()) return true;
-        if (write<0) return false;
+        if ( error() ) 
+            return true;
+        if ( write < 0 ) 
+            return false;
 
         int writeskip = write;
         int remain = 0;
