@@ -11,7 +11,7 @@ void on_read(
         , int read 
         , char* buf )
 {
-    gout << "Read:" << read << ":"  << ec.message() << gendl;
+    gout << "Read:" << read << ":"  << buf  << gendl;
     delete [] buf;
     fd.close();
 }
@@ -29,8 +29,9 @@ void on_connect( tcode::io::ip::tcp::socket& fd
        , const tcode::io::ip::address& addr )
 {
     gout << ec.message() << gendl;
-    char* buf = new char[4096];
-    fd.read( tcode::io::buffer( buf , 4096 )
+    char* buf = new char[512];
+    //fd.read_fixed
+    fd.read( tcode::io::buffer( buf , 512)
             , [&fd , buf] ( const std::error_code& ec 
                 , int read ) 
             {
@@ -46,7 +47,6 @@ void on_connect( tcode::io::ip::tcp::socket& fd
 }
 
 TEST( tcode_io_ip_tcp_socket , connect ) {
-
     tcode::io::engine e;
     tcode::io::ip::tcp::socket fd( e );
     tcode::io::ip::address google( AF_INET 
@@ -59,3 +59,5 @@ TEST( tcode_io_ip_tcp_socket , connect ) {
                     } );
     e.run();
 }
+
+

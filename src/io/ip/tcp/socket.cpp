@@ -10,9 +10,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 
     socket::socket( socket&& s ) 
         : _engine( s._engine )
-        , _descriptor( std::move(s._descriptor))
+        , _descriptor(s._descriptor)
     {
-        
+       s._descriptor = nullptr;
     }
     
     socket::~socket( void ) {
@@ -23,4 +23,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         _engine.mux().unbind( _descriptor );
     }
     
+    io::descriptor& socket::descriptor( void ) {
+        return _descriptor;
+    }
 }}}}

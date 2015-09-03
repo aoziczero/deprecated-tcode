@@ -32,9 +32,6 @@ namespace tcode { namespace io { namespace ip {
     extern socket_type socket_error;
 #endif
 
-    socket_type socket( int family , int type , int proto );
-    void        close( socket_type fd ); 
-
 }}}
 
 #endif

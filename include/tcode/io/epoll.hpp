@@ -11,6 +11,8 @@
 namespace tcode { namespace io {
 namespace ip {
 
+    class address;
+
     namespace tcp {
         class operation_connect_base;
         class operation_write_base;
@@ -55,7 +57,11 @@ namespace ip {
                 , ip::tcp::operation_write_base* op );
         void read( descriptor desc
                 , ip::tcp::operation_read_base* op );
-        void accept( descriptor desc
+
+        bool listen( descriptor& desc 
+                , const ip::address& addr );
+
+        void accept( descriptor listen
                 , ip::tcp::operation_accept_base* op );
     private:
         void op_add( tcode::operation* op );
@@ -71,6 +77,10 @@ namespace ip {
                 , std::error_code& ec );
         int readv( descriptor desc , tcode::io::buffer* buf , int cnt 
                 , std::error_code& ec ); 
+        int accept( descriptor listen 
+                , descriptor& accepted 
+                , ip::address& addr
+                , std::error_code& ec );
     };
 
     /*

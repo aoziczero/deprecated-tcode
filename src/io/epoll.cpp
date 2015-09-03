@@ -3,14 +3,16 @@
 #include <tcode/io/io.hpp>
 #include <tcode/io/epoll.hpp>
 #include <tcode/io/engine.hpp>
-#include <tcode/io/ip/option.hpp>
-#include <sys/epoll.h>
-#include <unistd.h>
 #include <tcode/io/operation.hpp>
+#include <tcode/io/ip/option.hpp>
+#include <tcode/io/ip/address.hpp>
 #include <tcode/io/ip/tcp/operation_connect.hpp>
 #include <tcode/io/ip/tcp/operation_write.hpp>
 #include <tcode/io/ip/tcp/operation_read.hpp>
+#include <tcode/io/ip/tcp/operation_accept.hpp>
 
+#include <sys/epoll.h>
+#include <unistd.h>
 namespace tcode { namespace io {
 
     namespace {
@@ -237,8 +239,41 @@ namespace tcode { namespace io {
             }));
 
     }
+    
+    bool epoll::listen( descriptor& desc 
+                , const ip::address& addr )
+    {
+        int fd = socket( addr.family() , SOCK_STREAM , IPPROTO_TCP );
+        if ( fd == -1 )
+            return false;
+        tcode::io::ip::option::non_blocking nb;
+        nb.set_option(fd);
+        tcode::io::ip::option::reuse_address reuse( true );
+        reuse.set_option( fd );
+        if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) < 0 ){
+            ::close(fd);
+            return false;
+        }
+        if ( ::listen(fd, SOMAXCONN ) < 0 ) {
+            ::close(fd);
+            return false;
+        }
+        desc = new epoll::_descriptor(this,fd);
+        bind( desc );
+        return true;
+    }
+
+
     void epoll::accept( descriptor desc
             , ip::tcp::operation_accept_base* op ){
+        desc->add_ref();
+        execute( tcode::operation::wrap(
+            [this,desc,op]{
+                desc->op_queue[tcode::io::ev_accept].push_back(op);
+                desc->complete( this , EPOLLIN );
+                desc->release(this);
+            }));
+
     }
 
     void epoll::op_add( tcode::operation* op ){
@@ -292,6 +327,34 @@ namespace tcode { namespace io {
         }
         if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
             return 0;
+        ec = std::error_code( errno , std::generic_category());
+        return -1;
+    }
+
+    int epoll::accept( descriptor listen 
+            , descriptor& accepted 
+            , ip::address& addr
+            , std::error_code& ec )
+    {
+        ec = std::error_code(); 
+        if ( listen->fd == -1 ) {
+            ec = std::error_code( EBADF , std::generic_category() );
+            return 0;
+        }
+
+        int fd = -1;
+        do {
+            fd = ::accept( listen->fd
+                    , addr.sockaddr() 
+                    , addr.sockaddr_length_ptr());
+        }while( ( fd == -1 ) && ( errno == EINTR ));
+        if ( fd != -1 ) {
+            accepted = new epoll::_descriptor( this , fd );
+            bind( accepted );
+            return 0;
+        }
+        if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
+            return -1;
         ec = std::error_code( errno , std::generic_category());
         return -1;
     }
