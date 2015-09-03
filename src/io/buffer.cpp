@@ -53,6 +53,11 @@ namespace tcode { namespace io {
         this->iov_base = buf;
         this->iov_len = len;
 #endif
-   }
+    }
+
+    void buffer::skip( int n ) {
+        set( buf() + n , len() - n );
+    }
+   
 
 }}

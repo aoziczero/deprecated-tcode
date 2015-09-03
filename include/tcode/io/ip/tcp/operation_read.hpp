@@ -18,8 +18,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     public:
         //! ctor
         operation_read_base( tcode::operation::execute_handler fn
-                , const tcode::io::buffer& buffer 
-                , bool fixed_len  );
+                , tcode::io::buffer* buffer
+                , int buffercnt
+                , bool fixed_len );
 
         //! dtor
         ~operation_read_base( void );
@@ -32,6 +33,8 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         bool post_read_impl_fixed_len( io::multiplexer* impl
                 , io::descriptor desc );
 
+    
+        void buffers( tcode::io::buffer* buf , int cnt );
         int read_size(void);
 
         static bool post_read( io::operation* op_base 
@@ -41,7 +44,8 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             , io::multiplexer* impl 
             , io::descriptor desc ) ;
     private:
-        tcode::io::buffer _buffer; 
+        tcode::io::buffer* _buffer; 
+        int _buffer_count;
         int _read;
     };
 
@@ -57,8 +61,11 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         operation_read( const tcode::io::buffer& buf
                 , const Handler& handler 
                 , bool fixed_len = false )
-            : operation_read_base( &operation_read::complete , buf , fixed_len )
+            : operation_read_base( &operation_read::complete 
+                    , &_buffer , 1 
+                    , fixed_len )
             , _handler( handler )
+            , _buffer(buf)
         {
         }
 
@@ -76,8 +83,45 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             h( ec , read );
         }
     private:
+        tcode::io::buffer _buffer;
         Handler _handler;
     };
+
+    template < typename Handler >
+    class operation_readv 
+        : public operation_read_base 
+    {
+    public:
+        operation_readv( const std::vector<tcode::io::buffer>& buf
+                , const Handler& handler 
+                , bool fixed_len = false )
+            : operation_read_base( &operation_readv::complete 
+                    , nullptr , 0 
+                    , fixed_len )
+            , _handler( handler )
+            , _buffer( buf )
+        {
+            buffers( &_buffer[0] , _buffer.size());
+        }
+
+        ~operation_readv( void ){
+        }
+
+        static void complete( tcode::operation* op_base ) {
+            operation_readv* op(
+                    static_cast< operation_readv* >(op_base));
+            Handler h( std::move( op->_handler ));
+            std::error_code ec = op->error();
+            int read = op->read_size(); 
+            op->~operation_readv(); 
+            tcode::operation::free( op );
+            h( ec , read );
+        }
+    private:
+        Handler _handler;
+        std::vector< tcode::io::buffer > _buffer;
+    };
+
 
 }}}}
 

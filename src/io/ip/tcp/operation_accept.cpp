@@ -21,9 +21,11 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
                     , _fd.descriptor() 
                     , _address
                     , error());
-        if ( error() || r == 0 ) 
-            return true;
-        return false;
+
+        if (error()) return true;
+        if (r<0) return false;
+
+        return true;
     }
 
     bool operation_accept_base::post_accept( io::operation* op_base

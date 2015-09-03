@@ -45,30 +45,45 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             _engine.mux().write( _descriptor
                     , reinterpret_cast< operation_write_base* >(ptr));
         }
+        
+        //!
+        template < typename Handler >
+        void write( const std::vector<tcode::io::buffer>& bufs
+                , const Handler& handler )
+        {
+            void* ptr = tcode::operation::alloc( 
+                    sizeof( operation_writev<Handler> ));
+            new (ptr) operation_writev<Handler>( bufs , handler );
+            _engine.mux().write( _descriptor
+                    , reinterpret_cast< operation_write_base* >(ptr));
+        }
 
         //!
         template < typename Handler >
         void read( const tcode::io::buffer& buf 
-                , const Handler& handler )
+                , const Handler& handler
+                , bool fixed = false )
         {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_read<Handler> ));
-            new (ptr) operation_read<Handler>( buf , handler );
+            new (ptr) operation_read<Handler>( buf , handler ,fixed  );
             _engine.mux().read( _descriptor
                     , reinterpret_cast< operation_read_base* >(ptr));
         }
         
         //!
         template < typename Handler >
-        void read_fixed( const tcode::io::buffer& buf 
-                , const Handler& handler )
+        void read( const std::vector<tcode::io::buffer>& bufs
+                , const Handler& handler 
+                , bool fixed = false)
         {
             void* ptr = tcode::operation::alloc( 
-                    sizeof( operation_read<Handler> ));
-            new (ptr) operation_read<Handler>( buf , handler , true );
+                    sizeof( operation_readv<Handler> ));
+            new (ptr) operation_readv<Handler>( bufs , handler ,fixed );
             _engine.mux().read( _descriptor
                     , reinterpret_cast< operation_read_base* >(ptr));
         }
+
         void close( void );
         io::descriptor& descriptor( void );
     private:

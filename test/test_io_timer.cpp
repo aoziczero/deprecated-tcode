@@ -7,7 +7,7 @@ TEST( timer , call ) {
     {
         tcode::io::timer t(e);
         ASSERT_TRUE( tcode::io::test_alive_ids() == 1 );
-        t.due_time( tcode::timespan::seconds(1))
+        t.due_time( tcode::timespan::milliseconds(500))
          .repeat( tcode::timespan::milliseconds(200))
          .callback( [] ( const std::error_code& ec )
                  {
@@ -21,7 +21,7 @@ TEST( timer , call ) {
         t.fire();
     
         std::thread thread( [&t] {
-                    sleep(2);
+                    sleep(1);
                     t.cancel();
                 });
 

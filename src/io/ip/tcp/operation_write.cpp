@@ -5,9 +5,10 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 
     operation_write_base::operation_write_base( 
             tcode::operation::execute_handler fn
-            , const tcode::io::buffer& buf )
+            , tcode::io::buffer* buffer 
+            , int buffercnt )
         : tcode::io::operation( fn , &operation_write_base::post_write )
-        , _buffer( buf ) , _write(0)
+        , _buffer( buffer ) , _buffer_count( buffercnt ) , _write(0)
     {
     }
 
@@ -17,15 +18,31 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     bool operation_write_base::post_write_impl( io::multiplexer* mux 
             , io::descriptor desc )
     {
-        tcode::io::buffer write_buf( _buffer.buf() + _write 
-                , _buffer.len() - _write );
-        int write = mux->writev( desc , &write_buf , 1 , error() );
+        int write = mux->writev( desc , _buffer , _buffer_count , error() );
 
-        if ( error() ) 
-            return true;
-        
+        if (error()) return true;
+        if (write<0) return false;
+
+        int writeskip = write;
+        int remain = 0;
+
+        for ( int i = 0 ; i < _buffer_count ; ++i ){
+            if ( writeskip > 0 ) {
+                int per_skip = std::min( writeskip , _buffer[i].len() );
+                _buffer[i].skip( per_skip );
+                writeskip -= per_skip;
+            }
+            remain += _buffer[i].len();
+        }
+
         _write += write;
-        return _write == _buffer.len();
+
+        return remain == 0;
+    }
+
+    void operation_write_base::buffers( tcode::io::buffer* buf , int cnt ){
+        _buffer = buf;
+        _buffer_count = cnt;
     }
 
     int operation_write_base::write_size( void ) {

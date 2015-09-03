@@ -4,7 +4,7 @@
 void on_accept( 
         tcode::io::ip::tcp::socket& fd 
         , const std::error_code& ec ){
-    gout << ec.message() << gendl;
+    gout << "Accept: " << ec.message() << gendl;
     fd.close();    
 }
 
@@ -28,7 +28,7 @@ TEST( tcode_io_ip_acceptor , listen ) {
             , [&conn]( const std::error_code& ec 
                 , const tcode::io::ip::address& addr )
             {
-                gout << "conn" << ec.message() << gendl;
+                gout << "Connect: " << ec.message() << gendl;
                 conn.close();
             });
     e.run();

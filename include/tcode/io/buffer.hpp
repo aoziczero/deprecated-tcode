@@ -19,6 +19,7 @@ namespace tcode { namespace io {
         char* buf(void) const;
         int len(void) const;
         void set( char* buf , int len );
+        void skip( int n );
     };
 
 }}

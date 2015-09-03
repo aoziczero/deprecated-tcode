@@ -42,27 +42,47 @@ namespace ip {
         //! dtor
         ~epoll( void );
 
+        //! run complete events
         int run( const tcode::timespan& ts );
 
+        //! wakeup loop
         void wake_up( void );
 
+        //!  
         bool bind( const descriptor& desc );
+        //!  
         void unbind( descriptor& desc );
-
+        //!
         void execute( tcode::operation* op ); 
-
+    public:
+        //!
         void connect( descriptor& desc 
                 , ip::tcp::operation_connect_base* op );
+        //!
         void write( descriptor desc 
                 , ip::tcp::operation_write_base* op );
+        //!
         void read( descriptor desc
                 , ip::tcp::operation_read_base* op );
-
+        //!
         bool listen( descriptor& desc 
                 , const ip::address& addr );
-
+        //!
         void accept( descriptor listen
                 , ip::tcp::operation_accept_base* op );
+    public:
+        //! post operation write
+        int writev( descriptor desc , tcode::io::buffer* buf , int cnt 
+                , std::error_code& ec );
+        //! post operation read
+        int readv( descriptor desc , tcode::io::buffer* buf , int cnt 
+                , std::error_code& ec ); 
+        //! post operation accept
+        int accept( descriptor listen 
+                , descriptor& accepted 
+                , ip::address& addr
+                , std::error_code& ec );
+
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );
@@ -72,16 +92,7 @@ namespace ip {
         tcode::io::pipe _wake_up;
         tcode::threading::spinlock _lock;
         tcode::slist::queue< tcode::operation > _op_queue; 
-    public:
-        int writev( descriptor desc , tcode::io::buffer* buf , int cnt 
-                , std::error_code& ec );
-        int readv( descriptor desc , tcode::io::buffer* buf , int cnt 
-                , std::error_code& ec ); 
-        int accept( descriptor listen 
-                , descriptor& accepted 
-                , ip::address& addr
-                , std::error_code& ec );
-    };
+        };
 
     /*
     class epoll {
