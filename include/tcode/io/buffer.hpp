@@ -1,7 +1,11 @@
 #ifndef __tcode_io_buffer_h__
 #define __tcode_io_buffer_h__
 
+#if defined( TCODE_WIN32 )
+
+#else
 #include <sys/uio.h>
+#endif
 
 namespace tcode { namespace io {
 #if defined( TCODE_WIN32 )

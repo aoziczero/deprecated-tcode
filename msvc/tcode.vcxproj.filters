@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tcode">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="base">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="tcode\threading">
+      <UniqueIdentifier>{7cfa8410-fff3-44f9-807e-3c87bb565604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\io">
+      <UniqueIdentifier>{e9657367-8ceb-4cc5-a55c-02fd9f7c7bb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\time">
+      <UniqueIdentifier>{0bca250c-180b-466e-9631-71a6261f42cf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\tcode\error.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\stdafx.h">
+      <Filter>base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\targetver.h">
+      <Filter>base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\active_ref.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\allocator.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\function.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\operation.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\slist.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\tcode.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\threading\spinlock.hpp">
+      <Filter>tcode\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\buffer.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\io.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\io_define.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\operation.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\option.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\timer.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\timer_id.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\completion_port.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\time\ctime_adapter.hpp">
+      <Filter>tcode\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\time\timespan.hpp">
+      <Filter>tcode\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\time\timestamp.hpp">
+      <Filter>tcode\time</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\error.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\stdafx.cpp">
+      <Filter>base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\active_ref.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\allocator.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\operation.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tcode.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\spinlock.cpp">
+      <Filter>tcode\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\buffer.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\io.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\operation.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\option.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\timer.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\timer_id.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\completion_port.cpp">
+      <Filter>tcode\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\time\ctime_adapter.cpp">
+      <Filter>tcode\time</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\time\timespan.cpp">
+      <Filter>tcode\time</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\time\timestamp.cpp">
+      <Filter>tcode\time</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

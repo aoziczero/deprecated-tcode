@@ -26,7 +26,14 @@ namespace tcode { namespace io {
     private:
         std::error_code _error;
         post_proc_handler _post_proc;
-    };
+#if defined ( TCODE_WIN32 )
+	public:
+		OVERLAPPED ov;
+		DWORD& io_byte(void) {
+			return ov.Offset;
+		}
+#endif
+	};
 
 }}
 

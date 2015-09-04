@@ -27,11 +27,13 @@ namespace tcode { namespace io {
 
     buffer& buffer::operator=( const buffer& rhs ) {
         set(rhs.buf() , rhs.len());
+		return *this;
     }
 
     char* buffer::buf( void ) const {
 #if defined( TCODE_WIN32 )
-        return this->buf;
+		iovec* iov = static_cast< iovec*>(const_cast< buffer*> (this));
+        return iov->buf;
 #else
         return static_cast<char*>(this->iov_base);
 #endif
@@ -39,7 +41,8 @@ namespace tcode { namespace io {
 
     int buffer::len( void ) const {
 #if defined( TCODE_WIN32 )
-        return this->len;
+        iovec* iov = static_cast< iovec*>(const_cast< buffer*> (this));
+        return iov->len;
 #else
         return this->iov_len;
 #endif
@@ -47,8 +50,9 @@ namespace tcode { namespace io {
 
     void buffer::set( char* buf , int len ) {
 #if defined( TCODE_WIN32 )
-        this->buf = buf;
-        this->len = len;
+		iovec* iov = static_cast< iovec*>(this);
+        iov->buf = buf;
+        iov->len = len;
 #else
         this->iov_base = buf;
         this->iov_len = len;
