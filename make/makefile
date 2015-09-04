@@ -26,6 +26,12 @@ OBJS_DIR=$(TCODE_DIR)/build/$(TARGET_ARCH)/debug
 DBG_FLAG=-DDEBUG -g
 endif
 
+ifeq ($(OS),Darwin)
+MUX=io/kqueue.cpp	
+else
+MUX=io/epoll.cpp
+endif
+
 TCODE_SRCS=tcode.cpp\
 		   error.cpp\
 		   operation.cpp\
@@ -41,7 +47,7 @@ TCODE_SRCS=tcode.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
-		   io/epoll.cpp\
+		   $(MUX)\
 		   io/engine.cpp\
 		   io/timer.cpp\
 		   io/timer_id.cpp\
