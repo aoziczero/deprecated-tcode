@@ -89,7 +89,6 @@
 	#define TCODE_ANDROID
 #endif
 
-#endif
 
 
 namespace tcode {
@@ -121,6 +120,7 @@ inline Parent* container_of(Member *member, const Member Parent::* ptr_to_member
 
 }
 
+#endif
 
 /*
 

@@ -21,7 +21,11 @@ TEST( timer , call ) {
         t.fire();
     
         std::thread thread( [&t] {
+#if defined( TCODE_WIN32)
+				::Sleep(1000);
+#else
                     sleep(1);
+#endif
                     t.cancel();
                 });
 

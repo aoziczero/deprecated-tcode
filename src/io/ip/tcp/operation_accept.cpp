@@ -20,6 +20,10 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         int r = mux->accept( desc 
                     , _fd.descriptor() 
                     , _address
+#if defined( TCODE_WIN32 )
+					, _accepted_fd
+					, _address_buf
+#endif
                     , error());
 
         if (error() || r >= 0 )
@@ -38,7 +42,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     }
 
     tcode::io::ip::address& operation_accept_base::address( void ) {
-        return _address;
+		return _address;
     }
 
 

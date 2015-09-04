@@ -22,15 +22,48 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     bool operation_read_base::post_read_impl( io::multiplexer* mux 
             , io::descriptor desc )
     {
+#if defined( TCODE_WIN32 )
+		if ( error() )
+			return true;
+		_read = io_byte();
+		if ( _read == 0 )
+			error() = tcode::error_disconnected;
+		return true;
+#else
         _read = mux->readv( desc , _buffer , _buffer_count , error() );
         if ( error() || _read >= 0 )
             return true;
         return false;
-    }
+#endif
+	}
 
     bool operation_read_base::post_read_impl_fixed_len( io::multiplexer* mux
             , io::descriptor desc )
     {
+#if defined( TCODE_WIN32 )
+		if ( error() )
+			return true;
+
+		if ( io_byte() == 0 ) {
+			error() = tcode::error_disconnected;
+			return true;
+		}
+		int readskip = io_byte();
+        int remain = 0;
+        for ( int i = 0 ; i < _buffer_count ; ++i ){
+            if ( readskip > 0 ) {
+                int per_skip = std::min( readskip , _buffer[i].len() );
+                _buffer[i].skip( per_skip );
+                readskip -= per_skip;
+            }
+            remain += _buffer[i].len();
+        }
+        _read += io_byte();
+        if ( remain == 0 )
+			return true;
+		mux->read( desc , this );
+		return false;
+#else
         int read = mux->readv( desc , _buffer , _buffer_count , error() );
 
         if ( error() ) 
@@ -50,6 +83,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         }
         _read += read;
         return remain == 0;
+#endif
     }
 
     void operation_read_base::buffers( tcode::io::buffer* buf , int cnt ){
@@ -60,6 +94,13 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     int operation_read_base::read_size( void ) {
         return _read;
     }
+
+	tcode::io::buffer* operation_read_base::buffers(void) {
+		return _buffer;
+	}
+	int	operation_read_base::buffers_count(void) {
+		return _buffer_count;
+	}
 
     bool operation_read_base::post_read( 
             io::operation* op_base 

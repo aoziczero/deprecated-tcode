@@ -18,6 +18,15 @@
     <Filter Include="tcode\time">
       <UniqueIdentifier>{0bca250c-180b-466e-9631-71a6261f42cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tcode\io\ip">
+      <UniqueIdentifier>{90329a0f-65df-48cd-bc82-3cd57eb0f50c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\io\ip\tcp">
+      <UniqueIdentifier>{5655671e-fadb-4169-aba6-9eb665078ae8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\io\ip\udp">
+      <UniqueIdentifier>{9508249c-d3fc-4a4a-89e5-9811c82899e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\tcode\error.hpp">
@@ -83,6 +92,48 @@
     <ClInclude Include="..\include\tcode\time\timestamp.hpp">
       <Filter>tcode\time</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\address.hpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\ip.hpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\option.hpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\acceptor.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\connector.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\operation_accept.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\operation_connect.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\operation_read.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\operation_write.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\socket.hpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\udp\operation_read.hpp">
+      <Filter>tcode\io\ip\udp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\udp\operation_write.hpp">
+      <Filter>tcode\io\ip\udp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\udp\socket.hpp">
+      <Filter>tcode\io\ip\udp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\engine.hpp">
+      <Filter>tcode\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\error.cpp">
@@ -109,9 +160,6 @@
     <ClCompile Include="..\src\io\buffer.cpp">
       <Filter>tcode\io</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\io\io.cpp">
-      <Filter>tcode\io</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\io\operation.cpp">
       <Filter>tcode\io</Filter>
     </ClCompile>
@@ -135,6 +183,48 @@
     </ClCompile>
     <ClCompile Include="..\src\time\timestamp.cpp">
       <Filter>tcode\time</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\address.cpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\ip.cpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\option.cpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\acceptor.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\connector.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\operation_accept.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\operation_connect.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\operation_read.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\operation_write.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\socket.cpp">
+      <Filter>tcode\io\ip\tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\udp\operation_read.cpp">
+      <Filter>tcode\io\ip\udp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\udp\operation_write.cpp">
+      <Filter>tcode\io\ip\udp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\udp\socket.cpp">
+      <Filter>tcode\io\ip\udp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\engine.cpp">
+      <Filter>tcode\io</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

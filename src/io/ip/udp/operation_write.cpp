@@ -18,10 +18,15 @@ namespace tcode { namespace io { namespace ip { namespace udp {
     bool operation_write_base::post_write_impl( io::multiplexer* mux 
             , io::descriptor desc )
     {
+#if defined( TCODE_WIN32 )
+		_write = io_byte();
+		return true;
+#else
         _write = mux->write( desc , _buffer , _address , error() );
         if ( error() || _write >= 0 ) 
             return true;
         return false;
+#endif
     }
 
     int operation_write_base::write_size( void ) {
@@ -31,6 +36,10 @@ namespace tcode { namespace io { namespace ip { namespace udp {
     tcode::io::ip::address& operation_write_base::address( void ){
         return _address; 
     }
+
+	tcode::io::buffer& operation_write_base::buffer(void) {
+		return _buffer;
+	}
 
     bool operation_write_base::post_write( 
             io::operation* op_base 

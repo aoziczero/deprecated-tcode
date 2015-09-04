@@ -70,6 +70,7 @@ namespace ip {
                 , const ip::address& addr );
         //!
         void accept( descriptor listen
+				, int family
                 , ip::tcp::operation_accept_base* op );
     public:
         //!
@@ -83,25 +84,15 @@ namespace ip {
                 , ip::udp::operation_read_base* op );
 
     public:
-        //! post operation write
-        int writev( descriptor desc , tcode::io::buffer* buf , int cnt 
-                , std::error_code& ec );
-        //! post operation read
-        int readv( descriptor desc , tcode::io::buffer* buf , int cnt 
-                , std::error_code& ec ); 
+       
         //! post operation accept
         int accept( descriptor listen 
                 , descriptor& accepted 
                 , ip::address& addr
+				, SOCKET& fd
+				, char* address_buf
                 , std::error_code& ec );
-        int read( descriptor desc 
-                , tcode::io::buffer& buf 
-                , tcode::io::ip::address& addr 
-                , std::error_code& ec );
-        int write( descriptor desc 
-                , tcode::io::buffer& buf 
-                , tcode::io::ip::address& addr 
-                , std::error_code& ec);
+        
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );

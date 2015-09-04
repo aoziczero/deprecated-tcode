@@ -57,12 +57,12 @@ void on_connect( tcode::io::ip::tcp::socket& fd
             },true);
 
     std::vector< tcode::io::buffer > bufs;
-    bufs.push_back( tcode::io::buffer( get , strlen(get)));
-    bufs.push_back( tcode::io::buffer( space , strlen(space)));
-    bufs.push_back( tcode::io::buffer( req, strlen(req)));
-    bufs.push_back( tcode::io::buffer( space , strlen(space)));
-    bufs.push_back( tcode::io::buffer( http_ver, strlen(http_ver)));
-    bufs.push_back( tcode::io::buffer( end, strlen(end)));
+    bufs.push_back( tcode::io::buffer( get , (int)strlen(get)));
+    bufs.push_back( tcode::io::buffer( space , (int)strlen(space)));
+    bufs.push_back( tcode::io::buffer( req, (int)strlen(req)));
+    bufs.push_back( tcode::io::buffer( space , (int)strlen(space)));
+    bufs.push_back( tcode::io::buffer( http_ver, (int)strlen(http_ver)));
+    bufs.push_back( tcode::io::buffer( end, (int)strlen(end)));
     fd.write( bufs 
             //tcode::io::buffer( request , strlen( request ))
             , [&fd] ( const std::error_code& ec 

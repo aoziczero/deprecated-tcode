@@ -55,6 +55,7 @@ namespace tcode {
                 _head = q._head;
                 _tail = q._tail;
                 q._head = q._tail = nullptr;
+				return *this;
             }
 
             void push_back( Node* n ){

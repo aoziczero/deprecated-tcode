@@ -26,6 +26,7 @@ namespace tcode {
 
     std::error_code last_error( void ) {
 #if defined( TCODE_WIN32 )
+		return std::error_code( WSAGetLastError() , std::generic_category());
 #else
         return std::error_code( errno , std::generic_category());
 #endif
@@ -42,20 +43,12 @@ namespace tcode {
         }
 
         //! destruct
-        virtual ~tcode_category_impl()
-#if defined( TCODE_WIN32 )
-#else
-            noexcept
-#endif
+        virtual ~tcode_category_impl() noexcept
         {
         }
 
         //! \return "tcode_category"
-        virtual const char *name() const 
-#if defined( TCODE_WIN32 )
-#else
-            noexcept
-#endif
+        virtual const char *name() const noexcept
         {
             return "tcode_category";
         }

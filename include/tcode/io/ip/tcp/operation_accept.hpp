@@ -32,11 +32,25 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
                 , io::descriptor desc );
         //! 
         tcode::io::ip::address& address( void );
+
+#if defined(TCODE_WIN32)
+		SOCKET& accepted_fd(void) {
+			return _accepted_fd;
+		}
+
+		char* address_buf(void) {
+			return _address_buf;
+		}
+#endif
     private:
         //! 
         tcode::io::ip::tcp::socket& _fd;
-        //! 
+		//! 
         tcode::io::ip::address _address;
+#if defined(TCODE_WIN32)
+		SOCKET _accepted_fd;
+		char _address_buf[ sizeof(tcode::io::ip::address) * 2];
+#endif
     };
 
 

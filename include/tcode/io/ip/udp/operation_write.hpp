@@ -29,6 +29,8 @@ namespace tcode { namespace io { namespace ip { namespace udp {
 
         tcode::io::ip::address& address( void );
 
+		tcode::io::buffer& buffer( void );
+
         static bool post_write( io::operation* op_base 
             , io::multiplexer* impl 
             , io::descriptor desc ) ;

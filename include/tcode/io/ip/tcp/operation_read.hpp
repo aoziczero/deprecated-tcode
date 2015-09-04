@@ -37,6 +37,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         void buffers( tcode::io::buffer* buf , int cnt );
         int read_size(void);
 
+		tcode::io::buffer* buffers( void );
+		int	buffers_count( void );
+
         static bool post_read( io::operation* op_base 
             , io::multiplexer* impl 
             , io::descriptor desc ) ;

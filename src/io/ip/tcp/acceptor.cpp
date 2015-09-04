@@ -14,6 +14,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     }
 
     bool acceptor::listen( const tcode::io::ip::address& addr ){
+		_address = addr;
         return _engine.mux().listen( _descriptor , addr ); 
     }
 

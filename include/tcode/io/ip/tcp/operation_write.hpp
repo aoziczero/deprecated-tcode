@@ -28,6 +28,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         void buffers( tcode::io::buffer* buf , int cnt );
         int write_size(void);
 
+		tcode::io::buffer* buffers( void );
+		int	buffers_count( void );
+
         static bool post_write( io::operation* op_base 
             , io::multiplexer* impl 
             , io::descriptor desc ) ;
@@ -80,7 +83,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             , _handler( handler )
             , _buffer( buf )
         {
-            buffers( &_buffer[0] , _buffer.size());
+            buffers( &_buffer[0] , (int)_buffer.size());
         }
 
         ~operation_writev( void ){

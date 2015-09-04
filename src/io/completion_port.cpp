@@ -84,46 +84,28 @@ namespace tcode { namespace io {
 		}
 		else {
 			tcode::io::operation* op = tcode::container_of( ov , &tcode::io::operation::ov );
-			
+			completion_port::descriptor desc = reinterpret_cast<completion_port::descriptor>(key);
+			if ( r == FALSE ) 
+				op->error() = tcode::last_error();
+			op->io_byte() = iobytes;
+			if (op->post_proc(this, desc)) {
+				(*op)();
+			}
+			desc->release(this);
+			return 1;
 		}
-        struct completion_port_event events[completion_port_max_event];
-        int nofd  = completion_port_wait( _handle 
-            , events
-            , completion_port_max_event
-            , static_cast<int>(ts.total_milliseconds()));
-        if ( nofd <= 0  ) {
-            return 0; 
-        }
-        int run = nofd;
-        bool execute_op = false;
-        for ( int i = 0 ; i < nofd; ++i ){
-            completion_port::descriptor desc =
-                static_cast< completion_port::descriptor >( events[i].data.ptr );
-            if ( desc ) {
-                desc->complete( this , events[i].events );
-            } else {
-                execute_op = true;
-                --run;
-            }
-        }
-        if ( execute_op ){
-            
-        }
-        return run;
     }
     
     void completion_port::wake_up( void ){
-        struct completion_port_event e;
-        e.events = completion_portOUT | completion_portONESHOT;
-        e.data.ptr = nullptr;
-        completion_port_ctl( _handle , completion_port_CTL_MOD , _wake_up.wr_pipe() , &e );
+        PostQueuedCompletionStatus( _handle , 0 , 0 , nullptr );
     }
 
     bool completion_port::bind( const descriptor& d ) {
-        struct completion_port_event e;
-        e.events = completion_portIN | completion_portOUT | completion_portET;
-        e.data.ptr = d;
-        return completion_port_ctl( _handle , completion_port_CTL_ADD , d->fd , &e ) == 0;
+		return CreateIoCompletionPort(
+			(HANDLE)d->fd
+			, _handle
+			, (ULONG_PTR)d
+			, 0 ) == _handle;
     }
 
     void completion_port::unbind( descriptor& d ) {
@@ -133,13 +115,12 @@ namespace tcode { namespace io {
                 return;
             descriptor desc = nullptr;
             std::swap( desc , d );
-            tcode::operation* op = 
+			tcode::operation* op = 
                 tcode::operation::wrap( 
                         [this,desc] {
-                            if ( desc->fd != -1 ) {
-                                completion_port_ctl( _handle , completion_port_CTL_DEL , desc->fd , nullptr );
-                                ::close( desc->fd );
-                                desc->fd = -1;
+                            if ( desc->fd != INVALID_SOCKET ) {
+								closesocket(desc->fd);
+                                desc->fd = INVALID_SOCKET;
                             }
                             desc->release( this );
                         });
@@ -156,150 +137,248 @@ namespace tcode { namespace io {
         wake_up();
     }
 
+    struct connect_ex {
+		connect_ex(SOCKET fd) {
+			DWORD b = 0; GUID g = WSAID_CONNECTEX;
+			WSAIoctl( fd , SIO_GET_EXTENSION_FUNCTION_POINTER
+				, &g , sizeof(g) , &fn , sizeof(fn) , &b , nullptr , nullptr);
+		}
+		LPFN_CONNECTEX fn;
+	};
+
     void completion_port::connect( 
             completion_port::descriptor& desc 
             , ip::tcp::operation_connect_base* op )
     {
-        int fd = socket( op->address().family() , SOCK_STREAM , IPPROTO_TCP );
-        if ( fd == -1 ) {
-            op->error() = tcode::last_error(); 
-            execute( op );
-            return;
-        }
-        
-        tcode::io::ip::option::non_blocking nb;
-        nb.set_option( fd );
+		SOCKET fd = WSASocket( op->address().family() , SOCK_STREAM , IPPROTO_TCP , nullptr , 0 , WSA_FLAG_OVERLAPPED );
+        if ( fd != INVALID_SOCKET ) {
+			tcode::io::ip::option::non_blocking nb;
+			nb.set_option( fd );
+			connect_ex func(fd);
+			if (func.fn != nullptr) {
+				tcode::io::ip::address addr( tcode::io::ip::address::any(0));
+				if (::bind(fd, addr.sockaddr(), (int)addr.sockaddr_length()) == 0) {
+					desc = new completion_port::_descriptor(this , fd );
+					if (bind(desc)) {
+						LPOVERLAPPED ov = &(op->ov);
+						memset( ov , 0 , sizeof(*ov));
+						DWORD b=0;
+						if (func.fn(desc->fd
+							, op->address().sockaddr()
+							, op->address().sockaddr_length()
+							, nullptr , 0 , &b , ov) == TRUE)
+							return;
 
-        int r;
-        do {
-            r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
-        }while((r == -1) && (errno == EINTR));
-        if ( (r == 0 ) || (errno == EINPROGRESS )){
-            desc = new completion_port::_descriptor(this , fd );
-            desc->op_queue[tcode::io::ev_connect].push_back( op );
-            bind( desc );
-        } else {
-            ::close(fd);
-            op->error() = tcode::last_error();
-            execute(op);
-        }
+						if (WSAGetLastError() == WSA_IO_PENDING)
+							return;
+
+						op->error() = tcode::last_error();
+					} else {
+						op->error() = tcode::last_error();
+					}
+					delete desc;
+					desc = nullptr;
+				} else {
+					op->error() = tcode::last_error();
+				}
+			} else {
+				op->error() = tcode::last_error(); 
+			}
+			closesocket(fd);
+		} else {			
+			op->error() = tcode::last_error(); 
+		}
+        return execute( op );
     }
 
     void completion_port::write( completion_port::descriptor desc 
             , ip::tcp::operation_write_base* op)
     {
         desc->add_ref();
-        execute( tcode::operation::wrap(
-            [this,desc,op]{
-                desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , completion_portOUT );
-                desc->release(this);
-            }));
+		LPOVERLAPPED ov = &(op->ov);
+		memset( ov , 0 , sizeof(*ov));
+		DWORD flag = 0;
+		if ( WSASend( desc->fd
+					, op->buffers()
+					, op->buffers_count()
+					, nullptr 
+					, flag 
+					, ov
+					, nullptr ) == SOCKET_ERROR )
+		{
+			if ( WSAGetLastError() != WSA_IO_PENDING ){
+				op->error() = tcode::last_error();
+				desc->release(this);
+				execute(op);
+			}
+		}
     }
 
     void completion_port::read( descriptor desc
             , ip::tcp::operation_read_base* op ){
         desc->add_ref();
-        execute( tcode::operation::wrap(
-            [this,desc,op]{
-                desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , completion_portIN );
-                desc->release(this);
-            }));
-
+		LPOVERLAPPED ov = &(op->ov);
+		memset( ov , 0 , sizeof(*ov));
+		DWORD flag = 0;
+		if ( WSARecv(	desc->fd
+					, op->buffers()
+					, op->buffers_count()
+					, nullptr 
+					, &flag 
+					, ov
+					, nullptr ) == SOCKET_ERROR )
+		{
+			if ( WSAGetLastError() != WSA_IO_PENDING ){
+				op->error() = tcode::last_error();
+				desc->release(this);
+				execute(op);
+			}
+		}
     }
     
     bool completion_port::listen( descriptor& desc 
                 , const ip::address& addr )
     {
-        int fd = socket( addr.family() , SOCK_STREAM , IPPROTO_TCP );
-        if ( fd == -1 )
-            return false;
-        tcode::io::ip::option::non_blocking nb;
-        nb.set_option(fd);
-        tcode::io::ip::option::reuse_address reuse( true );
-        reuse.set_option( fd );
-        if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) < 0 ){
-            ::close(fd);
-            return false;
+        SOCKET fd = WSASocket( addr.family() , SOCK_STREAM , IPPROTO_TCP , nullptr , 0 , WSA_FLAG_OVERLAPPED );
+        if ( fd != INVALID_SOCKET ) {
+            tcode::io::ip::option::non_blocking nb;
+            nb.set_option(fd);
+            tcode::io::ip::option::reuse_address reuse( true );
+            reuse.set_option( fd );
+            if ((::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0)
+                    && (::listen(fd, SOMAXCONN ) == 0 )) {
+                desc = new completion_port::_descriptor(this,fd);
+                if ( bind( desc ))
+                    return true;
+                delete desc;
+                desc = nullptr;
+            }
+            closesocket(fd);
         }
-        if ( ::listen(fd, SOMAXCONN ) < 0 ) {
-            ::close(fd);
-            return false;
-        }
-        desc = new completion_port::_descriptor(this,fd);
-        bind( desc );
-        return true;
+        return false;
     }
 
     void completion_port::accept( descriptor desc
+			, int family
             , ip::tcp::operation_accept_base* op ){
         desc->add_ref();
-        execute( tcode::operation::wrap(
-            [this,desc,op]{
-                desc->op_queue[tcode::io::ev_accept].push_back(op);
-                desc->complete( this , completion_portIN );
-                desc->release(this);
-            }));
+		op->accepted_fd() = WSASocket( family , SOCK_STREAM , IPPROTO_TCP , nullptr , 0 , WSA_FLAG_OVERLAPPED );
+        if ( op->accepted_fd() != INVALID_SOCKET ) {
+			tcode::io::ip::option::non_blocking nb;
+			nb.set_option( op->accepted_fd() );
+			LPOVERLAPPED ov = &(op->ov);
+			memset( ov , 0 , sizeof(*ov));
+			DWORD flag = 0;
+			if ( AcceptEx( desc->fd 
+					, op->accepted_fd()
+					, op->address_buf()
+					, 0
+					, sizeof( tcode::io::ip::address)
+					, sizeof( tcode::io::ip::address)
+					, &flag
+					, ov ) == TRUE )
+				return;
+			if (WSAGetLastError() == WSA_IO_PENDING)
+				return;
+			closesocket(op->accepted_fd());
+			op->accepted_fd() = INVALID_SOCKET;
+			op->error() = tcode::last_error();
+		}
+		desc->release(this);
+		execute(op);
     }
     
     bool completion_port::bind( descriptor& desc
             , const ip::address& addr ) 
     {
-        int fd = socket( addr.family() , SOCK_DGRAM , IPPROTO_UDP );
-        if ( fd == -1 )
-            return false;
-        tcode::io::ip::option::non_blocking nb;
-        nb.set_option(fd);
-        tcode::io::ip::option::reuse_address reuse( true );
-        reuse.set_option( fd );
-        if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) < 0 ){
-            ::close(fd);
-            return false;
+        SOCKET fd = WSASocket( addr.family() , SOCK_DGRAM , IPPROTO_UDP  , nullptr , 0 , WSA_FLAG_OVERLAPPED );
+        if ( fd != INVALID_SOCKET ) {
+            tcode::io::ip::option::non_blocking nb;
+            nb.set_option(fd);
+            tcode::io::ip::option::reuse_address reuse( true );
+            reuse.set_option( fd );
+            if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0 ){
+                desc = new completion_port::_descriptor( this , fd );
+                if ( bind(desc))
+                    return true;
+                delete desc;
+                desc = nullptr;
+            }
+            closesocket(fd);
         }
-        desc = new completion_port::_descriptor( this , fd );
-        bind( desc );
-        return true;
+        return false;
     }
 
     void completion_port::write( descriptor& desc 
             , ip::udp::operation_write_base* op )
     {   
         if ( desc == nullptr ) {
-            int fd = socket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP);
-            if ( fd == -1 ){
+			SOCKET fd = WSASocket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP  , nullptr , 0 , WSA_FLAG_OVERLAPPED );
+			if ( fd != INVALID_SOCKET ) {
+                desc = new completion_port::_descriptor( this , fd );
+                if ( !bind( desc )){
+                    op->error() = tcode::last_error();
+                    delete desc;
+                    desc = nullptr;
+                    closesocket(fd);
+                }
+            }else{
                 op->error() = tcode::last_error();
-                execute( op );
-                return;
             }
-            desc = new completion_port::_descriptor( this , fd );
-            bind( desc );
+            if ( desc == nullptr ){
+                return execute(op);
+            }
         }
-        
         desc->add_ref();
-        execute( tcode::operation::wrap(
-            [this,desc,op]{
-                desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , completion_portOUT );
-                desc->release(this);
-            }));
+		LPOVERLAPPED ov = &(op->ov);
+		memset( ov , 0 , sizeof(*ov));
+		DWORD flag = 0;
+		if ( WSASendTo(	desc->fd
+					, &op->buffer()
+					, 1
+					, nullptr 
+					, flag 
+					, op->address().sockaddr()
+					, op->address().sockaddr_length()
+					, ov
+					, nullptr ) == SOCKET_ERROR )
+		{
+			if ( WSAGetLastError() != WSA_IO_PENDING ){
+				op->error() = tcode::last_error();
+				desc->release(this);
+				execute(op);
+			}
+		}
+
     }
     
     void completion_port::read( descriptor desc
             , ip::udp::operation_read_base* op )
     {
         if ( desc == nullptr ) {
-            op->error() = std::error_code( EBADF , std::generic_category());
-            execute(op);
-            return;
+            op->error() = tcode::error_invalid; 
+            return execute(op);
         }
         desc->add_ref();
-        execute( tcode::operation::wrap(
-            [this,desc,op]{
-                desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , completion_portIN);
-                desc->release(this);
-            }));
+		LPOVERLAPPED ov = &(op->ov);
+		memset( ov , 0 , sizeof(*ov));
+		DWORD flag = 0;
+		if ( WSARecvFrom(	desc->fd
+					, &op->buffer()
+					, 1
+					, nullptr 
+					, &flag 
+					, op->address().sockaddr()
+					, op->address().sockaddr_length_ptr()
+					, ov
+					, nullptr ) == SOCKET_ERROR )
+		{
+			if ( WSAGetLastError() != WSA_IO_PENDING ){
+				op->error() = tcode::last_error();
+				desc->release(this);
+				execute(op);
+			}
+		}
     }
 
 
@@ -313,120 +392,42 @@ namespace tcode { namespace io {
         (*op)();
     }
 
-    int completion_port::writev( descriptor desc 
-            , tcode::io::buffer* buf , int cnt
-            , std::error_code& ec )
-    {
-        if ( desc->fd == -1 ) {
-            ec = std::error_code( EBADF , std::generic_category() );
-        } else {
-            int r = 0;
-            do {
-                r = ::writev( desc->fd , buf , cnt );
-            }while((r == -1) && (errno == EINTR));
-            if ( r >= 0 ) return r;
-            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code();
-            else
-                ec = std::error_code( errno , std::generic_category());
-        }
-        return -1;
-    }
-
-    int completion_port::readv( descriptor desc 
-            , tcode::io::buffer* buf , int cnt
-            , std::error_code& ec )
-    {
-        if ( desc->fd == -1 ) {
-            ec = std::error_code( EBADF , std::generic_category() );
-        } else {
-            int r = 0;
-            do {
-                r = ::readv( desc->fd , buf , cnt );
-            }while((r == -1) && (errno == EINTR));
-            if ( r > 0 ) return r;
-            if ( r == 0 ){
-                ec = tcode::error_disconnected;
-            } else {
-                if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                    ec = std::error_code();
-                else
-                    ec = std::error_code( errno , std::generic_category());
-            }
-        }
-        return -1;
-    }
-
     int completion_port::accept( descriptor listen 
             , descriptor& accepted 
             , ip::address& addr
+			, SOCKET& fd
+			, char* address_buf
             , std::error_code& ec )
     {
-        if ( listen->fd == -1 ) {
-            ec = std::error_code( EBADF , std::generic_category() );
-        } else {
-            int fd = -1;
-            do {
-                fd = ::accept( listen->fd
-                        , addr.sockaddr() 
-                        , addr.sockaddr_length_ptr());
-            }while( ( fd == -1 ) && ( errno == EINTR ));
-            if ( fd != -1 ) {
-                accepted = new completion_port::_descriptor( this , fd );
-                bind( accepted );
-                return 0;
-            }
-            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
-            else
-                ec = std::error_code( errno , std::generic_category());
-        }
-        return -1;
+		if ( listen->fd == INVALID_SOCKET ) {
+			ec = tcode::error_invalid;
+		} else {
+			if (!ec) {
+				accepted = new completion_port::_descriptor(this,fd);
+				if (bind(accepted)) {
+					struct sockaddr* local ,*remote;
+					INT llen , rlen;
+					GetAcceptExSockaddrs( address_buf
+							, 0 
+							, sizeof( tcode::io::ip::address )
+							, sizeof( tcode::io::ip::address )
+							, &local
+							, &llen
+							, &remote
+							, &rlen );
+					memcpy( addr.sockaddr() , remote , rlen );
+					*(addr.sockaddr_length_ptr()) = rlen;
+					return 0;
+				}
+				ec = tcode::last_error();
+				delete accepted;
+                accepted = nullptr;
+			}
+		}
+		if ( fd != INVALID_SOCKET )
+			closesocket(fd);
+		fd = INVALID_SOCKET;
+		return -1;
     }
 
-    int completion_port::read( descriptor desc 
-            , tcode::io::buffer& buf 
-            , tcode::io::ip::address& addr 
-            , std::error_code& ec )
-    {
-        if ( desc->fd == -1 ) {
-            ec = std::error_code( EBADF , std::generic_category() );
-        } else {
-            int r = 0;
-            do {
-                r = ::recvfrom( desc->fd , buf.buf() , buf.len(),0
-                        , addr.sockaddr() , addr.sockaddr_length_ptr());
-            }while((r == -1) && (errno == EINTR));
-            if ( r >= 0 ) return r;
-            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
-            else
-                ec = std::error_code( errno , std::generic_category());
-        }
-        return -1;
-    }
-
-    int completion_port::write( descriptor desc 
-            , tcode::io::buffer& buf 
-            , tcode::io::ip::address& addr 
-            , std::error_code& ec )
-    {
-        if ( desc->fd == -1 ) {
-            ec = std::error_code( EBADF , std::generic_category() );
-        } else {
-            int r = 0;
-            do {
-                r = ::sendto( desc->fd , buf.buf() , buf.len() , 0
-                        , addr.sockaddr() , addr.sockaddr_length());
-            }while((r == -1) && (errno == EINTR));
-            if ( r >= 0 ) return r;
-            if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
-            else
-                ec = std::error_code( errno , std::generic_category());
-        }
-        return -1;
-
-        return 0;
-    }
 }}

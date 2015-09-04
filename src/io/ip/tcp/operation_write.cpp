@@ -18,6 +18,27 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     bool operation_write_base::post_write_impl( io::multiplexer* mux 
             , io::descriptor desc )
     {
+#if defined( TCODE_WIN32 )
+		if ( error() )
+			return true;
+		int writeskip = io_byte();
+        int remain = 0;
+
+        for ( int i = 0 ; i < _buffer_count ; ++i ){
+            if ( writeskip > 0 ) {
+                int per_skip = std::min( writeskip , _buffer[i].len() );
+                _buffer[i].skip( per_skip );
+                writeskip -= per_skip;
+            }
+            remain += _buffer[i].len();
+        }
+
+        _write += io_byte();
+		if ( remain == 0 )
+			return true;
+		mux->write( desc , this );
+		return false;
+#else
         int write = mux->writev( desc , _buffer , _buffer_count , error() );
 
         if ( error() ) 
@@ -40,6 +61,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         _write += write;
 
         return remain == 0;
+#endif
     }
 
     void operation_write_base::buffers( tcode::io::buffer* buf , int cnt ){
@@ -50,6 +72,14 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     int operation_write_base::write_size( void ) {
         return _write;
     }
+
+	
+	tcode::io::buffer* operation_write_base::buffers(void) {
+		return _buffer;
+	}
+	int	operation_write_base::buffers_count(void) {
+		return _buffer_count;
+	}
 
     bool operation_write_base::post_write( 
             io::operation* op_base 
