@@ -95,13 +95,17 @@ namespace ip {
                 , descriptor& accepted 
                 , ip::address& addr
                 , std::error_code& ec );
+
+        //! post operation udp read
         int read( descriptor desc 
                 , tcode::io::buffer& buf 
                 , tcode::io::ip::address& addr 
                 , std::error_code& ec );
+
+        //! post operatino udp write
         int write( descriptor desc 
-                , tcode::io::buffer& buf 
-                , tcode::io::ip::address& addr 
+                , const tcode::io::buffer& buf 
+                , const tcode::io::ip::address& addr 
                 , std::error_code& ec);
     private:
         void op_add( tcode::operation* op );

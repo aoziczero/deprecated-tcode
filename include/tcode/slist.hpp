@@ -80,6 +80,11 @@ namespace tcode {
                 return _head;
             }
 
+            template < typename NodeEx >
+            NodeEx* front(void){
+                return static_cast< NodeEx* >(front());
+            }
+
             void pop_front( void ){
                 if ( _head == nullptr )
                     return;

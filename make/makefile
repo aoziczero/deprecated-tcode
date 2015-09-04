@@ -59,10 +59,6 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/udp/operation_write.cpp\
 		   
 
-		   #io/ip/simple_select.cpp\
-		   #io/engine.cpp\
-		   
-
 TCODE_SRC_DIR=$(TCODE_DIR)/src
 
 TCODE_SO_MAJOR=1
@@ -112,8 +108,6 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_connect.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
 		  test_io_ip_udp.cpp\
-		  
-		  #test_io_ip_tcp_connector.cpp\
 
 GTEST_DIR=../external/gtest
 
