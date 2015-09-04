@@ -16,12 +16,6 @@ namespace tcode {
         std::atomic<int> _count;
     };
 
-    class active_guard{
-    public:
-
-    private:
-        active_ref& _ref;
-    };
 }
 
 #endif
