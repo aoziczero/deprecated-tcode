@@ -49,42 +49,40 @@ namespace ip {
         //! wakeup loop
         void wake_up( void );
 
-        //!  
+        //! bind iocp
         bool bind( const descriptor& desc );
-        //!  
+        //! unbind
         void unbind( descriptor& desc );
-        //!
+        //! execute op on run loop context
         void execute( tcode::operation* op ); 
     public:
-        //!
+        //! tcp connect
         void connect( descriptor& desc 
                 , ip::tcp::operation_connect_base* op );
-        //!
+        //! tcp write
         void write( descriptor desc 
                 , ip::tcp::operation_write_base* op );
-        //!
+        //! tcp read 
         void read( descriptor desc
                 , ip::tcp::operation_read_base* op );
-        //!
+        //! acceptor listen
         bool listen( descriptor& desc 
                 , const ip::address& addr );
-        //!
+        //! do accept
         void accept( descriptor listen
 				, int family
                 , ip::tcp::operation_accept_base* op );
     public:
-        //!
+        //! udp bind
         bool bind( descriptor& desc
                 , const ip::address& addr );
-        //!
+        //! udp write
         void write( descriptor& desc 
                 , ip::udp::operation_write_base* op );
-        //!
+        //! udp read
         void read( descriptor desc
                 , ip::udp::operation_read_base* op );
-
-    public:
-       
+    public:       
         //! post operation accept
         int accept( descriptor listen 
                 , descriptor& accepted 

@@ -3,8 +3,15 @@
 
 namespace tcode {
 
+	/*!
+		@class slist
+		@brief 
+	*/
     class slist {
     public:
+		/*!
+			@class node
+		*/
         template < typename Type >
         class node {
         public:
@@ -23,6 +30,9 @@ namespace tcode {
             Type* _next;
         };
 
+		/*!
+			@class queue
+		*/
         template < typename Node >
         class queue {
         public:
