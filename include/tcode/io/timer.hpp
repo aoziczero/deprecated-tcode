@@ -6,15 +6,13 @@
 #include <tcode/function.hpp>
 #include <atomic>
 
-namespace tcode { namespace io {
-/*
-    extern std::atomic<int> id_alloc;
-    extern std::atomic<int> id_free;
-    extern std::atomic<int> id_add_ref;
-    extern std::atomic<int> id_release;
-*/
+namespace tcode { namespace io { 
+
     class engine;
-    
+	/*!
+		@class timer
+		@brief
+	*/
     class timer {
     public:
         struct id;

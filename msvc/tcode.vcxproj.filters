@@ -5,10 +5,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="base">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="tcode\threading">
       <UniqueIdentifier>{7cfa8410-fff3-44f9-807e-3c87bb565604}</UniqueIdentifier>
     </Filter>
@@ -31,12 +27,6 @@
   <ItemGroup>
     <ClInclude Include="..\include\tcode\error.hpp">
       <Filter>tcode</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\stdafx.h">
-      <Filter>base</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\targetver.h">
-      <Filter>base</Filter>
     </ClInclude>
     <ClInclude Include="..\include\tcode\active_ref.hpp">
       <Filter>tcode</Filter>
@@ -134,13 +124,12 @@
     <ClInclude Include="..\include\tcode\io\engine.hpp">
       <Filter>tcode\io</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\stdafx.h" />
+    <ClInclude Include="..\include\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\error.cpp">
       <Filter>tcode</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\stdafx.cpp">
-      <Filter>base</Filter>
     </ClCompile>
     <ClCompile Include="..\src\active_ref.cpp">
       <Filter>tcode</Filter>
@@ -226,5 +215,6 @@
     <ClCompile Include="..\src\io\engine.cpp">
       <Filter>tcode\io</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\stdafx.cpp" />
   </ItemGroup>
 </Project>

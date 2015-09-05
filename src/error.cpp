@@ -102,7 +102,7 @@ namespace tcode {
 				dwFlags,
 				lpSource,
 				condition,
-				0,
+				MAKELANGID( LANG_ENGLISH , SUBLANG_ENGLISH_US ),
 				buffer,
 				buffer_size,
 				NULL);

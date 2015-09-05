@@ -198,6 +198,7 @@ namespace tcode {
             _context = rhs._control( handler_ops::DUPLICATE , rhs._context );\
             _control= rhs._control;\
             _call = rhs._call;\
+            return *this;\
         }\
         \
         function& operator=( function&& rhs ) {\

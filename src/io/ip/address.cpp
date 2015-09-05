@@ -97,7 +97,7 @@ bool inet_pton( int af
     {
         struct sockaddr_in addr;
         memset(&addr , 0x00 , _len );
-        addr.sin_addr.s_addr = inet_addr(ip);
+		inet_pton(AF_INET, ip, &(addr.sin_addr.s_addr));
         addr.sin_port = htons(port);
         addr.sin_family = AF_INET;
         memcpy( &_address , &addr , _len );
