@@ -104,8 +104,6 @@ TEST_SRCS=main.cpp\
 		  test_threading_spinlock.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
-		  test_epoll_wakeup.cpp\
-		  test_epoll_et.cpp\
 		  test_operation.cpp\
 		  test_io_epoll.cpp\
 		  test_io_timer.cpp\
@@ -114,6 +112,10 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_connect.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
 		  test_io_ip_udp.cpp\
+		  
+ #test_epoll_wakeup.cpp\
+		  #test_epoll_et.cpp\
+		  
 
 GTEST_DIR=../external/gtest
 
