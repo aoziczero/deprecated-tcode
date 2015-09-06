@@ -377,7 +377,7 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code();
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
@@ -400,7 +400,7 @@ namespace tcode { namespace io {
                 ec = tcode::error_disconnected;
             } else {
                 if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                    ec = std::error_code();
+                    ec = tcode::error_success;
                 else
                     ec = tcode::last_error();
             }
@@ -428,7 +428,7 @@ namespace tcode { namespace io {
                 return 0;
             }
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
@@ -450,7 +450,7 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
@@ -472,7 +472,7 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
