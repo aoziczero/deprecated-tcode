@@ -19,11 +19,15 @@ namespace tcode { namespace io {
      */
     class engine {
     public:
+		//! ctor
         engine( void );
+		//! dtor
         ~engine( void );
 
+		//! run
         void run( void );
 
+		//! check current context is in run loop
         bool in_run_loop( void );
 
         void timer_schedule( timer::id* id );

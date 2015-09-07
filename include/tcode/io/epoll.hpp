@@ -71,7 +71,7 @@ namespace ip {
                 , const ip::address& addr );
         //!
         void accept( descriptor listen
-                , int family
+                , int /* windows 대응 */ 
                 , ip::tcp::operation_accept_base* op );
     public:
         //!
@@ -118,26 +118,6 @@ namespace ip {
         tcode::threading::spinlock _lock;
         tcode::slist::queue< tcode::operation > _op_queue; 
     };
-
-    /*
-    class epoll {
-    public:
-        epoll( void );
-        ~epoll( void );
-
-        bool bind( int fd , int ev , tcode::io::event_handler* handler );
-        void unbind( int fd );
-        int run( const tcode::timespan& ts );
-        void wake_up( void );
-        void wake_up_handler( int ev );
-    private:
-        int _handle;
-        io::pipe _pipe;
-        tcode::function< void (int)> _pipe_handler;
-    };
-    */
-    
-    
     
 }}
 

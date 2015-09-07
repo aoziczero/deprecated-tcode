@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <tcode/error.hpp>
 #include <tcode/io/io.hpp>
-#include <tcode/io/epoll.hpp>
+#include <tcode/io/kqueue.hpp>
 #include <tcode/io/engine.hpp>
 #include <tcode/io/operation.hpp>
 #include <tcode/io/ip/option.hpp>
@@ -12,39 +12,41 @@
 #include <tcode/io/ip/tcp/operation_accept.hpp>
 #include <tcode/io/ip/udp/operation_write.hpp>
 #include <tcode/io/ip/udp/operation_read.hpp>
-#include <sys/epoll.h>
+#if defined( TCODE_APPLE )
+#include <sys/event.h>
+#endif
 #include <unistd.h>
 
 namespace tcode { namespace io {
 
     namespace {
-        const int epoll_max_event = 256;
+        const int kqueue_max_event = 256;
     }
 
-    struct epoll::_descriptor{
+    struct kqueue::_descriptor{
         int fd;
         tcode::slist::queue< tcode::operation > op_queue[tcode::io::ev_max];
         std::atomic<int> refcount;
 
-        void complete( epoll* ep ,  int ev );
+        void complete( kqueue* ep ,  int ev );
 
-        _descriptor( epoll* ep , int fd  );
+        _descriptor( kqueue* ep , int fd  );
 
         void add_ref( void );
-        void release( epoll* ep );
+        void release( kqueue* ep );
     };
 
-    epoll::_descriptor::_descriptor( epoll* ep , int fd ) {
+    kqueue::_descriptor::_descriptor( kqueue* ep , int fd ) {
         refcount.store(1);
         ep->_engine.active().inc();
         this->fd = fd;
     }
 
-    void epoll::_descriptor::add_ref( void ) {
+    void kqueue::_descriptor::add_ref( void ) {
         refcount.fetch_add(1);
     }
 
-    void epoll::_descriptor::release( epoll* ep ){
+    void kqueue::_descriptor::release( kqueue* ep ){
         if ( refcount.fetch_sub(1) != 1 ) {
             return; 
         }
@@ -74,15 +76,15 @@ namespace tcode { namespace io {
         delete this;
     }
 
-    void epoll::_descriptor::complete( epoll* ep , int events ) {
-        static const int epollev[] = {
-            EPOLLIN , EPOLLOUT , EPOLLPRI 
+    void kqueue::_descriptor::complete( kqueue* mux, int events ) {
+        static const int kqueueev[] = {
+            EVFILT_READ, EVFILT_WRITE  
         };
-        for ( int i = 0 ; i < tcode::io::ev_max ; ++i ) {
-            if ( events & epollev[i] ){
+        for ( int i = 0 ; i < 2 ; ++i ) {
+            if ( events == kqueueev[i] ){
                 while ( !op_queue[i].empty() ) {
                     io::operation* op = op_queue[i].front<io::operation>();
-                    if ( op->post_proc(ep,this) ) {
+                    if ( op->post_proc(mux,this) ) {
                         op_queue[i].pop_front();
                         (*op)();
                     } else {
@@ -91,39 +93,51 @@ namespace tcode { namespace io {
                 }
             }
         }
+        if ( !op_queue[tcode::io::ev_read].empty())
+            mux->_change( fd , EVFILT_READ , EV_ADD | EV_ENABLE | EV_ONESHOT , this );
+        if ( !op_queue[tcode::io::ev_write].empty())
+            mux->_change( fd , EVFILT_WRITE , EV_ADD | EV_ENABLE | EV_ONESHOT , this );
     }
 
-    epoll::epoll( engine& en )
-        : _handle( epoll_create(epoll_max_event))
+    kqueue::kqueue( engine& en )
+        : _handle( ::kqueue() )
         , _engine( en )
     {
-        struct epoll_event e;
-        e.events = EPOLLOUT | EPOLLONESHOT ;
-        e.data.ptr = nullptr;
-        epoll_ctl( _handle , EPOLL_CTL_ADD , _wake_up.wr_pipe() , &e );
+        _change( _wake_up.rd_pipe() , EVFILT_READ , EV_ADD|EV_ENABLE ,nullptr );
     }
 
-    epoll::~epoll( void ){
+    kqueue::~kqueue( void ){
         ::close( _handle );
     }
 
-    int epoll::run( const tcode::timespan& ts ){
-        struct epoll_event events[epoll_max_event];
-        int nofd  = epoll_wait( _handle 
+    int kqueue::run( const tcode::timespan& ts ){
+        struct kevent events[kqueue_max_event];
+        struct timespec spec;
+        spec.tv_sec = ts.total_seconds();
+        spec.tv_nsec = ( ts.total_microseconds() % 1000000 ) * 1000;
+        std::vector< struct kevent > ch;
+        do {
+            tcode::threading::spinlock::guard g(_lock);
+            ch.swap(_changes);
+        }while(0);
+        int nofd  = kevent( _handle 
+            , &ch[0], ch.size() 
             , events
-            , epoll_max_event
-            , static_cast<int>(ts.total_milliseconds()));
+            , kqueue_max_event
+            , &spec );
         if ( nofd <= 0  ) {
             return 0; 
         }
         int run = nofd;
         bool execute_op = false;
         for ( int i = 0 ; i < nofd; ++i ){
-            epoll::descriptor desc =
-                static_cast< epoll::descriptor >( events[i].data.ptr );
+            kqueue::descriptor desc =
+                static_cast< kqueue::descriptor >( events[i].udata );
             if ( desc ) {
-                desc->complete( this , events[i].events );
+                desc->complete( this , events[i].filter );
             } else {
+                char pipe_r[256];
+                ::read( _wake_up.rd_pipe() , pipe_r , 256 );
                 execute_op = true;
                 --run;
             }
@@ -144,21 +158,18 @@ namespace tcode { namespace io {
         return run;
     }
     
-    void epoll::wake_up( void ){
-        struct epoll_event e;
-        e.events = EPOLLOUT | EPOLLONESHOT;
-        e.data.ptr = nullptr;
-        epoll_ctl( _handle , EPOLL_CTL_MOD , _wake_up.wr_pipe() , &e );
+    void kqueue::wake_up( void ){
+        char ch=0;
+        ::write( _wake_up.wr_pipe() , &ch , 1 );
     }
 
-    bool epoll::bind( const descriptor& d ) {
-        struct epoll_event e;
-        e.events = EPOLLIN | EPOLLOUT | EPOLLET;
-        e.data.ptr = d;
-        return epoll_ctl( _handle , EPOLL_CTL_ADD , d->fd , &e ) == 0;
+    bool kqueue::bind( const descriptor& d ) {
+        _change( d->fd , EVFILT_READ , EV_ADD | EV_ENABLE | EV_ONESHOT , d );
+        _change( d->fd , EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT , d );
+        return true;
     }
 
-    void epoll::unbind( descriptor& d ) {
+    void kqueue::unbind( descriptor& d ) {
         do { 
             tcode::threading::spinlock::guard guard(_lock);
             if ( d == nullptr ) 
@@ -168,7 +179,6 @@ namespace tcode { namespace io {
             op_add( tcode::operation::wrap( 
                     [this,desc] {
                         if ( desc->fd != -1 ) {
-                            epoll_ctl( _handle , EPOLL_CTL_DEL , desc->fd , nullptr );
                             ::close( desc->fd );
                             desc->fd = -1;
                         }
@@ -177,9 +187,9 @@ namespace tcode { namespace io {
             );
         }while(0);
         wake_up();
-    }
+   }
 
-    void epoll::execute( tcode::operation* op ) {
+    void kqueue::execute( tcode::operation* op ) {
         do {
             tcode::threading::spinlock::guard guard(_lock);
             op_add(op);
@@ -187,8 +197,8 @@ namespace tcode { namespace io {
         wake_up();
     }
 
-    void epoll::connect( 
-            epoll::descriptor& desc 
+    void kqueue::connect( 
+            kqueue::descriptor& desc 
             , ip::tcp::operation_connect_base* op )
     {
         int fd = socket( op->address().family() , SOCK_STREAM , IPPROTO_TCP );
@@ -202,9 +212,9 @@ namespace tcode { namespace io {
                 r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
             }while((r == -1) && (errno == EINTR));
             if ( (r == 0) || (errno == EINPROGRESS )){
-                desc = new epoll::_descriptor(this , fd );
+                desc = new kqueue::_descriptor(this , fd );
                 desc->op_queue[tcode::io::ev_connect].push_back( op );
-                if ( bind( desc ) ){
+                if ( bind( desc )){
                     return;
                 }
                 op->error() = tcode::last_error();
@@ -218,31 +228,31 @@ namespace tcode { namespace io {
         execute(op);
     }
 
-    void epoll::write( epoll::descriptor desc 
+    void kqueue::write( kqueue::descriptor desc 
             , ip::tcp::operation_write_base* op)
     {
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EPOLLOUT );
+                desc->complete( this , EVFILT_WRITE);
                 desc->release(this);
             }));
     }
 
-    void epoll::read( descriptor desc
+    void kqueue::read( descriptor desc
             , ip::tcp::operation_read_base* op ){
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EPOLLIN );
+                desc->complete( this , EVFILT_READ);
                 desc->release(this);
             }));
 
     }
     
-    bool epoll::listen( descriptor& desc 
+    bool kqueue::listen( descriptor& desc 
                 , const ip::address& addr )
     {
         int fd = socket( addr.family() , SOCK_STREAM , IPPROTO_TCP );
@@ -253,7 +263,7 @@ namespace tcode { namespace io {
             reuse.set_option( fd );
             if ((::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0)
                     && (::listen(fd, SOMAXCONN ) == 0 )) {
-                desc = new epoll::_descriptor(this,fd);
+                desc = new kqueue::_descriptor(this,fd);
                 if ( bind( desc ))
                     return true;
                 delete desc;
@@ -264,19 +274,19 @@ namespace tcode { namespace io {
         return false;
     }
 
-    void epoll::accept( descriptor desc
+    void kqueue::accept( descriptor desc
             , int
             , ip::tcp::operation_accept_base* op ){
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_accept].push_back(op);
-                desc->complete( this , EPOLLIN );
+                desc->complete( this , EVFILT_READ);
                 desc->release(this);
             }));
     }
     
-    bool epoll::bind( descriptor& desc
+    bool kqueue::bind( descriptor& desc
             , const ip::address& addr ) 
     {
         int fd = socket( addr.family() , SOCK_DGRAM , IPPROTO_UDP );
@@ -286,7 +296,7 @@ namespace tcode { namespace io {
             tcode::io::ip::option::reuse_address reuse( true );
             reuse.set_option( fd );
             if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0 ){
-                desc = new epoll::_descriptor( this , fd );
+                desc = new kqueue::_descriptor( this , fd );
                 if ( bind(desc))
                     return true;
                 delete desc;
@@ -297,13 +307,13 @@ namespace tcode { namespace io {
         return false;
     }
 
-    void epoll::write( descriptor& desc 
+    void kqueue::write( descriptor& desc 
             , ip::udp::operation_write_base* op )
     {   
         if ( desc == nullptr ) {
             int fd = socket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP);
             if ( fd != -1 ){
-                desc = new epoll::_descriptor( this , fd );
+                desc = new kqueue::_descriptor( this , fd );
                 if ( !bind( desc )){
                     op->error() = tcode::last_error();
                     delete desc;
@@ -322,12 +332,12 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EPOLLOUT );
+                desc->complete( this , EVFILT_WRITE);
                 desc->release(this);
             }));
     }
     
-    void epoll::read( descriptor desc
+    void kqueue::read( descriptor desc
             , ip::udp::operation_read_base* op )
     {
         if ( desc == nullptr ) {
@@ -338,23 +348,23 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EPOLLIN);
+                desc->complete( this , EVFILT_READ);
                 desc->release(this);
             }));
     }
 
 
-    void epoll::op_add( tcode::operation* op ){
+    void kqueue::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
         _engine.active().inc();
     }
 
-    void epoll::op_run( tcode::operation* op ){
+    void kqueue::op_run( tcode::operation* op ){
         _engine.active().dec();
         (*op)();
     }
 
-    int epoll::writev( descriptor desc 
+    int kqueue::writev( descriptor desc 
             , tcode::io::buffer* buf , int cnt
             , std::error_code& ec )
     {
@@ -367,14 +377,14 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = tcode::error_success;
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
         return -1;
     }
 
-    int epoll::readv( descriptor desc 
+    int kqueue::readv( descriptor desc 
             , tcode::io::buffer* buf , int cnt
             , std::error_code& ec )
     {
@@ -398,7 +408,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-    int epoll::accept( descriptor listen 
+    int kqueue::accept( descriptor listen 
             , descriptor& accepted 
             , ip::address& addr
             , std::error_code& ec )
@@ -413,7 +423,7 @@ namespace tcode { namespace io {
                         , addr.sockaddr_length_ptr());
             }while( ( fd == -1 ) && ( errno == EINTR ));
             if ( fd != -1 ) {
-                accepted = new epoll::_descriptor( this , fd );
+                accepted = new kqueue::_descriptor( this , fd );
                 bind( accepted );
                 return 0;
             }
@@ -425,7 +435,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-    int epoll::read( descriptor desc 
+    int kqueue::read( descriptor desc 
             , tcode::io::buffer& buf 
             , tcode::io::ip::address& addr 
             , std::error_code& ec )
@@ -447,7 +457,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-    int epoll::write( descriptor desc 
+    int kqueue::write( descriptor desc 
             , const tcode::io::buffer& buf 
             , const tcode::io::ip::address& addr 
             , std::error_code& ec )
@@ -467,5 +477,20 @@ namespace tcode { namespace io {
                 ec = tcode::last_error();
         }
         return -1;
+    }
+
+
+    void kqueue::_change( int id , int filt , int flag , void* p ) {
+        struct kevent e;
+        e.ident = id; 
+        e.filter = filt;
+        e.flags = flag;
+        e.fflags = 0;
+        e.data = 0;
+        e.udata = p;
+        do {
+            tcode::threading::spinlock::guard guard( _lock );
+            _changes.push_back( e );
+        }while(0);
     }
 }}

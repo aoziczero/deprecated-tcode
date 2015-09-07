@@ -26,6 +26,12 @@ OBJS_DIR=$(TCODE_DIR)/build/$(TARGET_ARCH)/debug
 DBG_FLAG=-DDEBUG -g
 endif
 
+ifeq ($(OS),Darwin)
+MUX=io/kqueue.cpp	
+else
+MUX=io/epoll.cpp
+endif
+
 TCODE_SRCS=tcode.cpp\
 		   error.cpp\
 		   operation.cpp\
@@ -41,7 +47,7 @@ TCODE_SRCS=tcode.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   io/poll.cpp\
-		   io/epoll.cpp\
+		   $(MUX)\
 		   io/engine.cpp\
 		   io/timer.cpp\
 		   io/timer_id.cpp\
@@ -98,8 +104,6 @@ TEST_SRCS=main.cpp\
 		  test_threading_spinlock.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
-		  test_epoll_wakeup.cpp\
-		  test_epoll_et.cpp\
 		  test_operation.cpp\
 		  test_io_epoll.cpp\
 		  test_io_timer.cpp\
@@ -108,6 +112,10 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_connect.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
 		  test_io_ip_udp.cpp\
+		  
+ #test_epoll_wakeup.cpp\
+		  #test_epoll_et.cpp\
+		  
 
 GTEST_DIR=../external/gtest
 

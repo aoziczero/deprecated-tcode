@@ -1,10 +1,13 @@
-#ifndef __tcode_io_completion_port_h__
-#define __tcode_io_completion_port_h__
+#ifndef __tcode_io_kqueue_h__
+#define __tcode_io_kqueue_h__
 
+#include <tcode/io/pipe.hpp>
 #include <tcode/io/buffer.hpp>
+#include <tcode/function.hpp>
 #include <tcode/time/timespan.hpp>
 #include <tcode/operation.hpp>
 #include <tcode/threading/spinlock.hpp>
+#include <sys/event.h>
 
 namespace tcode { namespace io {
 namespace ip {
@@ -23,13 +26,12 @@ namespace ip {
         class operation_write_base;
     }
 }
-
-	class engine;
+    class engine;
     /*!
-     * @class completion_port
+     * @class kqueue
      * @brief
      */
-    class completion_port {
+    class kqueue {
     public:
         /*!
          * @class descriptor
@@ -39,9 +41,9 @@ namespace ip {
         typedef _descriptor* descriptor;
 
         //! ctor
-        completion_port( engine& e );
+        kqueue( engine& e );
         //! dtor
-        ~completion_port( void );
+        ~kqueue( void );
 
         //! run complete events
         int run( const tcode::timespan& ts );
@@ -49,58 +51,77 @@ namespace ip {
         //! wakeup loop
         void wake_up( void );
 
-        //! bind iocp
+        //!  
         bool bind( const descriptor& desc );
-        //! unbind
+        //!  
         void unbind( descriptor& desc );
-        //! execute op on run loop context
+        //!
         void execute( tcode::operation* op ); 
     public:
-        //! tcp connect
+        //!
         void connect( descriptor& desc 
                 , ip::tcp::operation_connect_base* op );
-        //! tcp write
+        //!
         void write( descriptor desc 
                 , ip::tcp::operation_write_base* op );
-        //! tcp read 
+        //!
         void read( descriptor desc
                 , ip::tcp::operation_read_base* op );
-        //! acceptor listen
+        //!
         bool listen( descriptor& desc 
                 , const ip::address& addr );
-        //! do accept
+        //!
         void accept( descriptor listen
-				, int family
+                , int /* windows 대응 */ 
                 , ip::tcp::operation_accept_base* op );
     public:
-        //! udp bind
+        //!
         bool bind( descriptor& desc
                 , const ip::address& addr );
-        //! udp write
+        //!
         void write( descriptor& desc 
                 , ip::udp::operation_write_base* op );
-        //! udp read
+        //!
         void read( descriptor desc
                 , ip::udp::operation_read_base* op );
-    public:       
+
+    public:
+        //! post operation write
+        int writev( descriptor desc , tcode::io::buffer* buf , int cnt 
+                , std::error_code& ec );
+        //! post operation read
+        int readv( descriptor desc , tcode::io::buffer* buf , int cnt 
+                , std::error_code& ec ); 
         //! post operation accept
         int accept( descriptor listen 
                 , descriptor& accepted 
                 , ip::address& addr
-				, SOCKET& fd
-				, char* address_buf
                 , std::error_code& ec );
-        
+
+        //! post operation udp read
+        int read( descriptor desc 
+                , tcode::io::buffer& buf 
+                , tcode::io::ip::address& addr 
+                , std::error_code& ec );
+
+        //! post operatino udp write
+        int write( descriptor desc 
+                , const tcode::io::buffer& buf 
+                , const tcode::io::ip::address& addr 
+                , std::error_code& ec);
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );
+        void _change( int id , int filt , int flag , void* p );
     private:
         engine& _engine;
-        HANDLE _handle;
+        int _handle;
+        std::vector< struct kevent > _changes;
+        tcode::io::pipe _wake_up;
         tcode::threading::spinlock _lock;
         tcode::slist::queue< tcode::operation > _op_queue; 
     };
-
+    
 }}
 
 #endif

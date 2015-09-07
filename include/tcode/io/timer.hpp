@@ -6,34 +6,39 @@
 #include <tcode/function.hpp>
 #include <atomic>
 
-namespace tcode { namespace io {
-/*
-    extern std::atomic<int> id_alloc;
-    extern std::atomic<int> id_free;
-    extern std::atomic<int> id_add_ref;
-    extern std::atomic<int> id_release;
-*/
+namespace tcode { namespace io { 
+
     class engine;
-    
+	/*!
+		@class timer
+		@brief
+	*/
     class timer {
     public:
         struct id;
+
+		//! ctor
         timer( io::engine& e );
+
+		//! dtor
         ~timer( void );
 
+		//! relative callback time now() + ts
         timer& due_time( const tcode::timespan& ts );
+		//! absolute callback time 
         timer& due_time( const tcode::timestamp& ts );
-
+		//! repeat tick if 0 call once
         timer& repeat( const tcode::timespan& ts );
+		//! callback function
         timer& callback( const tcode::function<void (const std::error_code& ) >& cb );
 
+		//! fire timer
         void fire( void );
+		//! cancel timer 
         void cancel( void );
     private:
         timer::id* _id;
     };
-
-    int test_alive_ids( void );
 
 }}
 

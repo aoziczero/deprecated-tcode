@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <tcode/io/epoll.hpp>
+#include <tcode/io/io_define.hpp>
 #include <tcode/io/pipe.hpp>
 #include <thread>
 #include <tcode/io/engine.hpp>
@@ -27,22 +27,22 @@ TEST( tcode_io_epoll , ctor ){
 
 }
 */
-TEST( tcode_io_epoll , wake_up ){
+TEST( tcode_io_mux , wake_up ){
     tcode::io::engine e;
-    tcode::io::epoll epoll(e);
-    std::thread t( [&epoll]{
-                epoll.run( tcode::timespan::seconds(60));
+    tcode::io::multiplexer mux(e);
+    std::thread t( [&mux]{
+                mux.run( tcode::timespan::seconds(60));
             });
 
-    epoll.wake_up();
+    mux.wake_up();
     t.join();
 }
 
-TEST( tcode_io_epoll , execute ){
+TEST( tcode_io_mux , execute ){
     tcode::io::engine e;
-    tcode::io::epoll ep(e);
-    ep.execute( tcode::operation::wrap( [] {
+    tcode::io::multiplexer mux(e);
+    mux.execute( tcode::operation::wrap( [] {
                 }));
-    ASSERT_EQ( 1,ep.run( tcode::timespan::seconds(1)));
+    ASSERT_EQ( 1,mux.run( tcode::timespan::seconds(1)));
 
 }
