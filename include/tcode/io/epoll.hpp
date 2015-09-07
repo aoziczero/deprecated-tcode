@@ -71,6 +71,7 @@ namespace ip {
                 , const ip::address& addr );
         //!
         void accept( descriptor listen
+                , int family
                 , ip::tcp::operation_accept_base* op );
     public:
         //!
