@@ -93,10 +93,12 @@ namespace tcode { namespace io {
                 }
             }
         }
-        if ( !op_queue[tcode::io::ev_read].empty())
-            mux->_change( fd , EVFILT_READ , EV_ADD | EV_ENABLE | EV_ONESHOT , this );
-        if ( !op_queue[tcode::io::ev_write].empty())
-            mux->_change( fd , EVFILT_WRITE , EV_ADD | EV_ENABLE | EV_ONESHOT , this );
+        mux->_change( fd , EVFILT_READ 
+                , op_queue[tcode::io::ev_read].empty() ?  EV_DISABLE : EV_ENABLE 
+                , this );
+        mux->_change( fd , EVFILT_WRITE 
+                , op_queue[tcode::io::ev_write].empty() ?  EV_DISABLE : EV_ENABLE 
+                , this );
     }
 
     kqueue::kqueue( engine& en )
@@ -115,13 +117,14 @@ namespace tcode { namespace io {
         struct timespec spec;
         spec.tv_sec = ts.total_seconds();
         spec.tv_nsec = ( ts.total_microseconds() % 1000000 ) * 1000;
-        std::vector< struct kevent > ch;
         do {
             tcode::threading::spinlock::guard g(_lock);
-            ch.swap(_changes);
+            if ( _changes.size() > 0 )
+                kevent( _handle , &_changes[0] , _changes.size() , nullptr , 0 , nullptr );
+            _changes.clear();
         }while(0);
         int nofd  = kevent( _handle 
-            , &ch[0], ch.size() 
+            , nullptr , 0
             , events
             , kqueue_max_event
             , &spec );
@@ -134,7 +137,11 @@ namespace tcode { namespace io {
             kqueue::descriptor desc =
                 static_cast< kqueue::descriptor >( events[i].udata );
             if ( desc ) {
-                desc->complete( this , events[i].filter );
+                //if ( (events[i].flag & EV_ERROR) || ( events[i].flag & EV_EOF )) {
+                //    desc->complete( this , EVFILT_READ );            
+                //} else {
+                    desc->complete( this , events[i].filter );
+                //}
             } else {
                 char pipe_r[256];
                 ::read( _wake_up.rd_pipe() , pipe_r , 256 );
@@ -164,8 +171,8 @@ namespace tcode { namespace io {
     }
 
     bool kqueue::bind( const descriptor& d ) {
-        _change( d->fd , EVFILT_READ , EV_ADD | EV_ENABLE | EV_ONESHOT , d );
-        _change( d->fd , EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT , d );
+        _change( d->fd , EVFILT_READ , EV_ADD | EV_ENABLE , d );
+        _change( d->fd , EVFILT_WRITE, EV_ADD | EV_ENABLE , d );
         return true;
     }
 
