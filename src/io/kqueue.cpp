@@ -38,7 +38,7 @@ namespace tcode { namespace io {
 
     kqueue::_descriptor::_descriptor( kqueue* ep , int fd ) {
         refcount.store(1);
-        ep->_engine.active().inc();
+        ep->_engine.active_inc();
         this->fd = fd;
     }
 
@@ -50,7 +50,7 @@ namespace tcode { namespace io {
         if ( refcount.fetch_sub(1) != 1 ) {
             return; 
         }
-        ep->_engine.active().dec();
+        ep->_engine.active_dec();
         
         tcode::slist::queue< tcode::operation > ops;
         for ( int i = 0 ;i < tcode::io::ev_max ; ++i ) {
@@ -363,11 +363,11 @@ namespace tcode { namespace io {
 
     void kqueue::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active().inc();
+        _engine.active_inc();
     }
 
     void kqueue::op_run( tcode::operation* op ){
-        _engine.active().dec();
+        _engine.active_dec();
         (*op)();
     }
 
@@ -499,5 +499,9 @@ namespace tcode { namespace io {
             tcode::threading::spinlock::guard guard( _lock );
             _changes.push_back( e );
         }while(0);
+    }
+
+    int kqueue::native_descriptor( descriptor d ) {
+        return d->fd;
     }
 }}

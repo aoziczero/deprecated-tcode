@@ -36,7 +36,7 @@ namespace tcode { namespace io {
 
     epoll::_descriptor::_descriptor( epoll* ep , int fd ) {
         refcount.store(1);
-        ep->_engine.active().inc();
+        ep->_engine.active_inc();
         this->fd = fd;
     }
 
@@ -48,7 +48,7 @@ namespace tcode { namespace io {
         if ( refcount.fetch_sub(1) != 1 ) {
             return; 
         }
-        ep->_engine.active().dec();
+        ep->_engine.active_dec();
         
         tcode::slist::queue< tcode::operation > ops;
         for ( int i = 0 ;i < tcode::io::ev_max ; ++i ) {
@@ -98,9 +98,9 @@ namespace tcode { namespace io {
         , _engine( en )
     {
         struct epoll_event e;
-        e.events = EPOLLOUT | EPOLLONESHOT ;
+        e.events = EPOLLIN ;
         e.data.ptr = nullptr;
-        epoll_ctl( _handle , EPOLL_CTL_ADD , _wake_up.wr_pipe() , &e );
+        epoll_ctl( _handle , EPOLL_CTL_ADD , _wake_up.rd_pipe() , &e );
     }
 
     epoll::~epoll( void ){
@@ -124,6 +124,8 @@ namespace tcode { namespace io {
             if ( desc ) {
                 desc->complete( this , events[i].events );
             } else {
+                char pipe_r[256];
+                ::read( _wake_up.rd_pipe() , pipe_r , 256 );
                 execute_op = true;
                 --run;
             }
@@ -145,10 +147,8 @@ namespace tcode { namespace io {
     }
     
     void epoll::wake_up( void ){
-        struct epoll_event e;
-        e.events = EPOLLOUT | EPOLLONESHOT;
-        e.data.ptr = nullptr;
-        epoll_ctl( _handle , EPOLL_CTL_MOD , _wake_up.wr_pipe() , &e );
+        char c = 0;
+        ::write( _wake_up.wr_pipe() , &c , 1 );
     }
 
     bool epoll::bind( const descriptor& d ) {
@@ -346,11 +346,11 @@ namespace tcode { namespace io {
 
     void epoll::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active().inc();
+        _engine.active_inc();
     }
 
     void epoll::op_run( tcode::operation* op ){
-        _engine.active().dec();
+        _engine.active_dec();
         (*op)();
     }
 
@@ -467,5 +467,9 @@ namespace tcode { namespace io {
                 ec = tcode::last_error();
         }
         return -1;
+    }
+    
+    int epoll::native_descriptor( descriptor desc ) {
+        return desc->fd;
     }
 }}

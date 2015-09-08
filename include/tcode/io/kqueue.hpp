@@ -109,6 +109,7 @@ namespace ip {
                 , const tcode::io::buffer& buf 
                 , const tcode::io::ip::address& addr 
                 , std::error_code& ec);
+        int native_descriptor( descriptor desc );
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );

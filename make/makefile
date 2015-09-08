@@ -64,6 +64,7 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/udp/socket.cpp\
 		   io/ip/udp/operation_read.cpp\
 		   io/ip/udp/operation_write.cpp\
+		   io/uds/address.cpp
 		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src

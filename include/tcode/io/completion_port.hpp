@@ -91,6 +91,7 @@ namespace ip {
 				, char* address_buf
                 , std::error_code& ec );
         
+        int native_descriptor( descriptor desc );
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );
