@@ -29,6 +29,8 @@ endif
 ifeq ($(OS),Darwin)
 MUX=io/kqueue.cpp	
 else
+#if linux kernel ver < 2.4 
+#MUX=io/poll.cpp
 MUX=io/epoll.cpp
 endif
 
@@ -46,7 +48,6 @@ TCODE_SRCS=tcode.cpp\
 		   io/operation.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
-		   io/poll.cpp\
 		   $(MUX)\
 		   io/engine.cpp\
 		   io/timer.cpp\
@@ -103,7 +104,6 @@ TEST_SRCS=main.cpp\
 		  test_function.cpp\
 		  test_threading_spinlock.cpp\
 		  test_io_pipe.cpp\
-		  test_io_poll.cpp\
 		  test_operation.cpp\
 		  test_io_epoll.cpp\
 		  test_io_timer.cpp\
@@ -113,8 +113,9 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
 		  test_io_ip_udp.cpp\
 		  
- #test_epoll_wakeup.cpp\
-		  #test_epoll_et.cpp\
+#test_io_poll.cpp\
+#test_epoll_wakeup.cpp\
+#test_epoll_et.cpp\
 		  
 
 GTEST_DIR=../external/gtest

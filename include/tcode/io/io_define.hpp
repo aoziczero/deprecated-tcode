@@ -5,6 +5,7 @@
 #include <tcode/io/completion_port.hpp>
 #elif defined( TCODE_LINUX )
 #include <tcode/io/epoll.hpp>
+#include <tcode/io/poll.hpp>
 #elif defined( TCODE_APPLE )
 #include <tcode/io/kqueue.hpp>
 #else
@@ -17,6 +18,7 @@ namespace tcode { namespace io {
     typedef completion_port multiplexer;
 #elif defined( TCODE_LINUX )
     typedef epoll multiplexer;
+//    typedef poll multiplexer;
 #elif defined( TCODE_APPLE )
     typedef kqueue multiplexer;
 #else

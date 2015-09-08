@@ -4,6 +4,18 @@
 #include <thread>
 #include <tcode/io/io.hpp>
 
+TEST( tcode_poll , nopoll ) {
+    struct pollfd f;
+    tcode::io::pipe pipe;
+    f.fd = pipe.rd_pipe();
+    f.events = 0;
+    f.revents = 0;
+
+    int ret = poll( &f , 1 , 100 );
+    ASSERT_EQ( ret , 0 );
+}
+
+
 TEST( tcode_io_poll , ctor ){
     tcode::io::poll poll;
 
