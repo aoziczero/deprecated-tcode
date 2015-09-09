@@ -39,6 +39,8 @@ TCODE_SRCS=tcode.cpp\
 		   operation.cpp\
 		   active_ref.cpp\
 		   allocator.cpp\
+		   block.cpp\
+		   byte_buffer.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
@@ -64,7 +66,8 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/udp/socket.cpp\
 		   io/ip/udp/operation_read.cpp\
 		   io/ip/udp/operation_write.cpp\
-		   io/uds/address.cpp
+		   io/uds/address.cpp\
+		   log/record.cpp\
 		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
@@ -113,6 +116,7 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_connect.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
 		  test_io_ip_udp.cpp\
+		  test_bit.cpp\
 		  
 #test_io_poll.cpp\
 #test_epoll_wakeup.cpp\
