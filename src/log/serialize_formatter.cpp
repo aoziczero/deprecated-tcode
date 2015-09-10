@@ -1,21 +1,18 @@
 #include "stdafx.h"
-#include "serialize_formatter.hpp"
-#include "record.hpp"
+#include <tcode/log/serialize_formatter.hpp>
+#include <tcode/log/record.hpp>
 
-namespace tcode { namespace diagnostics { namespace log {
+namespace tcode { namespace log {
 
-serialize_formatter::serialize_formatter( void )
-{
-	
+serialize_formatter::serialize_formatter( void ){
 }
 
 serialize_formatter::~serialize_formatter( void ){
-
 }
 
-void serialize_formatter::format( const record& r , tcode::buffer::byte_buffer& buf ){
+void serialize_formatter::format( const record& r , tcode::byte_buffer& buf ){
 	buf.reserve(8192);
 	buf << r;
 }
 
-}}}
+}}

@@ -1,6 +1,7 @@
 #ifndef __tcode_log_record_h__
 #define __tcode_log_record_h__
 
+#include <tcode/byte_buffer.hpp>
 #include <tcode/time/timestamp.hpp>
 #include <tcode/tmp/bit.hpp>
 
@@ -30,9 +31,19 @@ namespace tcode { namespace log {
         char file[256];
         char function[256];
         char message[2048];
+
+        record( log::type t 
+                , const char* tag
+                , const char* file
+                , const char* function
+                , const int line );
     };
 
     char acronym( log::type l );
+
+    tcode::byte_buffer& operator<<( tcode::byte_buffer& buf , const record& r );
+    tcode::byte_buffer& operator>>( tcode::byte_buffer& buf , record& r );
+    
 }}
 
 #endif

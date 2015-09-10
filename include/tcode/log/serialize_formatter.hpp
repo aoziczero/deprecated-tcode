@@ -1,9 +1,9 @@
 #ifndef __tcode_diagnostics_log_serialize_formatter_h__
 #define __tcode_diagnostics_log_serialize_formatter_h__
 
-#include <diagnostics/log/formatter.hpp>
+#include <tcode/log/formatter.hpp>
 
-namespace tcode { namespace diagnostics { namespace log {
+namespace tcode { namespace log {
 
 struct record;
 class serialize_formatter
@@ -12,9 +12,9 @@ class serialize_formatter
 public:
 	serialize_formatter( void );
 	virtual ~serialize_formatter( void );
-	virtual void format( const record& r , tcode::buffer::byte_buffer& buf );
+	virtual void format( const record& r , tcode::byte_buffer& buf );
 };
 
-}}}
+}}
 
 #endif

@@ -1,17 +1,15 @@
 #include "stdafx.h"
 #include <tcode/block.hpp>
-
 #include <tcode/threading/spinlock.hpp>
 #include <tcode/fixed_size_allocator.hpp>
 #include <atomic>
 
-
 namespace tcode { 
 namespace {
-
-    static const std::size_t ALLOC_SIZE_TABLE[]			= { 4 , 8 , 16 , 32 , 64 , 256 , 1024 , 2048 , 4096 , 8192 , 16384 };
-    static const std::size_t ALLOC_SIZE_TABLE_COUNT		= 11;
-
+    static const std::size_t alloc_size_table[] = {
+        4 , 8 , 16 , 32 , 64 , 256 , 1024 , 2048 , 4096 , 8192 , 16384
+    };
+    static const std::size_t alloc_size_table_count		= 11;
 }
 
 class block_manager{
@@ -22,8 +20,8 @@ public:
     };
 
 	block_manager( void ){
-		for ( int i = 0 ; i < ALLOC_SIZE_TABLE_COUNT ; ++i ) {
-			_fixed_size_allocators[i].init( ALLOC_SIZE_TABLE[i]  + sizeof( block_hdr ) );
+		for ( int i = 0 ; i < alloc_size_table_count ; ++i ) {
+			_fixed_size_allocators[i].init( alloc_size_table[i]  + sizeof( block_hdr ) );
 		}
 	}
 
@@ -33,10 +31,10 @@ public:
 	
 	block::handle	alloc( const std::size_t size ) {
 		block_hdr* pb = nullptr;
-		for ( int i = 0 ; i < ALLOC_SIZE_TABLE_COUNT ; ++i ) {
-			if ( ALLOC_SIZE_TABLE[i] >= size ) {
+		for ( int i = 0 ; i < alloc_size_table_count ; ++i ) {
+			if ( alloc_size_table[i] >= size ) {
 				pb = reinterpret_cast< block_hdr* >( _fixed_size_allocators[i].alloc());
-				pb->capacity = ALLOC_SIZE_TABLE[i];
+				pb->capacity = alloc_size_table[i];
 				break;
 			}
 		}
@@ -68,8 +66,8 @@ public:
 			return ;
 		block_hdr* pb = reinterpret_cast< block_hdr* >(ptr) - 1;
 		if (pb->refcount.fetch_sub(1) == 1) {
-			for ( int i = 0 ; i < ALLOC_SIZE_TABLE_COUNT ; ++i ) {
-				if ( ALLOC_SIZE_TABLE[i] == pb->capacity ) {
+			for ( int i = 0 ; i < alloc_size_table_count ; ++i ) {
+				if ( alloc_size_table[i] == pb->capacity ) {
 					_fixed_size_allocators[i].free( pb );
 					return;
 				}
@@ -117,7 +115,7 @@ public:
     }
 private:
 	typedef fixed_size_allocator< tcode::threading::spinlock > fixed_size_allocator_impl;
-	fixed_size_allocator_impl _fixed_size_allocators[ALLOC_SIZE_TABLE_COUNT];
+	fixed_size_allocator_impl _fixed_size_allocators[alloc_size_table_count];
 };
 
 block::handle		block::alloc( const std::size_t sz ){

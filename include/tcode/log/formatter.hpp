@@ -1,10 +1,10 @@
 #ifndef __tcode_diagnostics_log_formatter_h__
 #define __tcode_diagnostics_log_formatter_h__
 
-#include <common/rc_ptr.hpp>
-#include <buffer/byte_buffer.hpp>
+#include <tcode/byte_buffer.hpp>
+#include <memory>
 
-namespace tcode { namespace diagnostics { namespace log {
+namespace tcode {  namespace log {
 
 struct record;
 class formatter
@@ -12,7 +12,7 @@ class formatter
 public:
 	formatter( void );
 	virtual ~formatter( void );
-	virtual void format( const record& r , tcode::buffer::byte_buffer& buf );
+	virtual void format( const record& r , tcode::byte_buffer& buf );
 private:
 	
 };
@@ -21,6 +21,6 @@ typedef std::shared_ptr< formatter > formatter_ptr;
 
 formatter_ptr default_formatter( void );
 
-}}}
+}}
 
 #endif

@@ -1,10 +1,12 @@
 #include "stdafx.h"
-#include "file_writer.hpp"
-#include <common/time_stamp.hpp>
-#include <common/time_util.hpp>
-#include <common/string.hpp>
+#include <tcode/log/file_writer.hpp>
+#include <tcode/time/timestamp.hpp>
+#include <tcode/time/timespan.hpp>
+#include <tcode/time/ctime_adapter.hpp>
+#include <tcode/time/systemtime.hpp>
+#include <tcode/string.hpp>
 
-#if defined( TCODE_TARGET_WINDOWS )
+#if defined( TCODE_WIN32 )
 #else
 #include <errno.h>
 #include <unistd.h>
@@ -18,10 +20,10 @@ extern char* program_invocation_short_name;
 
 #endif
 
-namespace tcode { namespace diagnostics { namespace log {
+namespace tcode { namespace log {
 
 file_writer::file_writer( void ) 
-#if defined( TCODE_TARGET_WINDOWS )
+#if defined( TCODE_WIN32 )
 	: _file(INVALID_HANDLE_VALUE) ,
 #else
 	: _file(nullptr) ,
@@ -36,14 +38,14 @@ file_writer::~file_writer( void ) {
 }
 
 void file_writer::write( const record& r ) {
-	tcode::time::systemtime st;
-	tcode::time::convert_to( tcode::time_stamp::now() , st );
-
-#if defined( TCODE_TARGET_WINDOWS )
-	if( _file == INVALID_HANDLE_VALUE || _current_day  != st.wDay || _line_count > 65535 ) {
+	tcode::time::systemtime st(tcode::timestamp::now());
+#if defined( TCODE_WIN32 )
+	if( _file == INVALID_HANDLE_VALUE 
 #else
-	if( _file == nullptr || _current_day  != st.wDay || _line_count > 65535 ) {
+	if( _file == nullptr 
 #endif
+        ||  _current_day  != st.wDay || _line_count > 65535 ) {
+
 		if( _current_day != st.wDay ) {
 			_delete_old_logs();
 			_day_file_count = 0;
@@ -58,7 +60,7 @@ void file_writer::write( const record& r ) {
 	}
     ++_line_count;
 	formatter()->format( r , _buffer );
-#if defined( TCODE_TARGET_WINDOWS )
+#if defined( TCODE_WIN32 )
 	DWORD sz = 0;
 	::WriteFile( _file , _buffer.rd_ptr() , static_cast< DWORD >(_buffer.length()) , &sz , nullptr );
 	FlushFileBuffers(_file);
@@ -69,7 +71,7 @@ void file_writer::write( const record& r ) {
 	_buffer.clear();
 }
 
-#if defined( TCODE_TARGET_WINDOWS )
+#if defined( TCODE_WIN32 )
 bool file_writer::_create_log_file( void ) {
 	if ( _file != INVALID_HANDLE_VALUE ) 
 		CloseHandle( _file );
@@ -89,9 +91,7 @@ bool file_writer::_create_log_file( void ) {
     LPSECURITY_ATTRIBUTES attr = nullptr;
     CreateDirectory( path.c_str() , attr );
 
-	tcode::time::systemtime st;
-	tcode::time::convert_to( tcode::time_stamp::now() , st );
-
+	tcode::time::systemtime st( tcode::timestamp::now());
     wchar_t file_name[4096];
     swprintf_s( file_name , 
                 L"log_%04d%02d%02d_%02d%02d%02d_%04d.log" ,
@@ -134,9 +134,8 @@ void file_writer::_delete_old_logs( void ) {
 	std::wstring path = filePath;
     path.append( L"\\log\\" );
 
-	tcode::time_stamp sep( tcode::time_stamp::now() - tcode::time_span::days(30));
-	tcode::time::systemtime st;
-	tcode::time::convert_to( tcode::time_stamp::now() , st );
+	tcode::timestamp sep( tcode::timestamp::now() - tcode::timespan::days(30));
+	tcode::time::systemtime st( tcode::timestamp::now());
 
     wchar_t file_name[4096];
 	swprintf_s( file_name , L"log_%04d%02d%02d" , st.wYear , st.wMonth , st.wDay );
@@ -174,9 +173,7 @@ bool file_writer::_create_log_file( void ) {
     path.append( program_invocation_short_name );
     mkdir( path.c_str() , 0755 );
 
-	tcode::time::systemtime st;
-	tcode::time::convert_to( tcode::time_stamp::now() , st );
-
+	tcode::time::systemtime st( tcode::timestamp::now());
     tcode::string::append_format( path 
             ,"/%04d%02d%02d_%02d%02d%02d_%04d.log" 
             , st.wYear , st.wMonth , st.wDay , st.wHour , st.wMinute , st.wSecond 
@@ -194,9 +191,8 @@ void file_writer::_delete_old_logs( void ) {
     path.append( "/logs/" );
     path.append( program_invocation_short_name );
 
-    tcode::time_stamp sep( tcode::time_stamp::now() - tcode::time_span::days(30));
-	tcode::time::systemtime st;
-	tcode::time::convert_to( tcode::time_stamp::now() , st );
+    tcode::timestamp sep( tcode::timestamp::now() - tcode::timespan::days(30));
+	tcode::time::systemtime st( tcode::timestamp::now());
 
     std::string delete_before;
     tcode::string::append_format( delete_before 
@@ -233,4 +229,4 @@ void file_writer::_delete_old_logs( void ) {
 
 #endif
 
-}}}
+}}

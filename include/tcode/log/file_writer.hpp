@@ -1,10 +1,10 @@
 #ifndef __tcode_diagnostics_log_file_writer_h__
 #define __tcode_diagnostics_log_file_writer_h__
 
-#include <common/rc_ptr.hpp>
-#include <diagnostics/log/writer.hpp>
+#include <tcode/log/writer.hpp>
+#include <tcode/byte_buffer.hpp>
 
-namespace tcode { namespace diagnostics { namespace log {
+namespace tcode { namespace log {
 
 class file_writer 
 	: public writer {
@@ -16,8 +16,8 @@ private:
 	bool _create_log_file();
 	void _delete_old_logs();
 private:
-	tcode::buffer::byte_buffer _buffer;	
-#if defined( TCODE_TARGET_WINDOWS )
+	tcode::byte_buffer _buffer;	
+#if defined( TCODE_WIN32 )
 	HANDLE			_file;
 #else
 	FILE*           _file;
@@ -27,6 +27,6 @@ private:
 	uint32_t		_day_file_count;
 };
 
-}}}
+}}
 
 #endif

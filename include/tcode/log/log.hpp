@@ -7,7 +7,7 @@
 #include <tcode/log/logger.hpp>
 #include <tcode/log/console_writer.hpp>
 #include <tcode/log/file_writer.hpp>
-#include <tcode/log/udp_writer.hpp>
+//#include <tcode/log/udp_writer.hpp>
 #include <tcode/log/serialize_formatter.hpp>
 
 #if defined(TCODE_WIN32)
