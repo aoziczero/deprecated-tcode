@@ -7,10 +7,17 @@ namespace tcode { namespace io { namespace ip { namespace tcp { namespace pipeli
 
     class filter {
     public:
-       filter( void );
-       ~filter( void );
+        filter( void );
+        virtual ~filter( void );
+
+        virtual void on_open( const tcode::io::ip::address& addr );
+        virtual void on_close( void );
+        virtual void on_error( const std::error_code& e );
+        virtual void on_read( tcode::byte_buffer& buf );
+
+
+
     private:
-        std::vector< filter* > _filters;        
     };
 
 }}}}}

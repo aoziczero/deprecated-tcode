@@ -9,8 +9,12 @@ namespace tcode { namespace io { namespace ip { namespace tcp { namespace pipeli
     public:
        channel( socket&& s );
        ~channel( void );
+
+       void add_ref( void );
+       void release( void );
     private:
-        tcode::io::ip::tcp::socket _socket;
+       std::atomic<int> _refcount;
+       tcode::io::ip::tcp::socket _socket;
     };
 
 }}}}}
