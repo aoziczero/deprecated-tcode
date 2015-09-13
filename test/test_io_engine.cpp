@@ -9,10 +9,10 @@ TEST( tcode_io_engine , ctor ){
 TEST( tcode_io_engine , execute ) {
     tcode::io::engine e;
     int test_val = 0;
-    e.active().inc();
+    e.active_inc();
     e.execute( [&e , &test_val] {
                 test_val = 1;
-                e.active().dec();
+                e.active_dec();
             });
     e.run();
     ASSERT_EQ( test_val , 1 ); 

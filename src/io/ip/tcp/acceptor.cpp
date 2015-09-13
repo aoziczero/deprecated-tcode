@@ -22,4 +22,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         _engine.mux().unbind( _descriptor );
     }
 
+    bool acceptor::accept( tcode::io::ip::tcp::socket& fd , 
+                tcode::io::ip::address& ardd ){
+        return false;
+    }
+
 }}}}

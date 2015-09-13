@@ -29,6 +29,8 @@ endif
 ifeq ($(OS),Darwin)
 MUX=io/kqueue.cpp	
 else
+#if linux kernel ver < 2.4 
+#MUX=io/poll.cpp
 MUX=io/epoll.cpp
 endif
 
@@ -39,9 +41,14 @@ TCODE_SRCS=tcode.cpp\
 		   allocator.cpp\
 		   base64.cpp\
 		   crc32.cpp\
+		   block.cpp\
+		   byte_buffer.cpp\
+		   string.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
+		   time/util.cpp\
+		   time/systemtime.cpp\
 		   threading/spinlock.cpp\
 		   threading/local_storage.cpp\
 		   io/io.cpp\
@@ -49,7 +56,6 @@ TCODE_SRCS=tcode.cpp\
 		   io/operation.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
-		   io/poll.cpp\
 		   $(MUX)\
 		   io/engine.cpp\
 		   io/timer.cpp\
@@ -66,6 +72,14 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/udp/socket.cpp\
 		   io/ip/udp/operation_read.cpp\
 		   io/ip/udp/operation_write.cpp\
+		   io/uds/address.cpp\
+		   log/record.cpp\
+		   log/logger.cpp\
+		   log/formatter.cpp\
+		   log/writer.cpp\
+		   log/console_writer.cpp\
+		   log/file_writer.cpp\
+		   log/serialize_formatter.cpp\
 		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
@@ -107,9 +121,6 @@ TEST_SRCS=main.cpp\
 		  test_threading_spinlock.cpp\
 		  test_threading_local_storage.cpp\
 		  test_io_pipe.cpp\
-		  test_io_poll.cpp\
-		  test_epoll_wakeup.cpp\
-		  test_epoll_et.cpp\
 		  test_operation.cpp\
 		  test_io_epoll.cpp\
 		  test_io_timer.cpp\
@@ -118,6 +129,12 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_tcp_connect.cpp\
 		  test_io_ip_tcp_acceptor.cpp\
 		  test_io_ip_udp.cpp\
+		  test_bit.cpp\
+		  
+#test_io_poll.cpp\
+#test_epoll_wakeup.cpp\
+#test_epoll_et.cpp\
+		  
 
 GTEST_DIR=../external/gtest
 

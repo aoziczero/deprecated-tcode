@@ -36,7 +36,7 @@ namespace tcode { namespace io {
 
     epoll::_descriptor::_descriptor( epoll* ep , int fd ) {
         refcount.store(1);
-        ep->_engine.active().inc();
+        ep->_engine.active_inc();
         this->fd = fd;
     }
 
@@ -48,7 +48,7 @@ namespace tcode { namespace io {
         if ( refcount.fetch_sub(1) != 1 ) {
             return; 
         }
-        ep->_engine.active().dec();
+        ep->_engine.active_dec();
         
         tcode::slist::queue< tcode::operation > ops;
         for ( int i = 0 ;i < tcode::io::ev_max ; ++i ) {
@@ -124,8 +124,8 @@ namespace tcode { namespace io {
             if ( desc ) {
                 desc->complete( this , events[i].events );
             } else {
-                char null_buf[256];
-                ::read( _wake_up.rd_pipe() , null_buf , 256 );
+                char pipe_r[256];
+                ::read( _wake_up.rd_pipe() , pipe_r , 256 );
                 execute_op = true;
                 --run;
             }
@@ -346,11 +346,11 @@ namespace tcode { namespace io {
 
     void epoll::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active().inc();
+        _engine.active_inc();
     }
 
     void epoll::op_run( tcode::operation* op ){
-        _engine.active().dec();
+        _engine.active_dec();
         (*op)();
     }
 
@@ -367,7 +367,7 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code();
+                ec = tcode::error_success;
             else
                 ec = tcode::last_error();
         }
@@ -390,7 +390,7 @@ namespace tcode { namespace io {
                 ec = tcode::error_disconnected;
             } else {
                 if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                    ec = std::error_code();
+                    ec = tcode::error_success;
                 else
                     ec = tcode::last_error();
             }
@@ -418,7 +418,7 @@ namespace tcode { namespace io {
                 return 0;
             }
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
@@ -440,7 +440,7 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
@@ -462,10 +462,14 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = std::error_code(); 
+                ec = tcode::error_success; 
             else
                 ec = tcode::last_error();
         }
         return -1;
+    }
+    
+    int epoll::native_descriptor( descriptor desc ) {
+        return desc->fd;
     }
 }}

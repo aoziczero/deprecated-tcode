@@ -19,11 +19,15 @@ namespace tcode { namespace io {
      */
     class engine {
     public:
+		//! ctor
         engine( void );
+		//! dtor
         ~engine( void );
 
+		//! run
         void run( void );
 
+		//! check current context is in run loop
         bool in_run_loop( void );
 
         void timer_schedule( timer::id* id );
@@ -33,7 +37,8 @@ namespace tcode { namespace io {
 
         io::multiplexer& mux( void );
 
-        tcode::active_ref& active( void );
+        void active_inc( void );
+        void active_dec( void );
 
         template< typename Handler >
         void execute( const Handler& handler ){
@@ -41,7 +46,7 @@ namespace tcode { namespace io {
         }
     private:
         io::multiplexer _mux;
-        tcode::active_ref _active;
+        std::atomic<int> _active;
         std::thread::id _run_thread_id;
         std::list< timer::id* > _timers;
     };

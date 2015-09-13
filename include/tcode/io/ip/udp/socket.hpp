@@ -23,6 +23,12 @@ namespace tcode { namespace io { namespace ip { namespace udp {
         ~socket( void );
 
         bool bind( const tcode::io::ip::address& addr );
+
+        int write( const tcode::io::buffer& buf 
+                , const tcode::io::ip::address& addr );
+        
+        int read( tcode::io::buffer& buf 
+                , tcode::io::ip::address& addr );
         
         //!
         template < typename Handler >

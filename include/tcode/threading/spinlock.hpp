@@ -26,8 +26,8 @@ namespace tcode { namespace threading {
         bool trylock( void );
 
 		/*!
-		*  @class  spinlock
-		*  @bried  os 별 spinlock wrapper
+		*  @class  guard
+		*  @bried  raii lock guard
 		*/
         class guard{
         public:

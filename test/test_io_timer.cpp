@@ -3,10 +3,10 @@
 
 TEST( timer , call ) {
     tcode::io::engine e;
-    ASSERT_TRUE( tcode::io::test_alive_ids() == 0 );
+    //ASSERT_TRUE( tcode::io::test_alive_ids() == 0 );
     {
         tcode::io::timer t(e);
-        ASSERT_TRUE( tcode::io::test_alive_ids() == 1 );
+        //ASSERT_TRUE( tcode::io::test_alive_ids() == 1 );
         t.due_time( tcode::timespan::milliseconds(500))
          .repeat( tcode::timespan::milliseconds(200))
          .callback( [] ( const std::error_code& ec )
@@ -32,5 +32,5 @@ TEST( timer , call ) {
         e.run();
         thread.join();
     }
-    ASSERT_TRUE( tcode::io::test_alive_ids() == 0 );
+    //ASSERT_TRUE( tcode::io::test_alive_ids() == 0 );
 }

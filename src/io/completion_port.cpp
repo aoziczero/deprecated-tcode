@@ -27,7 +27,7 @@ namespace tcode { namespace io {
 
     completion_port::_descriptor::_descriptor( completion_port* mux , SOCKET fd ) {
         refcount.store(1);
-        mux->_engine.active().inc();
+        mux->_engine.active_inc();
         this->fd = fd;
     }
 
@@ -39,7 +39,7 @@ namespace tcode { namespace io {
         if ( refcount.fetch_sub(1) != 1 ) {
             return; 
         }
-        mux->_engine.active().dec();
+        mux->_engine.active_dec();
         delete this;
     }
 
@@ -384,11 +384,11 @@ namespace tcode { namespace io {
 
     void completion_port::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active().inc();
+        _engine.active_inc();
     }
 
     void completion_port::op_run( tcode::operation* op ){
-        _engine.active().dec();
+        _engine.active_dec();
         (*op)();
     }
 
@@ -429,5 +429,10 @@ namespace tcode { namespace io {
 		fd = INVALID_SOCKET;
 		return -1;
     }
+
+    SOCKET completion_port::native_descriptor( descriptor d ) {
+        return d->fd;
+    }
+            
 
 }}

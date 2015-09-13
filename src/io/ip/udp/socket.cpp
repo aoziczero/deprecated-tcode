@@ -23,7 +23,21 @@ namespace tcode { namespace io { namespace ip { namespace udp {
     bool socket::bind( const tcode::io::ip::address& addr ) {
         return _engine.mux().bind( _descriptor , addr );
     }
+    
+    int socket::read( tcode::io::buffer& buf 
+                , tcode::io::ip::address& addr ) {
+        std::error_code e;
+        return _engine.mux().read( _descriptor
+                , buf , addr , e );
+    }
 
+    int socket::write( const tcode::io::buffer& buf 
+                , const tcode::io::ip::address& addr ){
+        std::error_code e;
+        return _engine.mux().write( _descriptor
+                , buf , addr , e );
+    }
+        
     void socket::close( void ) {
         _engine.mux().unbind( _descriptor );
     }

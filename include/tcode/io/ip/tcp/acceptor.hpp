@@ -18,8 +18,11 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         acceptor( io::engine& en );
         //! dtor
         ~acceptor( void );
-
+        
+        //! bind and listen
         bool listen( const tcode::io::ip::address& addr );
+
+        //! close
         void close( void );
        
         template < typename Handler >
@@ -33,6 +36,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 					_address.family() ,
                     reinterpret_cast< operation_accept_base* >(ptr));
         }
+
+        bool accept( tcode::io::ip::tcp::socket& fd , 
+                tcode::io::ip::address& ardd );
     private:
         io::engine& _engine;
         io::descriptor _descriptor;
