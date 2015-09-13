@@ -98,9 +98,9 @@ namespace tcode { namespace io {
         , _engine( en )
     {
         struct epoll_event e;
-        e.events = EPOLLOUT | EPOLLONESHOT ;
+        e.events = EPOLLIN ;
         e.data.ptr = nullptr;
-        epoll_ctl( _handle , EPOLL_CTL_ADD , _wake_up.wr_pipe() , &e );
+        epoll_ctl( _handle , EPOLL_CTL_ADD , _wake_up.rd_pipe() , &e );
     }
 
     epoll::~epoll( void ){
@@ -124,6 +124,8 @@ namespace tcode { namespace io {
             if ( desc ) {
                 desc->complete( this , events[i].events );
             } else {
+                char null_buf[256];
+                ::read( _wake_up.rd_pipe() , null_buf , 256 );
                 execute_op = true;
                 --run;
             }
@@ -145,10 +147,8 @@ namespace tcode { namespace io {
     }
     
     void epoll::wake_up( void ){
-        struct epoll_event e;
-        e.events = EPOLLOUT | EPOLLONESHOT;
-        e.data.ptr = nullptr;
-        epoll_ctl( _handle , EPOLL_CTL_MOD , _wake_up.wr_pipe() , &e );
+        char ch = 0;
+        ::write( _wake_up.wr_pipe() , &ch , 1 );
     }
 
     bool epoll::bind( const descriptor& d ) {

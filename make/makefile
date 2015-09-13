@@ -37,10 +37,13 @@ TCODE_SRCS=tcode.cpp\
 		   operation.cpp\
 		   active_ref.cpp\
 		   allocator.cpp\
+		   base64.cpp\
+		   crc32.cpp\
 		   time/timestamp.cpp\
 		   time/timespan.cpp\
 		   time/ctime_adapter.cpp\
 		   threading/spinlock.cpp\
+		   threading/local_storage.cpp\
 		   io/io.cpp\
 		   io/buffer.cpp\
 		   io/operation.cpp\
@@ -102,6 +105,7 @@ TEST_SRCS=main.cpp\
 		  test_time.cpp\
 		  test_function.cpp\
 		  test_threading_spinlock.cpp\
+		  test_threading_local_storage.cpp\
 		  test_io_pipe.cpp\
 		  test_io_poll.cpp\
 		  test_epoll_wakeup.cpp\
