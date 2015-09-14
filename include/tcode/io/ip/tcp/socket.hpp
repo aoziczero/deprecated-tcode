@@ -15,7 +15,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     class socket {
     public:
         //! ctor
-        socket( engine& e );
+        socket( io::engine& e );
 
         //! move ctor
         socket( socket&& rhs );
@@ -86,9 +86,9 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 
         void close( void );
         io::descriptor& descriptor( void );
-        io::engine& engine( void );
+        tcode::io::engine& engine( void );
     private:
-        engine& _engine;
+        tcode::io::engine& _engine;
         io::descriptor _descriptor;
     private:
         socket( void );

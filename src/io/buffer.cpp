@@ -3,6 +3,10 @@
 
 namespace tcode { namespace io {
 
+    buffer::buffer( void ) {
+        set(nullptr,0);
+    }
+
     buffer::buffer( const iovec& iov )
     {
 #if defined( TCODE_WIN32 )

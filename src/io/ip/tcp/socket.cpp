@@ -28,7 +28,8 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         return _descriptor;
     }
 
-    io::engine& socket::engine( void ) {
+    tcode::io::engine& socket::engine( void ) {
         return _engine;
     }
+
 }}}}
