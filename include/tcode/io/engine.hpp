@@ -2,7 +2,6 @@
 #define __tcode_io_engine_h__
 
 #include <tcode/tcode.hpp>
-#include <tcode/active_ref.hpp>
 #include <tcode/io/io.hpp>
 #include <tcode/io/io_define.hpp>
 #include <tcode/threading/spinlock.hpp>
@@ -30,9 +29,14 @@ namespace tcode { namespace io {
 		//! check current context is in run loop
         bool in_run_loop( void );
 
+        //! add timer
         void timer_schedule( timer::id* id );
+        //! timer cancel
+        //! if timers contain id call id::callback
         void timer_cancel( timer::id* id );
+        //! drain timers
         void timer_drain( void );
+        //!
         tcode::timespan next_wake_up_time( void );
 
         io::multiplexer& mux( void );

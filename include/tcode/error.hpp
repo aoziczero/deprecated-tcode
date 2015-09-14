@@ -9,6 +9,7 @@ namespace tcode {
     extern std::error_code error_aborted;
     extern std::error_code error_disconnected;
     extern std::error_code error_invalid;
+    extern std::error_code error_pipeline_build_fail;
     
     std::error_code last_error( void );
     std::error_category& tcode_category( void );

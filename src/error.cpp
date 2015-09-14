@@ -8,6 +8,7 @@ namespace tcode {
         err_disconnected,
         err_operation_aborted,
         err_invalid ,
+        err_pipeline_build_fail,
         
         
         err_max ,
@@ -18,12 +19,14 @@ namespace tcode {
         "disconnected",
         "operation_aborted",
         "invalid" ,
+        "pipeline_build_fail" ,
     };
 
 	std::error_code error_success(err_success , tcode_category()) ;
     std::error_code error_aborted(err_operation_aborted , tcode_category()) ;
     std::error_code error_disconnected( err_disconnected , tcode_category());
     std::error_code error_invalid(err_invalid, tcode_category());
+    std::error_code error_pipeline_build_fail(err_pipeline_build_fail , tcode_category());
 
     std::error_code last_error( void ) {
 #if defined( TCODE_WIN32 )

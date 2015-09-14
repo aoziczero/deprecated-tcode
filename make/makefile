@@ -37,7 +37,6 @@ endif
 TCODE_SRCS=tcode.cpp\
 		   error.cpp\
 		   operation.cpp\
-		   active_ref.cpp\
 		   allocator.cpp\
 		   base64.cpp\
 		   crc32.cpp\
@@ -80,6 +79,11 @@ TCODE_SRCS=tcode.cpp\
 		   log/console_writer.cpp\
 		   log/file_writer.cpp\
 		   log/serialize_formatter.cpp\
+		   io/ip/tcp/pipeline/connector.cpp\
+		   io/ip/tcp/pipeline/connector_handler.cpp\
+		   
+
+		   #active_ref.cpp\
 		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
