@@ -2,6 +2,7 @@
 #include <tcode/io/ip/tcp/pipeline/acceptor.hpp>
 #include <tcode/io/ip/tcp/pipeline/pipeline.hpp>
 #include <tcode/io/ip/tcp/pipeline/channel.hpp>
+#include <tcode/log/log.hpp>
 
 namespace tcode { namespace io { namespace ip { namespace tcp {
 
@@ -15,11 +16,15 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     }
 
 	bool pipeline_acceptor::listen( const tcode::io::ip::address& bind_addr ){
-        return _acceptor.listen( bind_addr ); 
+        if ( _acceptor.listen( bind_addr )){
+            do_accept();
+            return true;
+        }
+        return false;
     }
     
     bool pipeline_acceptor::listen( int port ){
-        return _acceptor.listen( tcode::io::ip::address(
+        return this->listen( tcode::io::ip::address(
                     tcode::io::ip::address::any( port )));
     }
 
@@ -39,6 +44,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 	void pipeline_acceptor::handle_accept( const std::error_code& ec
             , const tcode::io::ip::address& addr )
     {
+        fprintf(stderr, "accept" );
         if ( ec ) {
             on_error( ec );
         } else {

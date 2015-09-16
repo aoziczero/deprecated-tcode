@@ -121,7 +121,7 @@ bool inet_pton( int af
         return &_len;    
     }
 
-    std::string address::ip( void ){
+    std::string address::ip( void ) const{
     	char buffer[4096] = {0,};
     	std::string ip = detail::inet_ntop(
               family() 		
