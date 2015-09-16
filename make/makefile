@@ -81,6 +81,7 @@ TCODE_SRCS=tcode.cpp\
 		   log/serialize_formatter.cpp\
 		   io/ip/tcp/pipeline/connector.cpp\
 		   io/ip/tcp/pipeline/connector_handler.cpp\
+		   io/ip/tcp/pipeline/acceptor.cpp\
 		   
 
 		   #active_ref.cpp\

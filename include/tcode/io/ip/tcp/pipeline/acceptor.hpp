@@ -1,50 +1,33 @@
 #ifndef __tcode_transport_tcp_channel_acceptor_h__
 #define __tcode_transport_tcp_channel_acceptor_h__
 
-#include <transport/tcp/acceptor_handler.hpp>
-#include <diagnostics/tcode_error_code.hpp>
-#include <diagnostics/log/log.hpp>
+#include <tcode/io/ip/tcp/acceptor.hpp>
+#include <tcode/io/ip/tcp/pipeline/pipeline_builder.hpp>
 
-#if defined( TCODE_TARGET_LINUX )
-#include <io/epoll.hpp>
-#endif
+namespace tcode { namespace io { namespace ip { namespace tcp {
 
-namespace tcode { namespace transport { namespace tcp {
-
-class completion_handler_accept;
-class acceptor 
-	: public tcode::io::ip::accept_base
-#if defined( TCODE_TARGET_LINUX )
-	, public tcode::io::epoll::handler
-#endif
+class pipeline_acceptor
+    : public pipeline_builder
 {
 public:
-	acceptor(tcode::transport::event_loop& l);
-	virtual ~acceptor(void);		
+	pipeline_acceptor( io::engine& e );
+	virtual ~pipeline_acceptor(void);		
 
-	bool listen( const tcode::io::ip::address& bind_addr
-		, const acceptor_handler_ptr& handler );
+	bool listen( const tcode::io::ip::address& bind_addr );
+    bool listen( int port );
 
 	void close( void );
 
-	tcode::transport::event_loop& loop( void );
-	
-#if defined (TCODE_TARGET_WINDOWS )
-	void do_accept(completion_handler_accept* h);
-	void handle_accept( const tcode::diagnostics::error_code& ec 
-				, completion_handler_accept* handler );
-#elif defined( TCODE_TARGET_LINUX )	
-	virtual void operator()( const int events);
-	void handle_accept( void );
-#endif
+	void do_accept(void);
+	void handle_accept( const std::error_code& ec , tcode::io::ip::address& addr );
+    
+    virtual bool on_condition( const tcode::io::ip::address& addr );
+	virtual void on_error( const tcode::diagnostics::error_code& ec );
 private:
-	tcode::transport::event_loop& _loop;
-	acceptor_handler_ptr _handler;
-	int _address_family;	
-public:
-	static diagnostics::log::logger& logger();
+    tcp::acceptor _acceptor;
+    tcp::socket _fd;
 };
 
-}}}
+}}}}
 
 #endif

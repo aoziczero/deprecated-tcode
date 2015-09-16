@@ -15,10 +15,12 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     class socket {
     public:
         //! ctor
-        socket( engine& e );
+        socket( io::engine& e );
 
         //! move ctor
         socket( socket&& rhs );
+        //! move assign
+        socket& operator=( socket&& rhs );
         //! dtor
         ~socket( void );
     
@@ -30,7 +32,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_connect<Handler> ));
             new (ptr) operation_connect<Handler>( addr , handler );
-            _engine.mux().connect( _descriptor , 
+            engine().mux().connect( _descriptor , 
                     reinterpret_cast< operation_connect_base* >(ptr));
         }
 
@@ -42,7 +44,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_write<Handler> ));
             new (ptr) operation_write<Handler>( buf , handler );
-            _engine.mux().write( _descriptor
+            engine().mux().write( _descriptor
                     , reinterpret_cast< operation_write_base* >(ptr));
         }
         
@@ -54,7 +56,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_writev<Handler> ));
             new (ptr) operation_writev<Handler>( bufs , handler );
-            _engine.mux().write( _descriptor
+            engine().mux().write( _descriptor
                     , reinterpret_cast< operation_write_base* >(ptr));
         }
 
@@ -67,7 +69,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_read<Handler> ));
             new (ptr) operation_read<Handler>( buf , handler ,fixed  );
-            _engine.mux().read( _descriptor
+            engine().mux().read( _descriptor
                     , reinterpret_cast< operation_read_base* >(ptr));
         }
         
@@ -80,7 +82,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_readv<Handler> ));
             new (ptr) operation_readv<Handler>( bufs , handler ,fixed );
-            _engine.mux().read( _descriptor
+            engine().mux().read( _descriptor
                     , reinterpret_cast< operation_read_base* >(ptr));
         }
 
@@ -88,13 +90,12 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
         io::descriptor& descriptor( void );
         io::engine& engine( void );
     private:
-        engine& _engine;
+        io::engine* _engine;
         io::descriptor _descriptor;
     private:
         socket( void );
         socket( const socket& rhs );
         socket operator=( const socket& rhs );
-        socket operator=( socket&& rhs );
     };
 
 }}}}
