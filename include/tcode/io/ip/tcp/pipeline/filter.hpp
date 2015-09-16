@@ -16,7 +16,7 @@ public:
 	// inbound
 	virtual void filter_on_open( const tcode::io::ip::address& addr );
 	virtual void filter_on_close( void );
-	virtual void filter_on_read( tcode::buffer::byte_buffer buf );
+	virtual void filter_on_read( tcode::byte_buffer buf );
 	virtual void filter_on_write( int written , bool flush );
 	virtual void filter_on_error( const std::error_code& ec );
 
@@ -24,18 +24,18 @@ public:
 	virtual void filter_on_end_reference( void );;
 	
 	// outbound
-	virtual void filter_do_write( tcode::buffer::byte_buffer buf );	
-	//virtual void filter_do_writev( const std::vector< tcode::buffer::byte_buffer>& bufs );	
+	virtual void filter_do_write( tcode::byte_buffer buf );	
+	//virtual void filter_do_writev( const std::vector< tcode::byte_buffer>& bufs );	
 
 	// fire inbound
 	void fire_filter_on_open( const tcode::io::ip::address& addr );
 	void fire_filter_on_close( void );
-	void fire_filter_on_read( tcode::buffer::byte_buffer& buf );
+	void fire_filter_on_read( tcode::byte_buffer& buf );
 	void fire_filter_on_write( int written , bool flush );
 	void fire_filter_on_error( const std::error_code& ec );
 	
-	void fire_filter_do_write( tcode::buffer::byte_buffer& buf );
-	//void fire_filter_do_writev( const std::vector< tcode::buffer::byte_buffer>& bufs );	
+	void fire_filter_do_write( tcode::byte_buffer& buf );
+	//void fire_filter_do_writev( const std::vector< tcode::byte_buffer>& bufs );	
 
 	filter* inbound( void );
 	filter* outbound( void );
@@ -50,7 +50,7 @@ public:
 	void add_ref( void );
 	int release( void );
 
-	void close( const tcode::diagnostics::error_code& ec );
+	void close( const std::error_code& ec );
 private:
 	tcp::pipeline* _pipeline;
 	filter* _inbound;

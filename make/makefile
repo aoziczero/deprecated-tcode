@@ -82,6 +82,9 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/tcp/pipeline/connector.cpp\
 		   io/ip/tcp/pipeline/connector_handler.cpp\
 		   io/ip/tcp/pipeline/acceptor.cpp\
+		   io/ip/tcp/pipeline/channel.cpp\
+		   io/ip/tcp/pipeline/pipeline.cpp\
+		   io/ip/tcp/pipeline/filter.cpp
 		   
 
 		   #active_ref.cpp\

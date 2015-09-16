@@ -26,7 +26,7 @@ void filter::filter_on_close( void ) {
 	fire_filter_on_close();
 }
 
-void filter::filter_on_read( tcode::buffer::byte_buffer buf ) {
+void filter::filter_on_read( tcode::byte_buffer buf ) {
 	fire_filter_on_read( buf );
 }
 
@@ -43,7 +43,7 @@ void filter::filter_on_end_reference( void ){
 }
 	
 // outbound
-void filter::filter_do_write( tcode::buffer::byte_buffer buf ){
+void filter::filter_do_write( tcode::byte_buffer buf ){
 	fire_filter_do_write(buf);
 }	
 
@@ -58,7 +58,7 @@ void filter::fire_filter_on_close( void ){
 		pipeline()->fire_filter_on_close( _inbound  );
 }
 
-void filter::fire_filter_on_read( tcode::buffer::byte_buffer& buf ){
+void filter::fire_filter_on_read( tcode::byte_buffer& buf ){
 	if ( _inbound )
 		pipeline()->fire_filter_on_read( _inbound , buf );
 		
@@ -73,7 +73,7 @@ void filter::fire_filter_on_error( const std::error_code& ec ){
 		pipeline()->fire_filter_on_error( _inbound , ec );	
 }
 
-void filter::fire_filter_do_write( tcode::buffer::byte_buffer& buf ){
+void filter::fire_filter_do_write( tcode::byte_buffer& buf ){
 	pipeline()->fire_filter_do_write( _outbound , buf );
 }
 
@@ -113,7 +113,7 @@ int filter::release( void ){
 	return channel()->release();
 }
 
-void filter::close( const tcode::diagnostics::error_code& ec ){
+void filter::close( const std::error_code& ec ){
 	channel()->close( ec );
 }
 

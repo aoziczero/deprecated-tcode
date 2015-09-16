@@ -18,6 +18,7 @@ namespace tcode { namespace io {
 	*/
     class buffer : public iovec {
     public:
+        buffer( void );
 		//! 
         buffer( const iovec& iov );
 		//! 

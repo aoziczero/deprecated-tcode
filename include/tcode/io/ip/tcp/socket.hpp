@@ -88,7 +88,7 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 
         void close( void );
         io::descriptor& descriptor( void );
-        io::engine& engine( void );
+        tcode::io::engine& engine( void );
     private:
         io::engine* _engine;
         io::descriptor _descriptor;
