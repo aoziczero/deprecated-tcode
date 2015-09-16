@@ -6,12 +6,15 @@
 namespace tcode { namespace io { namespace ip { namespace tcp {
 
     pipeline_acceptor::pipeline_acceptor( io::engine& e )
-        : _acceptor( e ) 
-        , _fd( e )
+        : _acceptor( e ) , _fd( e )
     {
     }
 
-	bool pipeline_acceptor::listen( const tcode::io::ip::address& bind_addr );
+    pipeline_acceptor::~pipeline_acceptor( void )
+    {
+    }
+
+	bool pipeline_acceptor::listen( const tcode::io::ip::address& bind_addr ){
         return _acceptor.listen( bind_addr ); 
     }
     
@@ -25,10 +28,8 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     }
 
     void pipeline_acceptor::do_accept( void ){
-        if ( _descriptor == nullptr )
-            return;
         _fd = std::move( tcp::socket( engine() )); 
-        _acceptor.acceptor( _fd , [this]( const std::error_code& ec 
+        _acceptor.accept( _fd , [this]( const std::error_code& ec 
                 , const tcode::io::ip::address& addr )
             {
                 handle_accept( ec , addr );
@@ -36,24 +37,32 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
     }
 
 	void pipeline_acceptor::handle_accept( const std::error_code& ec
-            , tcode::io::ip::address& addr );
+            , const tcode::io::ip::address& addr )
     {
-        if ( on_condition( addr )){
-            /*
-                tcode::transport::tcp::channel* channel 
-                        = new tcode::transport::tcp::channel( 
-                                _handler->channel_loop() ,tcp_handle.handle());
-                if ( _handler->build( channel->pipeline() ) ) {
-                    channel->fire_on_open( handler->address_ptr()[1] );
-                } else {
-                    tcp_handle.close();
-                    delete channel;
-                }
-                */
+        if ( ec ) {
+            on_error( ec );
         } else {
-            _fd.close(); 
+            if ( on_condition( addr )){
+                tcode::io::ip::tcp::channel* channel 
+                    = new tcode::io::ip::tcp::channel( std::move( _fd ));
+                if ( build( channel->pipeline() ) ) {
+                    channel->fire_on_open(addr );
+                } else {
+                    delete channel;
+                    on_error( tcode::error_pipeline_build_fail );
+                }
+            } else {
+                _fd.close(); 
+            }
         }
         do_accept();
+    }
+
+    bool pipeline_acceptor::on_condition( const tcode::io::ip::address& addr ){
+        return true; 
+    }
+
+	void pipeline_acceptor::on_error( const std::error_code& ec ){
     }
 
 }}}}

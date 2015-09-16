@@ -1,50 +1,105 @@
 #include "stdafx.h"
-#include <tcode/io/ip/tcp/connector.hpp>
-#include <tcode/io/ip/option.hpp>
-#include <tcode/io/ip/simple_select.hpp>
+#include <tcode/io/ip/tcp/pipeline/connector.hpp>
+#include <tcode/time/timestamp.hpp>
 
 namespace tcode { namespace io { namespace ip { namespace tcp {
 
-    connector::connector( socket& s ) 
-        : _socket(s)
+    pipeline_connector::pipeline_connector( io::engine& e )
+        : _engine( e )
+          , _current_address_index(0)
+          , _timeout( tcode::timespan::minutes(1))
+          , _connect_in_progress(false)
+          , _socket(engine())
+          , _timer(engine())
     {
+
     }
 
-    connector::~connector( void ) {
+    pipeline_connector::~pipeline_connector( void ){
+
     }
-/*
-    ip::socket_type connector::connect( const ip::address& addr 
-        , const tcode::timespan& ts ) {
-        ip::socket_type fd = ip::socket( addr.family() ,SOCK_STREAM , IPPROTO_TCP );        
-        if ( fd != ip::invalid_socket ) {
-            tcode::io::ip::option::non_blocking nb;
-            if ( nb.set_option( fd ) ){
-#if defined( TCODE_WIN32 )
-                if ( ::connect( fd 
-                            , addr.sockaddr()
-                            , addr.sockaddr_length()) != -1 )
+
+    void pipeline_connector::connect( const tcode::io::ip::address& addr
+            , const tcode::timespan& wait_time  )
+    {
+        std::vector< tcode::io::ip::address > addrs;
+        addrs.push_back(addr);
+        connect_sequence( addrs , wait_time );
+    }
+
+    void pipeline_connector::connect_sequence( const std::vector< tcode::io::ip::address >& addr 
+            , const tcode::timespan& per_wait_time  )
+    {
+        _timeout = per_wait_time;
+        do_connect( addr );
+    }
+
+    io::engine& pipeline_connector::engine( void ) {
+        return _engine;
+    }
+
+    tcode::timespan pipeline_connector::timeout( void ){
+        return _timeout;
+    }
+
+    void pipeline_connector::timeout( const tcode::timespan& timeout ){
+        _timeout = timeout;
+    }
+
+    void pipeline_connector::do_connect(const std::vector< tcode::io::ip::address >& addrs ){	
+        _address = addrs;
+        _current_address_index = 0;
+        _timer.due_time( _timeout )
+            .repeat( _timeout )
+            .callback( [this]( const std::error_code& ec ) {
+                    on_timer(ec);
+                    });
+        do_connect();
+        _timer.fire();
+    }
+
+    void pipeline_connector::do_connect(){
+        tcode::io::ip::address& addr = _address[_current_address_index];	
+        _connect_in_progress = true;
+        _connect_time = tcode::timestamp::now();
+        _socket.connect( addr , [this]( const std::error_code& ec 
+                    , const tcode::io::ip::address& addr )
                 {
-                    if ( ip::selector::wait_for_write( fd , ts )){
-                        return fd;
-                    }
-                }
-#else
-                int r;
-                do {
-                    r = ::connect(fd 
-                            , addr.sockaddr()
-                            , addr.sockaddr_length());
-                }while((r==-1)&&(errno==EINTR));
-                if (( r == 0 ) || errno == EINPROGRESS ) {
-                    if ( ip::selector::wait_for_write( fd , ts )){
-                        return fd;
-                    }
-                }
-#endif                
-            }
-            ip::close( fd );
-        }
-        return ip::invalid_socket;
+                handle_connect(ec);          
+                });
     }
-*/
+
+    void pipeline_connector::handle_connect( const std::error_code& ec  ){
+        _connect_in_progress = false;
+        std::error_code er = ec;
+        if ( !er ) {
+            tcode::io::ip::tcp::channel* channel 
+                = new tcode::io::ip::tcp::channel( std::move( _fd ));
+            if ( build( channel->pipeline() ) ) {
+                channel->fire_on_open(addr );
+            } else {
+                delete channel;
+            }          
+            er = tcode::error_pipeline_build_fail;
+        }
+        _socket.close();
+        connector_on_error(ec , _address[_current_address_index] );
+        _current_address_index = ( _current_address_index + 1 ) % _address.size();
+        if (connector_do_continue(_address[_current_address_index])){		
+            do_connect();
+        } else {
+            _timer.cancel();
+        }
+    }
+
+    void pipeline_connector::on_timer( const std::error_code& ec ){
+        if( ec ) return;
+        if ( _connect_in_progress ) {
+            if ( tcode::timestamp::now() > _connect_time + _timeout ){
+                _socket.close();
+            }
+        } 
+    }
+
 }}}}
+

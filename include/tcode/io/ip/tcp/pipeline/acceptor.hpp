@@ -19,10 +19,11 @@ public:
 	void close( void );
 
 	void do_accept(void);
-	void handle_accept( const std::error_code& ec , tcode::io::ip::address& addr );
+	void handle_accept( const std::error_code& ec 
+            , const tcode::io::ip::address& addr );
     
     virtual bool on_condition( const tcode::io::ip::address& addr );
-	virtual void on_error( const tcode::diagnostics::error_code& ec );
+	virtual void on_error( const std::error_code& ec );
 private:
     tcp::acceptor _acceptor;
     tcp::socket _fd;

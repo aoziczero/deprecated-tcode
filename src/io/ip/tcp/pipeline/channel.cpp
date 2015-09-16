@@ -35,7 +35,7 @@ namespace tcode{ namespace io { namespace ip { namespace tcp{
     }
 
     channel::~channel( void ) {
-
+        _fd.close();
     }
 
     tcode::io::engine& channel::engine( void ){
