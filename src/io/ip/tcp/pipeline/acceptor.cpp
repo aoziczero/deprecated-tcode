@@ -44,7 +44,6 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 	void pipeline_acceptor::handle_accept( const std::error_code& ec
             , const tcode::io::ip::address& addr )
     {
-        fprintf(stderr, "accept" );
         if ( ec ) {
             on_error( ec );
         } else {

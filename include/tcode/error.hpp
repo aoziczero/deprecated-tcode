@@ -10,7 +10,8 @@ namespace tcode {
     extern std::error_code error_disconnected;
     extern std::error_code error_invalid;
     extern std::error_code error_pipeline_build_fail;
-    
+    extern std::error_code error_timeout;
+
     std::error_code last_error( void );
     std::error_category& tcode_category( void );
 #if defined( TCODE_WIN32 )

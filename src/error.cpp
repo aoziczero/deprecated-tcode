@@ -9,7 +9,7 @@ namespace tcode {
         err_operation_aborted,
         err_invalid ,
         err_pipeline_build_fail,
-        
+        err_timeout,
         
         err_max ,
     };
@@ -20,6 +20,7 @@ namespace tcode {
         "operation_aborted",
         "invalid" ,
         "pipeline_build_fail" ,
+        "timeout" ,
     };
 
 	std::error_code error_success(err_success , tcode_category()) ;
@@ -27,6 +28,7 @@ namespace tcode {
     std::error_code error_disconnected( err_disconnected , tcode_category());
     std::error_code error_invalid(err_invalid, tcode_category());
     std::error_code error_pipeline_build_fail(err_pipeline_build_fail , tcode_category());
+    std::error_code error_timeout(err_timeout , tcode_category());
 
     std::error_code last_error( void ) {
 #if defined( TCODE_WIN32 )

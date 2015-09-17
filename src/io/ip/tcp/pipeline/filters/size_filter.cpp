@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "size_filter.hpp"
-#include <transport/tcp/channel.hpp>
+#include <tcode/io/ip/tcp/pipeline/filters/size_filter.hpp>
+#include <tcode/io/ip/tcp/pipeline/channel.hpp>
 
-namespace tcode { namespace transport { namespace tcp {
+namespace tcode { namespace io { namespace ip { namespace tcp {
 
 typedef int size_type;
 
@@ -12,7 +12,7 @@ size_filter::size_filter( void ){
 size_filter::~size_filter( void ){
 }
 
-void size_filter::filter_on_read( tcode::buffer::byte_buffer buf )
+void size_filter::filter_on_read( tcode::byte_buffer buf )
 {
 	_read_buffer.reserve( _read_buffer.length() + buf.length());
 	_read_buffer.write( buf.rd_ptr() , buf.length());
@@ -30,18 +30,19 @@ void size_filter::filter_on_read( tcode::buffer::byte_buffer buf )
 	_read_buffer.fit();
 }
 
-void size_filter::filter_do_write( tcode::buffer::byte_buffer buf )
+void size_filter::filter_do_write( tcode::byte_buffer buf )
 {	
 	if ( !outbound() && pipeline()->in_pipeline() ){
-		tcode::buffer::byte_buffer size(sizeof(size_type));
+		tcode::byte_buffer size(sizeof(size_type));
 		size << (size_type)buf.length();
-		channel()->do_write( size , buf );
+		channel()->do_write( size );
+		channel()->do_write( buf );
 	}else {
-		tcode::buffer::byte_buffer buff( buf.length() + sizeof(size_type) );
+		tcode::byte_buffer buff( buf.length() + sizeof(size_type) );
 		buff << (size_type)buf.length();
 		buff.write( buf.rd_ptr() , buf.length());
 		fire_filter_do_write(buff);
 	}
 }
 
-}}}
+}}}}
