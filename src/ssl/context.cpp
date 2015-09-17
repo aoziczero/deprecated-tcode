@@ -60,6 +60,8 @@ bool context::use_generate_key(){
     RSA *rsa=RSA_generate_key(512, RSA_F4, NULL, NULL); 
     SSL_CTX_set_tmp_rsa(_impl, rsa); 
     RSA_free(rsa);
+    SSL_CTX_set_verify(_impl, SSL_VERIFY_NONE, 0);
+    
 	return true;
 }
 

@@ -1,20 +1,11 @@
-#include "stdafx.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
 
 #include <string>
-
-#include <io/ip/address.hpp>
-
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "mswsock.lib")
-#pragma comment(lib, "VC/libeay32MDd.lib")
-#pragma comment(lib, "VC/ssleay32MTd.lib")
-
-#pragma comment(lib, "tcode.io.lib")
-
-#define IP_ADDR INADDR_ANY
 #define PORT 7543
 
 int password_cb(char *buf, int size, int rwflag, void *password);
@@ -26,20 +17,21 @@ X509 *generateCertificate(EVP_PKEY *pkey);
  * Example SSL server that accepts a client and echos back anything it receives.
  * Test using `curl -I https://127.0.0.1:8081 --insecure`
  */
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
-	WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);	
-
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
         printf("opening socket\n");
         return -4;
     }
     
-    tcode::io::ip::address bind_addr = tcode::io::ip::address::any( PORT );
+    struct sockaddr_in addr;
+    memset( &addr , 0x00 , sizeof( addr ));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(PORT);
+    addr.sin_addr.s_addr=htonl(INADDR_ANY);
     
-    if (bind(fd, bind_addr.sockaddr() , bind_addr.sockaddr_length() ) < 0) {
+    if (bind(fd, (struct sockaddr*)&addr , sizeof(addr)) < 0) {
         printf("binding\n");
         return -5;
     }
@@ -61,7 +53,6 @@ int _tmain(int argc, _TCHAR* argv[])
             ERR_print_errors_fp(stderr);
             return -3;
         }
-        /*
         EVP_PKEY *pkey = generatePrivateKey();
         X509 *x509 = generateCertificate(pkey);
         
@@ -72,7 +63,6 @@ int _tmain(int argc, _TCHAR* argv[])
         RSA *rsa=RSA_generate_key(512, RSA_F4, NULL, NULL); 
         SSL_CTX_set_tmp_rsa(ctx, rsa); 
         RSA_free(rsa);
-        */
 
         SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, 0);
         
@@ -138,7 +128,7 @@ end:
     
     return 0;
 }
-/*
+
 int password_cb(char *buf, int size, int rwflag, void *password)
 {
     strncpy(buf, (char *)(password), size);
@@ -171,4 +161,4 @@ X509 *generateCertificate(EVP_PKEY *pkey)
     X509_set_issuer_name(x509, name);
     X509_sign(x509, pkey, EVP_md5());
     return x509;
-}*/
+}

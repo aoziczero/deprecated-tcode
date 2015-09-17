@@ -47,7 +47,7 @@ public:
 	acceptor_impl( tcode::io::engine& l ) 
 		: pipeline_acceptor( l )
         , e(l)
-        , _ssl_context( SSLv23_method() )
+        , _ssl_context( SSLv23_server_method() )
 	{
 		_ssl_context.use_generate_key();
 	}
