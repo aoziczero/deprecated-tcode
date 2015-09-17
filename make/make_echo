@@ -5,9 +5,9 @@ DEPEND_FILE=depend
 OS := $(shell uname)
 
 ifdef TARGET_ARM
-CC=g++
-AR=ar
-RANLIB=ranlib
+CC=/usr/bin/arm-linux-gnueabihf-g++
+AR=/usr/bin/arm-linux-gnueabihf-ar
+RANLIB=/usr/bin/arm-linux-gnueabihf-ranlib
 TARGET_ARCH=arm
 else
 CC=g++

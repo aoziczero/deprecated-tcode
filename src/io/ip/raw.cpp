@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#include <tcode/io/ip/udp/socket.hpp>
+#include <tcode/io/ip/raw.hpp>
 
-namespace tcode { namespace io { namespace ip { namespace udp {
+namespace tcode { namespace io { namespace ip { namespace raw {
 
     socket::socket( io::engine& e )
         : _engine( &e ) 
@@ -20,8 +20,8 @@ namespace tcode { namespace io { namespace ip { namespace udp {
 
     }
 
-    bool socket::bind( const tcode::io::ip::address& addr ) {
-        return engine().mux().bind( _descriptor , addr );
+    bool socket::open( int af , int type , int proto ) {
+        return engine().mux().open( _descriptor , af , type , proto );
     }
     
     int socket::read( tcode::io::buffer& buf 
@@ -49,4 +49,5 @@ namespace tcode { namespace io { namespace ip { namespace udp {
     io::engine& socket::engine( void ) {
         return *_engine;
     }
+
 }}}}

@@ -14,7 +14,7 @@ namespace tcode { namespace io { namespace ip { namespace udp {
     class socket {
     public:
         //! ctor
-        socket( engine& e );
+        socket( io::engine& e );
 
         //! move ctor
         socket( socket&& rhs );
@@ -39,7 +39,7 @@ namespace tcode { namespace io { namespace ip { namespace udp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_write<Handler> ));
             new (ptr) operation_write<Handler>( buf , addr , handler );
-            _engine.mux().write( _descriptor
+            engine().mux().write( _descriptor
                     , reinterpret_cast< operation_write_base* >(ptr));
         }
        
@@ -51,14 +51,15 @@ namespace tcode { namespace io { namespace ip { namespace udp {
             void* ptr = tcode::operation::alloc( 
                     sizeof( operation_read<Handler> ));
             new (ptr) operation_read<Handler>( buf , handler );
-            _engine.mux().read( _descriptor
+            engine().mux().read( _descriptor
                     , reinterpret_cast< operation_read_base* >(ptr));
         }
        
         void close( void );
         io::descriptor& descriptor( void );
+        io::engine& engine(void);
     private:
-        engine& _engine;
+        io::engine* _engine;
         io::descriptor _descriptor;
     private:
         socket( void );

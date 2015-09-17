@@ -276,6 +276,24 @@ namespace tcode { namespace io {
             }));
     }
     
+    bool epoll::open( descriptor& desc
+                , int af , int type , int proto )
+    {
+        int fd = socket( af , type , proto );
+        if ( fd != -1 ) {
+            tcode::io::ip::option::non_blocking nb;
+            nb.set_option(fd);
+            desc = new epoll::_descriptor( this , fd );
+            if ( bind(desc))
+                return true;
+            delete desc;
+            desc = nullptr;
+            ::close(fd);
+        }
+        return false;
+    }
+        
+    
     bool epoll::bind( descriptor& desc
             , const ip::address& addr ) 
     {
