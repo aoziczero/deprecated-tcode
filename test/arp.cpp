@@ -9,7 +9,21 @@ char buffer[1024];
 tcode::io::ip::raw::socket* fd;
 int read_raw( const std::error_code& ec , int n , 
         const tcode::io::ip::address& addr ) {
-    LOG_D("arp","read %d" , n );
+    tcode::io::ip::raw::ether_header* ehdr =
+        reinterpret_cast< tcode::io::ip::raw::ether_header*>(buffer);
+
+    //LOG_T( "arp" , "%04x" , ehdr->ether_type );
+    if ( ehdr->ether_type == 0x0608 ){
+        tcode::io::ip::raw::arphdr* arph=
+            reinterpret_cast< tcode::io::ip::raw::arphdr*>( ehdr + 1 );    
+        LOG_D("arp" , "arp packet src %d.%d.%d.%d(%02x:%02x:%02x:%02x:%02x:%02x) dst %d.%d.%d.%d(%02x:%02x:%02x:%02x:%02x:%02x)"
+                , arph->ar_sha[0] , arph->ar_sha[1] , arph->ar_sha[2] , arph->ar_sha[3] 
+                , arph->ar_sip[0] , arph->ar_sip[1] , arph->ar_sip[2] , arph->ar_sip[3] , arph->ar_sip[4] , arph->ar_sip[5]
+                , arph->ar_tha[0] , arph->ar_tha[1] , arph->ar_tha[2] , arph->ar_tha[3] 
+                , arph->ar_tip[0] , arph->ar_tip[1] , arph->ar_tip[2] , arph->ar_tip[3] , arph->ar_tip[4] , arph->ar_tip[5]
+                );
+        
+    }
     fd->read( tcode::io::buffer( buffer , 1024 )
             , &read_raw );
 }
