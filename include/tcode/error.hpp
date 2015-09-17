@@ -12,6 +12,12 @@ namespace tcode {
     extern std::error_code error_pipeline_build_fail;
     extern std::error_code error_timeout;
 
+    extern std::error_code error_openssl_handshake;
+    extern std::error_code error_openssl_bio_read;
+    extern std::error_code error_openssl_bio_write;
+    extern std::error_code error_openssl_ssl_read;
+    extern std::error_code error_openssl_ssl_write;
+
     std::error_code last_error( void );
     std::error_category& tcode_category( void );
 #if defined( TCODE_WIN32 )

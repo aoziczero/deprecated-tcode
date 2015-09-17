@@ -3,9 +3,11 @@
 #include "stdafx.h"
 #include <tcode/io/engine.hpp>
 #include <tcode/io/ip/tcp/pipeline/acceptor.hpp>
-#include <tcode/io/ip/tcp/pipeline/filter.hpp>
 #include <tcode/io/ip/tcp/pipeline/pipeline.hpp>
+#include <tcode/io/ip/tcp/pipeline/filters/openssl_filter.hpp>
 #include <tcode/log/log.hpp>
+#include <tcode/ssl/openssl.hpp>
+#include <tcode/ssl/context.hpp>
 
 class echo_filter 
 	: public tcode::io::ip::tcp::filter
@@ -45,11 +47,16 @@ public:
 	acceptor_impl( tcode::io::engine& l ) 
 		: pipeline_acceptor( l )
         , e(l)
-    {
+        , _ssl_context( SSLv23_method() )
+	{
+		_ssl_context.use_generate_key();
 	}
-	
+
 	virtual bool build( tcode::io::ip::tcp::pipeline& p ) {
         LOG_T("ECHO" , "build");
+        p.add( new tcode::io::ip::tcp::openssl_filter(
+                    _ssl_context.impl()
+                    , tcode::io::ip::tcp::openssl_filter::HANDSHAKE::ACCEPT ));
 		p.add( new echo_filter());
 		return true;
 	}
@@ -59,12 +66,14 @@ public:
 	}
 private:
     tcode::io::engine& e;
+    tcode::ssl::context _ssl_context;
 };
 
 
 int main( int argc , char* argv[]) {
 	
     LOG_T("ECHO" , "start");
+	tcode::ssl::openssl_init();
 	tcode::io::engine e;
     acceptor_impl a(e);
     a.listen( 7543 );

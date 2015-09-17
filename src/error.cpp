@@ -10,6 +10,11 @@ namespace tcode {
         err_invalid ,
         err_pipeline_build_fail,
         err_timeout,
+        err_openssl_handshake,
+        err_openssl_bio_read,  
+        err_openssl_bio_write,
+        err_openssl_ssl_read,
+        err_openssl_ssl_write,    
         
         err_max ,
     };
@@ -21,6 +26,12 @@ namespace tcode {
         "invalid" ,
         "pipeline_build_fail" ,
         "timeout" ,
+        "openssl_handshake",
+        "openssl_bio_read",  
+        "openssl_bio_write",
+        "openssl_ssl_read",
+        "openssl_ssl_write",    
+
     };
 
 	std::error_code error_success(err_success , tcode_category()) ;
@@ -29,6 +40,11 @@ namespace tcode {
     std::error_code error_invalid(err_invalid, tcode_category());
     std::error_code error_pipeline_build_fail(err_pipeline_build_fail , tcode_category());
     std::error_code error_timeout(err_timeout , tcode_category());
+    std::error_code error_openssl_handshake ( err_openssl_handshake , tcode_category());
+    std::error_code error_openssl_bio_read  ( err_openssl_bio_read  , tcode_category());
+    std::error_code error_openssl_bio_write ( err_openssl_bio_write , tcode_category());
+    std::error_code error_openssl_ssl_read  ( err_openssl_ssl_read  , tcode_category());
+    std::error_code error_openssl_ssl_write ( err_openssl_ssl_write , tcode_category());
 
     std::error_code last_error( void ) {
 #if defined( TCODE_WIN32 )

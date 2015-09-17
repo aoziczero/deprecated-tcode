@@ -38,10 +38,8 @@ int main( int argc , char* argv[]) {
 
     if (fd->open( AF_PACKET , SOCK_RAW , htons(0x0003))){
         LOG_T( "arp" , "socket open success" );
-        
         fd->read( tcode::io::buffer( buffer , 1024 ) 
                 , &read_raw );
-        
         e.run();
     }
     

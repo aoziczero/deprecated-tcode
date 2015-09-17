@@ -1,3 +1,9 @@
+# arm build -> make TARGET_ARM=1
+# release -> make RELEASE=1
+# openssl incl -> make OPENSSL=1
+# 
+#
+#
 RM=rm
 MKDIR=mkdir -p
 DEPEND_FILE=depend
@@ -34,6 +40,19 @@ else
 MUX=io/epoll.cpp
 endif
 
+ifdef OPENSSL
+OPENSSL_SRCS=ssl/openssl.cpp\
+			 ssl/context.cpp\
+			 io/ip/tcp/pipeline/filters/openssl_filter.cpp\
+
+OPENSSL_INCL=-I/usr/include/openssl
+OPENSSL_LIB=-lssl -lcrypto
+else
+OPENSSL_SRCS=
+OPENSSL_INCL=
+OPENSSL_LIB=
+endif
+
 TCODE_SRCS=tcode.cpp\
 		   error.cpp\
 		   operation.cpp\
@@ -56,6 +75,7 @@ TCODE_SRCS=tcode.cpp\
 		   io/option.cpp\
            io/pipe.cpp\
 		   $(MUX)\
+		   $(OPENSSL_SRCS)\
 		   io/engine.cpp\
 		   io/timer.cpp\
 		   io/timer_id.cpp\
@@ -115,7 +135,7 @@ TCODE_STATIC_DEPEND_FILE=$(TCODE_STATIC_OBJS_DIR)/$(DEPEND_FILE)
 TCODE_SHARED_DEPEND_FILE=$(TCODE_SHARED_OBJS_DIR)/$(DEPEND_FILE)
 
 
-TCODE_CFLAGS=-I$(TCODE_DIR)/include -std=c++11 -fpermissive $(DBG_FLAG)
+TCODE_CFLAGS=-I$(TCODE_DIR)/include $(OPENSSL_INCL)  -std=c++11 -fpermissive $(DBG_FLAG)
 ifeq ($(OS),Darwin)
 TCODE_SHARED_CFLAGS=-shared -Wl,-install_name,
 else
@@ -157,11 +177,35 @@ TEST_DEPEND_FILE=$(TEST_OBJS_DIR)/$(DEPEND_FILE)
 
 TEST_CFLAGS=$(TCODE_CFLAGS) -I$(GTEST_DIR)/include
 ifeq ($(OS),Darwin)
-TEST_LDFLAGS=-L$(GTEST_DIR)/lib -lgtestmac -lpthread 
+TEST_LDFLAGS=-L$(GTEST_DIR)/lib -lgtestmac -lpthread $(OPENSSL_LIB)
 else
-TEST_LDFLAGS=-L$(GTEST_DIR)/lib -lgtest -lpthread
+TEST_LDFLAGS=-L$(GTEST_DIR)/lib -lgtest -lpthread  $(OPENSSL_LIB)
 endif
-all: $(TCODE_STATIC) $(TCODE_SHARED) $(TEST_OUT) 
+
+ECHO_NAME=echo
+ECHO_SRCS=pipeline_echo.cpp
+
+ECHO_SRC_DIR=$(TCODE_DIR)/test
+ECHO_OBJS_DIR=$(OBJS_DIR)/$(ECHO_NAME)
+ECHO_OUT=$(ECHO_OBJS_DIR)/$(ECHO_NAME).out
+ECHO_OBJS=$(ECHO_SRCS:%.cpp=$(ECHO_OBJS_DIR)/%.o)
+ECHO_DEPEND_FILE=$(ECHO_OBJS_DIR)/$(DEPEND_FILE)
+ECHO_CFLAGS=$(TCODE_CFLAGS) -I$(GTEST_DIR)/include
+ECHO_LDFLAGS=-lpthread  $(OPENSSL_LIB)
+
+
+all: $(TCODE_STATIC) $(TCODE_SHARED) $(TEST_OUT) $(ECHO_OUT)
+
+echo: $(ECHO_OUT)
+
+$(ECHO_OUT):$(TCODE_STATIC) $(ECHO_OBJS)
+	$(CC) -o $@ $(ECHO_OBJS) $(TCODE_STATIC_OBJS) $(ECHO_CFLAGS) $(ECHO_LDFLAGS)
+
+$(ECHO_OBJS_DIR)/%.o:$(ECHO_SRC_DIR)/%.cpp
+	@echo "Compile=$(dir $@)"
+	@`[ -d $(dir $@) ] || $(MKDIR) $(dir $@)`
+	$(CC) $(ECHO_CFLAGS) -c $< -o $@
+
 
 test: $(TEST_OUT)
 
