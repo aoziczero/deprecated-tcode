@@ -73,8 +73,11 @@ namespace ip {
         void accept( descriptor listen
                 , int /* windows 대응 */ 
                 , ip::tcp::operation_accept_base* op );
-    public:
+ public:
         //!
+        bool open( descriptor& desc
+                , int af , int type , int proto );
+           //!
         bool bind( descriptor& desc
                 , const ip::address& addr );
         //!

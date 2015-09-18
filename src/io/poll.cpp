@@ -428,6 +428,9 @@ namespace tcode { namespace io {
                         , addr.sockaddr_length_ptr());
             }while( ( fd == -1 ) && ( errno == EINTR ));
             if ( fd != -1 ) {
+                tcode::io::ip::option::non_blocking nb;
+                nb.set_option( fd );
+
                 accepted = new poll::_descriptor( this , fd );
                 bind( accepted );
                 return 0;
