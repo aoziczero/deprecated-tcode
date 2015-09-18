@@ -108,8 +108,6 @@ TCODE_SRCS=tcode.cpp\
 		   io/ip/tcp/pipeline/filters/size_filter.cpp\
 		   io/ip/tcp/pipeline/filters/timeout_filter.cpp\
 		   
-
-		   #active_ref.cpp\
 		   
 
 TCODE_SRC_DIR=$(TCODE_DIR)/src
@@ -162,9 +160,8 @@ TEST_SRCS=main.cpp\
 		  test_bit.cpp\
 		  test_pack.cpp\
 		  
-#test_io_poll.cpp\
-#test_epoll_wakeup.cpp\
-#test_epoll_et.cpp\
+		  #test_io_ip_tcp_pipeline_openssl.cpp\
+		  
 		  
 
 GTEST_DIR=../external/gtest
@@ -194,7 +191,7 @@ ECHO_CFLAGS=$(TCODE_CFLAGS) -I$(GTEST_DIR)/include
 ECHO_LDFLAGS=-lpthread  $(OPENSSL_LIB)
 
 
-all: $(TCODE_STATIC) $(TCODE_SHARED) $(TEST_OUT) $(ECHO_OUT)
+all: $(TCODE_STATIC) $(TCODE_SHARED) $(TEST_OUT) 
 
 echo: $(ECHO_OUT)
 

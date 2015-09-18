@@ -20,25 +20,25 @@ public:
 	virtual ~echo_filter( void ){
 	}
 	virtual void filter_on_open( const tcode::io::ip::address& addr ){
-		LOG_T("ECHO" , "filter_on_open %s" , addr.ip().c_str() );
+		//LOG_T("ECHO" , "filter_on_open %s" , addr.ip().c_str() );
 	}
 	virtual void filter_on_close( void ){
-		LOG_T("ECHO" , "filter_on_close" );
+		//LOG_T("ECHO" , "filter_on_close" );
 	}
 	virtual void filter_on_read( tcode::byte_buffer buf ){
         char ch = '\0';
         buf.write( &ch , 1 );
-		LOG_T("ECHO" , "filter_on_read %s %d" ,buf.rd_ptr(), buf.length() );
+		//LOG_T("ECHO" , "filter_on_read %s %d" ,buf.rd_ptr(), buf.length() );
 		fire_filter_do_write( buf );
 	}
 	virtual void filter_on_write( int written , bool flush ){
-		LOG_T("ECHO" , "filter_on_write %d " , written );
+		//LOG_T("ECHO" , "filter_on_write %d " , written );
 	}
 	virtual void filter_on_error( const std::error_code& ec ){
-		LOG_D("ECHO" , "filter_on_error : %s" , ec.message().c_str());
+		//LOG_D("ECHO" , "filter_on_error : %s" , ec.message().c_str());
 	}
 	virtual void filter_on_end_reference( void ){
-		LOG_T("ECHO" , "filter_on_end_reference" );
+		//LOG_T("ECHO" , "filter_on_end_reference" );
 		delete this;
 	}
 private:
@@ -57,7 +57,7 @@ public:
 	}
 
 	virtual bool build( tcode::io::ip::tcp::pipeline& p ) {
-        LOG_T("ECHO" , "build");
+        //LOG_T("ECHO" , "build");
         p.add( new tcode::io::ip::tcp::openssl_filter(
                     _ssl_context.impl()
                     , tcode::io::ip::tcp::openssl_filter::HANDSHAKE::ACCEPT ));
@@ -83,29 +83,29 @@ public:
 	virtual ~echo_filter2( void ){
 	}
 	virtual void filter_on_open( const tcode::io::ip::address& addr ){
-		LOG_T("ECHO2" , "filter_on_open %s" , addr.ip().c_str() );
+		//LOG_T("ECHO2" , "filter_on_open %s" , addr.ip().c_str() );
         tcode::byte_buffer hello(10);
         hello.write_msg( "Hello");
         fire_filter_do_write(hello); 
 	}
 	virtual void filter_on_close( void ){
-		LOG_T("ECHO2" , "filter_on_close" );
+		//LOG_T("ECHO2" , "filter_on_close" );
 	}
 	virtual void filter_on_read( tcode::byte_buffer buf ){
         char ch = '\0';
         buf.write( &ch , 1 );
-		LOG_T("ECHO2" , "filter_on_read %s %d" ,buf.rd_ptr(), buf.length() );
+		//LOG_T("ECHO2" , "filter_on_read %s %d" ,buf.rd_ptr(), buf.length() );
         close(tcode::error_success);
 		//fire_filter_do_write( buf );
 	}
 	virtual void filter_on_write( int written , bool flush ){
-		LOG_T("ECHO2" , "filter_on_write %d " , written );
+		//LOG_T("ECHO2" , "filter_on_write %d " , written );
 	}
 	virtual void filter_on_error( const std::error_code& ec ){
-		LOG_D("ECHO2" , "filter_on_error : %s" , ec.message().c_str());
+		//LOG_D("ECHO2" , "filter_on_error : %s" , ec.message().c_str());
 	}
 	virtual void filter_on_end_reference( void ){
-		LOG_T("ECHO2" , "filter_on_end_reference" );
+		//LOG_T("ECHO2" , "filter_on_end_reference" );
 		delete this;
 	}
 private:
@@ -132,9 +132,8 @@ private:
     tcode::ssl::context _ssl_context;
 };
 
-int main( int argc , char* argv[]) {
-	
-    LOG_T("ECHO" , "start");
+TEST( tcode_io_ip_tcp_pipeline_openssl , echo ){	
+    //LOG_T("ECHO" , "start");
 	tcode::ssl::openssl_init();
 	tcode::io::engine e;
     acceptor_impl a(e);
@@ -145,7 +144,6 @@ int main( int argc , char* argv[]) {
             , tcode::timespan::seconds(20));
    
     e.run();
-	return 0;
 }
 
 
