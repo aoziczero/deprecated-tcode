@@ -79,9 +79,10 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
                 = new tcode::io::ip::tcp::channel( std::move( _fd ));
             if ( build( channel->pipeline() ) ) {
                 channel->fire_on_open( _address[_current_address_index]);
-            } else {
-                delete channel;
-            }          
+                _timer.cancel();
+                return;
+            }
+            delete channel;
             er = tcode::error_pipeline_build_fail;
         }
         _fd.close();
@@ -101,6 +102,15 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
                 _fd.close();
             }
         } 
+    }
+    
+    void pipeline_connector::on_error( const std::error_code& ec
+                , const tcode::io::ip::address& addr )
+    {
+    }
+    
+    bool pipeline_connector::do_continue( const tcode::io::ip::address& addr ) {
+        return true;
     }
 
 }}}}

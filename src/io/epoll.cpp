@@ -134,7 +134,7 @@ namespace tcode { namespace io {
             tcode::slist::queue< tcode::operation > ops;
             do {
                 tcode::threading::spinlock::guard guard(_lock);
-                ops = std::move( _op_queue );
+                ops = std::move(_op_queue );
             }while(0);
             while( !ops.empty() ){
                 tcode::operation* op = ops.front();
@@ -161,10 +161,11 @@ namespace tcode { namespace io {
     void epoll::unbind( descriptor& d ) {
         do { 
             tcode::threading::spinlock::guard guard(_lock);
-            if ( d == nullptr ) 
+            if ( d == nullptr ){
                 return;
-            descriptor desc = nullptr;
-            std::swap( desc , d );
+            }
+            descriptor desc = d;
+            d = nullptr;
             op_add( tcode::operation::wrap( 
                     [this,desc] {
                         if ( desc->fd != -1 ) {
@@ -267,6 +268,11 @@ namespace tcode { namespace io {
     void epoll::accept( descriptor desc
             , int
             , ip::tcp::operation_accept_base* op ){
+        if ( desc == nullptr ){
+            //todo
+            return;
+        }
+
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
@@ -431,6 +437,9 @@ namespace tcode { namespace io {
                         , addr.sockaddr_length_ptr());
             }while( ( fd == -1 ) && ( errno == EINTR ));
             if ( fd != -1 ) {
+                tcode::io::ip::option::non_blocking nb;
+                nb.set_option( fd );
+
                 accepted = new epoll::_descriptor( this , fd );
                 bind( accepted );
                 return 0;

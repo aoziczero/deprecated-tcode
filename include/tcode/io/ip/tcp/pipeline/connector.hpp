@@ -21,8 +21,8 @@ namespace tcode { namespace io { namespace ip { namespace tcp {
 	    	, const tcode::timespan& per_wait_time );
 	
         virtual void on_error( const std::error_code& ec
-                , const tcode::io::ip::address& addr ) = 0;
-        virtual bool do_continue( const tcode::io::ip::address& addr ) = 0;
+                , const tcode::io::ip::address& addr ) ;
+        virtual bool do_continue( const tcode::io::ip::address& addr ) ;
         virtual io::engine& engine( void );
 
         tcode::timespan timeout( void );

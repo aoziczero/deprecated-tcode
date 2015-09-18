@@ -68,6 +68,7 @@ namespace tcode{ namespace io { namespace ip { namespace tcp{
     }
 
     void channel::fire_on_open( const tcode::io::ip::address& addr ){
+
         add_ref();
         if ( engine().in_run_loop() ){
             _pipeline.fire_filter_on_open(addr);
@@ -162,16 +163,15 @@ namespace tcode{ namespace io { namespace ip { namespace tcp{
                         }) , _write_buffers.end());
             bool flush = _write_buffers.empty();
             _pipeline.fire_filter_on_write( nbytes , flush );
-            if ( !flush ) {
+            if ( !flush ) 
                 write_remains();
-                return;				
-            }	
         }
     }
 
     void channel::write_remains(void){
         if ( !check_if_val_contains_bit( _flag , close_flag ))
             return;
+
         add_ref();
         if ( _write_buffers.size() == 1 ) {
             _fd.write( tcode::io::buffer( reinterpret_cast<char*>(_write_buffers[0].rd_ptr())
