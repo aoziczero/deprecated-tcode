@@ -1,7 +1,7 @@
 # arm build -> make TARGET_ARM=1
 # release -> make RELEASE=1
-# openssl incl -> make OPENSSL=1
-# 
+# openssl disable -> make OPENSSL=0
+# poll mux -> make MUX=POLL 
 #
 #
 RM=rm
@@ -10,7 +10,7 @@ DEPEND_FILE=depend
 
 OS := $(shell uname)
 
-ifdef TARGET_ARM
+ifeq ($(TARGET_ARM),1)
 CC=/usr/bin/arm-linux-gnueabihf-g++
 AR=/usr/bin/arm-linux-gnueabihf-ar
 RANLIB=/usr/bin/arm-linux-gnueabihf-ranlib
@@ -24,7 +24,7 @@ endif
 
 TCODE_DIR=..
 
-ifdef RELEASE
+ifeq ($(RELEASE),1)
 OBJS_DIR=$(TCODE_DIR)/build/$(TARGET_ARCH)/release
 DBG_FLAG=-DNDEBUG
 else
@@ -32,25 +32,28 @@ OBJS_DIR=$(TCODE_DIR)/build/$(TARGET_ARCH)/debug
 DBG_FLAG=-DDEBUG -g
 endif
 
-ifeq ($(OS),Darwin)
-MUX=io/kqueue.cpp	
+ifeq ($(MUX),POLL)
+MUX_SRCS=io/poll.cpp
+DBG_FLAG+= -DMUX_POLL
 else
-#if linux kernel ver < 2.4 
-#MUX=io/poll.cpp
-MUX=io/epoll.cpp
+ifeq ($(OS),Darwin)
+MUX_SRCS=io/kqueue.cpp	
+else
+MUX_SRCS=io/epoll.cpp	
+endif
 endif
 
-ifdef OPENSSL
+ifeq ($(OPENSSL),0)
+OPENSSL_SRCS=
+OPENSSL_INCL=
+OPENSSL_LIB=
+else
 OPENSSL_SRCS=ssl/openssl.cpp\
 			 ssl/context.cpp\
 			 io/ip/tcp/pipeline/filters/openssl_filter.cpp\
 
 OPENSSL_INCL=-I/usr/include/openssl
 OPENSSL_LIB=-lssl -lcrypto
-else
-OPENSSL_SRCS=
-OPENSSL_INCL=
-OPENSSL_LIB=
 endif
 
 TCODE_SRCS=tcode.cpp\
@@ -73,8 +76,8 @@ TCODE_SRCS=tcode.cpp\
 		   io/buffer.cpp\
 		   io/operation.cpp\
 		   io/option.cpp\
-           io/pipe.cpp\
-		   $(MUX)\
+		   io/pipe.cpp\
+		   $(MUX_SRCS)\
 		   $(OPENSSL_SRCS)\
 		   io/engine.cpp\
 		   io/timer.cpp\
@@ -159,8 +162,7 @@ TEST_SRCS=main.cpp\
 		  test_io_ip_udp.cpp\
 		  test_bit.cpp\
 		  test_pack.cpp\
-		  
-		  #test_io_ip_tcp_pipeline_openssl.cpp\
+		  test_io_ip_tcp_pipeline_openssl.cpp\
 		  
 		  
 
@@ -235,7 +237,7 @@ $(TCODE_SHARED_OBJS_DIR)/%.o:  $(TCODE_SRC_DIR)/%.cpp
 	$(CC) $(TCODE_CFLAGS) -fPIC -c $< -o $@
 
 clean:
-	$(RM) -rf $(TCODE_STATIC_OBJS) $(TCODE_STATIC) $(TCODE_SHARED_OBJS) $(TCODE_SHARED) $(TEST_OBJS)
+	$(RM) -rf $(OBJS_DIR)
 
 temp:
 	@echo $(TCODE_SRCS)

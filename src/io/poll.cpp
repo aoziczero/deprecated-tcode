@@ -282,6 +282,10 @@ namespace tcode { namespace io {
     void poll::accept( descriptor desc
             , int
             , ip::tcp::operation_accept_base* op ){
+        if ( desc == nullptr ){
+            //todo
+            return;
+        }
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
@@ -290,7 +294,23 @@ namespace tcode { namespace io {
                 desc->release(this);
             }));
     }
-    
+
+    bool poll::open( descriptor& desc
+                , int af , int type , int proto )
+    {
+        int fd = socket( af , type , proto );
+        if ( fd != -1 ) {
+            tcode::io::ip::option::non_blocking nb;
+            nb.set_option(fd);
+            desc = new poll::_descriptor( this , fd );
+            if ( bind(desc))
+                return true;
+            delete desc;
+            desc = nullptr;
+            ::close(fd);
+        }
+        return false;
+    }
     bool poll::bind( descriptor& desc
             , const ip::address& addr ) 
     {

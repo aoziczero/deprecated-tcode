@@ -17,12 +17,18 @@ namespace tcode { namespace io {
 #if defined ( TCODE_WIN32 )
     typedef completion_port multiplexer;
 #elif defined( TCODE_LINUX )
-    typedef epoll multiplexer;
-//    typedef poll multiplexer;
-#elif defined( TCODE_APPLE )
-    typedef kqueue multiplexer;
+#if defined (MUX_POLL)
+    typedef poll multiplexer;
 #else
-    
+    typedef epoll multiplexer;
+#endif
+#elif defined( TCODE_APPLE )
+#if defined (MUX_POLL)
+    typedef poll multiplexer;
+#else
+    typedef kqueue multiplexer;
+#endif
+#else
 #endif
     typedef multiplexer::descriptor descriptor;
 }}

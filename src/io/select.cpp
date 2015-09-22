@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <tcode/error.hpp>
 #include <tcode/io/io.hpp>
-#include <tcode/io/kqueue.hpp>
+#include <tcode/io/select.hpp>
 #include <tcode/io/engine.hpp>
 #include <tcode/io/operation.hpp>
 #include <tcode/io/ip/option.hpp>
@@ -12,41 +12,35 @@
 #include <tcode/io/ip/tcp/operation_accept.hpp>
 #include <tcode/io/ip/udp/operation_write.hpp>
 #include <tcode/io/ip/udp/operation_read.hpp>
-#if defined( TCODE_APPLE )
-#include <sys/event.h>
-#endif
+#include <sys/select.h>
 #include <unistd.h>
 
 namespace tcode { namespace io {
 
-    namespace {
-        const int kqueue_max_event = 256;
-    }
-
-    struct kqueue::_descriptor{
+    struct select::_descriptor{
         int fd;
         tcode::slist::queue< tcode::operation > op_queue[tcode::io::ev_max];
         std::atomic<int> refcount;
 
-        void complete( kqueue* ep ,  int ev );
+        void complete( select* ep ,  int ev );
 
-        _descriptor( kqueue* ep , int fd  );
+        _descriptor( select* ep , int fd  );
 
         void add_ref( void );
-        void release( kqueue* ep );
+        void release( select* ep );
     };
 
-    kqueue::_descriptor::_descriptor( kqueue* ep , int fd ) {
+    select::_descriptor::_descriptor( select* ep , int fd ) {
         refcount.store(1);
         ep->_engine.active_inc();
         this->fd = fd;
     }
 
-    void kqueue::_descriptor::add_ref( void ) {
+    void select::_descriptor::add_ref( void ) {
         refcount.fetch_add(1);
     }
 
-    void kqueue::_descriptor::release( kqueue* ep ){
+    void select::_descriptor::release( select* ep ){
         if ( refcount.fetch_sub(1) != 1 ) {
             return; 
         }
@@ -76,15 +70,15 @@ namespace tcode { namespace io {
         delete this;
     }
 
-    void kqueue::_descriptor::complete( kqueue* mux, int events ) {
-        static const int kqueueev[] = {
-            EVFILT_READ, EVFILT_WRITE  
+    void select::_descriptor::complete( select* ep , int events ) {
+        static const int selectev[] = {
+            ev_Read , ev_write , ,ev_pri 
         };
-        for ( int i = 0 ; i < 2 ; ++i ) {
-            if ( events == kqueueev[i] ){
+        for ( int i = 0 ; i < tcode::io::ev_max ; ++i ) {
+            if ( events & selectev[i] ){
                 while ( !op_queue[i].empty() ) {
                     io::operation* op = op_queue[i].front<io::operation>();
-                    if ( op->post_proc(mux,this) ) {
+                    if ( op->post_proc(ep,this) ) {
                         op_queue[i].pop_front();
                         (*op)();
                     } else {
@@ -93,60 +87,68 @@ namespace tcode { namespace io {
                 }
             }
         }
-        mux->_change( fd , EVFILT_READ 
-                , op_queue[tcode::io::ev_read].empty() ?  EV_DISABLE : EV_ENABLE 
-                , this );
-        mux->_change( fd , EVFILT_WRITE 
-                , op_queue[tcode::io::ev_write].empty() ?  EV_DISABLE : EV_ENABLE 
-                , this );
     }
 
-    kqueue::kqueue( engine& en )
-        : _handle( ::kqueue() )
-        , _engine( en )
+    select::select( engine& en )
+        :  _engine( en )
     {
-        _change( _wake_up.rd_pipe() , EVFILT_READ , EV_ADD|EV_ENABLE ,nullptr );
+        _desc.push_back(nullptr);
     }
 
-    kqueue::~kqueue( void ){
-        ::close( _handle );
+    select::~select( void ){
     }
 
-    int kqueue::run( const tcode::timespan& ts ){
-        struct kevent events[kqueue_max_event];
-        struct timespec spec;
-        spec.tv_sec = ts.total_seconds();
-        spec.tv_nsec = ( ts.total_microseconds() % 1000000 ) * 1000;
-        do {
-            tcode::threading::spinlock::guard g(_lock);
-            if ( _changes.size() > 0 )
-                kevent( _handle , &_changes[0] , _changes.size() , nullptr , 0 , nullptr );
-            _changes.clear();
-        }while(0);
-        int nofd  = kevent( _handle 
-            , nullptr , 0
-            , events
-            , kqueue_max_event
-            , &spec );
-        if ( nofd <= 0  ) {
+    int select::run( const tcode::timespan& ts ){
+        std::vector< std::pair< int , select::descriptor > > rdvec;
+        std::vector< std::pair< int , select::descriptor > > wrvec;
+
+        fd_set rdfds , wrfds;
+        FD_ZERO( &rdfds );
+        FD_ZERO( &wrfds );
+        FD_SET( _wake_up.rd_pipe() , rdfds );
+        rdvec.push_back( std::make_pair( _wake_up.rd_pipe() , nullptr ));
+        int maxfd = _wake_up.rd_pipe();
+        for ( int i = 1 ; i < _desc.size() ; ++i ) {
+            if (!_desc[i]->op_queue[ev_read].empty() ) {
+                rdvec.push_back( _desc[i]->fd , _desc[i] );
+                FD_SET( _desc[i]->fd , rdfds );
+                if ( maxfd < _desc[i]->fd )
+                    maxfd = _desc[i]->fd;
+            }
+            if (!_desc[i]->op_queue[ev_write].empty()){
+                wrvec.push_back( _desc[i]->fd , _desc[i] );
+                FD_SET( _desc[i]->fd , wrfds );
+                if ( maxfd < _desc[i]->fd )
+                    maxfd = _desc[i]->fd;
+            }
+        }
+
+        struct timeval tv;
+        tcode::time::convert_to( ts , tv );
+        int ret = ::select( maxfd + 1 , &rdfds , &wrfds , nullptr  , &tv );
+        if ( ret <= 0  ) {
             return 0; 
         }
-        int run = nofd;
+        int run = 0;
         bool execute_op = false;
-        for ( int i = 0 ; i < nofd; ++i ){
-            kqueue::descriptor desc =
-                static_cast< kqueue::descriptor >( events[i].udata );
-            if ( desc ) {
-                //if ( (events[i].flag & EV_ERROR) || ( events[i].flag & EV_EOF )) {
-                //    desc->complete( this , EVFILT_READ );            
-                //} else {
-                    desc->complete( this , events[i].filter );
-                //}
-            } else {
-                char pipe_r[256];
-                ::read( _wake_up.rd_pipe() , pipe_r , 256 );
-                execute_op = true;
-                --run;
+        for ( std::size_t i  = 0 ; i < rdvec.size() ;  ++i ) {
+            if ( FD_ISET( rdvec[i].fd , rdfds ) ) {
+                if ( _desc[i] != nullptr ) {
+                    _desc[i]->complete( this , ev_read );
+                    ++run;
+                } else {
+                    char pipe_r[256];
+                    ::read( _wake_up.rd_pipe() , pipe_r , 256 );
+                    execute_op = true;
+                }
+            }
+        }
+        for ( std::size_t i  = 0 ; i < wrvec.size() ;  ++i ) {
+            if ( FD_ISET( wrvec[i].fd , wrfds ) ) {
+                if ( _desc[i] != nullptr ) {
+                    _desc[i]->complete( this , ev_write );
+                    ++run;
+                } 
             }
         }
         if ( execute_op ){
@@ -165,18 +167,19 @@ namespace tcode { namespace io {
         return run;
     }
     
-    void kqueue::wake_up( void ){
+    void select::wake_up( void ){
         char ch=0;
         ::write( _wake_up.wr_pipe() , &ch , 1 );
     }
 
-    bool kqueue::bind( const descriptor& d ) {
-        _change( d->fd , EVFILT_READ , EV_ADD | EV_ENABLE , d );
-        _change( d->fd , EVFILT_WRITE, EV_ADD | EV_ENABLE , d );
+    bool select::bind( const descriptor& d ) {
+        execute( tcode::operation::wrap([this,d]{
+                        _desc.push_back(d);
+                    }));
         return true;
     }
 
-    void kqueue::unbind( descriptor& d ) {
+    void select::unbind( descriptor& d ) {
         do { 
             tcode::threading::spinlock::guard guard(_lock);
             if ( d == nullptr ) 
@@ -185,6 +188,17 @@ namespace tcode { namespace io {
             std::swap( desc , d );
             op_add( tcode::operation::wrap( 
                     [this,desc] {
+                        std::size_t i = 0;
+                        for ( ; i < _desc.size() ; ++i ){
+                            if ( _desc[i] == desc )
+                                break;
+                        }
+                        if ( i != _desc.size()) {
+                            if ( i < _desc.size() -1 ) {
+                                std::swap( _desc[i] , _desc[_desc.size() -1 ] );
+                            }
+                            _desc.pop_back();
+                        }
                         if ( desc->fd != -1 ) {
                             ::close( desc->fd );
                             desc->fd = -1;
@@ -194,9 +208,9 @@ namespace tcode { namespace io {
             );
         }while(0);
         wake_up();
-   }
+    }
 
-    void kqueue::execute( tcode::operation* op ) {
+    void select::execute( tcode::operation* op ) {
         do {
             tcode::threading::spinlock::guard guard(_lock);
             op_add(op);
@@ -204,8 +218,8 @@ namespace tcode { namespace io {
         wake_up();
     }
 
-    void kqueue::connect( 
-            kqueue::descriptor& desc 
+    void select::connect( 
+            select::descriptor& desc 
             , ip::tcp::operation_connect_base* op )
     {
         int fd = socket( op->address().family() , SOCK_STREAM , IPPROTO_TCP );
@@ -219,9 +233,9 @@ namespace tcode { namespace io {
                 r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
             }while((r == -1) && (errno == EINTR));
             if ( (r == 0) || (errno == EINPROGRESS )){
-                desc = new kqueue::_descriptor(this , fd );
+                desc = new select::_descriptor(this , fd );
                 desc->op_queue[tcode::io::ev_connect].push_back( op );
-                if ( bind( desc )){
+                if ( bind( desc ) ){
                     return;
                 }
                 op->error() = tcode::last_error();
@@ -235,31 +249,31 @@ namespace tcode { namespace io {
         execute(op);
     }
 
-    void kqueue::write( kqueue::descriptor desc 
+    void select::write( select::descriptor desc 
             , ip::tcp::operation_write_base* op)
     {
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EVFILT_WRITE);
+                desc->complete( this , POLLOUT );
                 desc->release(this);
             }));
     }
 
-    void kqueue::read( descriptor desc
+    void select::read( descriptor desc
             , ip::tcp::operation_read_base* op ){
         desc->add_ref();
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EVFILT_READ);
+                desc->complete( this , POLLIN );
                 desc->release(this);
             }));
 
     }
     
-    bool kqueue::listen( descriptor& desc 
+    bool select::listen( descriptor& desc 
                 , const ip::address& addr )
     {
         int fd = socket( addr.family() , SOCK_STREAM , IPPROTO_TCP );
@@ -270,7 +284,7 @@ namespace tcode { namespace io {
             reuse.set_option( fd );
             if ((::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0)
                     && (::listen(fd, SOMAXCONN ) == 0 )) {
-                desc = new kqueue::_descriptor(this,fd);
+                desc = new select::_descriptor(this,fd);
                 if ( bind( desc ))
                     return true;
                 delete desc;
@@ -281,7 +295,7 @@ namespace tcode { namespace io {
         return false;
     }
 
-    void kqueue::accept( descriptor desc
+    void select::accept( descriptor desc
             , int
             , ip::tcp::operation_accept_base* op ){
         if ( desc == nullptr ){
@@ -292,19 +306,19 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_accept].push_back(op);
-                desc->complete( this , EVFILT_READ);
+                desc->complete( this , POLLIN );
                 desc->release(this);
             }));
     }
-    
-    bool kqueue::open( descriptor& desc
+
+    bool select::open( descriptor& desc
                 , int af , int type , int proto )
     {
         int fd = socket( af , type , proto );
         if ( fd != -1 ) {
             tcode::io::ip::option::non_blocking nb;
             nb.set_option(fd);
-            desc = new epoll::_descriptor( this , fd );
+            desc = new select::_descriptor( this , fd );
             if ( bind(desc))
                 return true;
             delete desc;
@@ -313,8 +327,7 @@ namespace tcode { namespace io {
         }
         return false;
     }
-    
-    bool kqueue::bind( descriptor& desc
+    bool select::bind( descriptor& desc
             , const ip::address& addr ) 
     {
         int fd = socket( addr.family() , SOCK_DGRAM , IPPROTO_UDP );
@@ -324,7 +337,7 @@ namespace tcode { namespace io {
             tcode::io::ip::option::reuse_address reuse( true );
             reuse.set_option( fd );
             if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0 ){
-                desc = new kqueue::_descriptor( this , fd );
+                desc = new select::_descriptor( this , fd );
                 if ( bind(desc))
                     return true;
                 delete desc;
@@ -335,13 +348,13 @@ namespace tcode { namespace io {
         return false;
     }
 
-    void kqueue::write( descriptor& desc 
+    void select::write( descriptor& desc 
             , ip::udp::operation_write_base* op )
     {   
         if ( desc == nullptr ) {
             int fd = socket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP);
             if ( fd != -1 ){
-                desc = new kqueue::_descriptor( this , fd );
+                desc = new select::_descriptor( this , fd );
                 if ( !bind( desc )){
                     op->error() = tcode::last_error();
                     delete desc;
@@ -360,12 +373,12 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EVFILT_WRITE);
+                desc->complete( this , POLLOUT );
                 desc->release(this);
             }));
     }
     
-    void kqueue::read( descriptor desc
+    void select::read( descriptor desc
             , ip::udp::operation_read_base* op )
     {
         if ( desc == nullptr ) {
@@ -376,23 +389,23 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EVFILT_READ);
+                desc->complete( this , POLLIN);
                 desc->release(this);
             }));
     }
 
 
-    void kqueue::op_add( tcode::operation* op ){
+    void select::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
         _engine.active_inc();
     }
 
-    void kqueue::op_run( tcode::operation* op ){
+    void select::op_run( tcode::operation* op ){
         _engine.active_dec();
         (*op)();
     }
 
-    int kqueue::writev( descriptor desc 
+    int select::writev( descriptor desc 
             , tcode::io::buffer* buf , int cnt
             , std::error_code& ec )
     {
@@ -405,14 +418,14 @@ namespace tcode { namespace io {
             }while((r == -1) && (errno == EINTR));
             if ( r >= 0 ) return r;
             if ( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ))
-                ec = tcode::error_success; 
+                ec = tcode::error_success;
             else
                 ec = tcode::last_error();
         }
         return -1;
     }
 
-    int kqueue::readv( descriptor desc 
+    int select::readv( descriptor desc 
             , tcode::io::buffer* buf , int cnt
             , std::error_code& ec )
     {
@@ -436,7 +449,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-    int kqueue::accept( descriptor listen 
+    int select::accept( descriptor listen 
             , descriptor& accepted 
             , ip::address& addr
             , std::error_code& ec )
@@ -452,9 +465,9 @@ namespace tcode { namespace io {
             }while( ( fd == -1 ) && ( errno == EINTR ));
             if ( fd != -1 ) {
                 tcode::io::ip::option::non_blocking nb;
-                nb.set_option(fd);
+                nb.set_option( fd );
 
-                accepted = new kqueue::_descriptor( this , fd );
+                accepted = new select::_descriptor( this , fd );
                 bind( accepted );
                 return 0;
             }
@@ -466,7 +479,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-    int kqueue::read( descriptor desc 
+    int select::read( descriptor desc 
             , tcode::io::buffer& buf 
             , tcode::io::ip::address& addr 
             , std::error_code& ec )
@@ -488,7 +501,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-    int kqueue::write( descriptor desc 
+    int select::write( descriptor desc 
             , const tcode::io::buffer& buf 
             , const tcode::io::ip::address& addr 
             , std::error_code& ec )
@@ -510,22 +523,7 @@ namespace tcode { namespace io {
         return -1;
     }
 
-
-    void kqueue::_change( int id , int filt , int flag , void* p ) {
-        struct kevent e;
-        e.ident = id; 
-        e.filter = filt;
-        e.flags = flag;
-        e.fflags = 0;
-        e.data = 0;
-        e.udata = p;
-        do {
-            tcode::threading::spinlock::guard guard( _lock );
-            _changes.push_back( e );
-        }while(0);
-    }
-
-    int kqueue::native_descriptor( descriptor d ) {
+    int select::native_descriptor( descriptor d ) {
         return d->fd;
     }
 }}
