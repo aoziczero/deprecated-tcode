@@ -71,20 +71,13 @@ namespace tcode { namespace io {
     }
 
     void select::_descriptor::complete( select* ep , int events ) {
-        static const int selectev[] = {
-            ev_Read , ev_write , ,ev_pri 
-        };
-        for ( int i = 0 ; i < tcode::io::ev_max ; ++i ) {
-            if ( events & selectev[i] ){
-                while ( !op_queue[i].empty() ) {
-                    io::operation* op = op_queue[i].front<io::operation>();
-                    if ( op->post_proc(ep,this) ) {
-                        op_queue[i].pop_front();
-                        (*op)();
-                    } else {
-                        break;
-                    }
-                }
+        while ( !op_queue[events].empty() ) {
+            io::operation* op = op_queue[events].front<io::operation>();
+            if ( op->post_proc(ep,this) ) {
+                op_queue[events].pop_front();
+                (*op)();
+            } else {
+                break;
             }
         }
     }
@@ -105,26 +98,27 @@ namespace tcode { namespace io {
         fd_set rdfds , wrfds;
         FD_ZERO( &rdfds );
         FD_ZERO( &wrfds );
-        FD_SET( _wake_up.rd_pipe() , rdfds );
+        FD_SET( _wake_up.rd_pipe() , &rdfds );
         rdvec.push_back( std::make_pair( _wake_up.rd_pipe() , nullptr ));
         int maxfd = _wake_up.rd_pipe();
         for ( int i = 1 ; i < _desc.size() ; ++i ) {
             if (!_desc[i]->op_queue[ev_read].empty() ) {
-                rdvec.push_back( _desc[i]->fd , _desc[i] );
-                FD_SET( _desc[i]->fd , rdfds );
+                rdvec.push_back( std::make_pair( _desc[i]->fd , _desc[i] ));
+                FD_SET( _desc[i]->fd , &rdfds );
                 if ( maxfd < _desc[i]->fd )
                     maxfd = _desc[i]->fd;
             }
             if (!_desc[i]->op_queue[ev_write].empty()){
-                wrvec.push_back( _desc[i]->fd , _desc[i] );
-                FD_SET( _desc[i]->fd , wrfds );
+                wrvec.push_back( std::make_pair( _desc[i]->fd , _desc[i] ) );
+                FD_SET( _desc[i]->fd , &wrfds );
                 if ( maxfd < _desc[i]->fd )
                     maxfd = _desc[i]->fd;
             }
         }
 
         struct timeval tv;
-        tcode::time::convert_to( ts , tv );
+        tv.tv_sec = static_cast< long >( ts.total_microseconds() / ( 1000 * 1000 ));
+        tv.tv_usec = ts.total_microseconds() % ( 1000 * 1000 );
         int ret = ::select( maxfd + 1 , &rdfds , &wrfds , nullptr  , &tv );
         if ( ret <= 0  ) {
             return 0; 
@@ -132,9 +126,9 @@ namespace tcode { namespace io {
         int run = 0;
         bool execute_op = false;
         for ( std::size_t i  = 0 ; i < rdvec.size() ;  ++i ) {
-            if ( FD_ISET( rdvec[i].fd , rdfds ) ) {
-                if ( _desc[i] != nullptr ) {
-                    _desc[i]->complete( this , ev_read );
+            if ( FD_ISSET( rdvec[i].first, &rdfds ) ) {
+                if ( rdvec[i].second != nullptr ) {
+                    rdvec[i].second->complete( this , ev_read );
                     ++run;
                 } else {
                     char pipe_r[256];
@@ -144,9 +138,9 @@ namespace tcode { namespace io {
             }
         }
         for ( std::size_t i  = 0 ; i < wrvec.size() ;  ++i ) {
-            if ( FD_ISET( wrvec[i].fd , wrfds ) ) {
-                if ( _desc[i] != nullptr ) {
-                    _desc[i]->complete( this , ev_write );
+            if ( FD_ISSET( wrvec[i].first , &wrfds ) ) {
+                if ( wrvec[i].second != nullptr ) {
+                    wrvec[i].second->complete( this , ev_write );
                     ++run;
                 } 
             }
@@ -256,7 +250,7 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , POLLOUT );
+                desc->complete( this , ev_write );
                 desc->release(this);
             }));
     }
@@ -267,7 +261,7 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , POLLIN );
+                desc->complete( this , ev_read );
                 desc->release(this);
             }));
 
@@ -306,7 +300,7 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_accept].push_back(op);
-                desc->complete( this , POLLIN );
+                desc->complete( this , ev_read );
                 desc->release(this);
             }));
     }
@@ -373,7 +367,7 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , POLLOUT );
+                desc->complete( this , ev_write );
                 desc->release(this);
             }));
     }
@@ -389,7 +383,7 @@ namespace tcode { namespace io {
         execute( tcode::operation::wrap(
             [this,desc,op]{
                 desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , POLLIN);
+                desc->complete( this , ev_read);
                 desc->release(this);
             }));
     }
@@ -527,3 +521,4 @@ namespace tcode { namespace io {
         return d->fd;
     }
 }}
+

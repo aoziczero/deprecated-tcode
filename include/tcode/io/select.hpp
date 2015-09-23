@@ -7,7 +7,6 @@
 #include <tcode/time/timespan.hpp>
 #include <tcode/operation.hpp>
 #include <tcode/threading/spinlock.hpp>
-#include <sys/select.h>
 namespace tcode { namespace io {
 namespace ip {
 

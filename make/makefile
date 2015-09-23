@@ -35,11 +35,16 @@ endif
 ifeq ($(MUX),POLL)
 MUX_SRCS=io/poll.cpp
 DBG_FLAG+= -DMUX_POLL
+else 
+ifeq ($(MUX),SELECT)
+MUX_SRCS=io/select.cpp
+DBG_FLAG+= -DMUX_SELECT
 else
 ifeq ($(OS),Darwin)
 MUX_SRCS=io/kqueue.cpp	
 else
 MUX_SRCS=io/epoll.cpp	
+endif
 endif
 endif
 
