@@ -21,9 +21,13 @@
   <ItemGroup>
     <ClInclude Include="..\include\stdafx.h" />
     <ClInclude Include="..\include\targetver.h" />
-    <ClInclude Include="..\include\tcode\active_ref.hpp" />
     <ClInclude Include="..\include\tcode\allocator.hpp" />
+    <ClInclude Include="..\include\tcode\base64.hpp" />
+    <ClInclude Include="..\include\tcode\block.hpp" />
+    <ClInclude Include="..\include\tcode\byte_buffer.hpp" />
+    <ClInclude Include="..\include\tcode\crc32.hpp" />
     <ClInclude Include="..\include\tcode\error.hpp" />
+    <ClInclude Include="..\include\tcode\fixed_size_allocator.hpp" />
     <ClInclude Include="..\include\tcode\function.hpp" />
     <ClInclude Include="..\include\tcode\io\buffer.hpp" />
     <ClInclude Include="..\include\tcode\io\completion_port.hpp" />
@@ -33,12 +37,22 @@
     <ClInclude Include="..\include\tcode\io\ip\address.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\ip.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\option.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\raw.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\tcp\acceptor.hpp" />
-    <ClInclude Include="..\include\tcode\io\ip\tcp\connector.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\tcp\operation_accept.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\tcp\operation_connect.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\tcp\operation_read.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\tcp\operation_write.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\acceptor.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\builder.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\channel.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\connector.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filter.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filters\openssl_filter.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filters\size_filter.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filters\timeout_filter.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\pipeline.hpp" />
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\pipeline_builder.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\tcp\socket.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\udp\operation_read.hpp" />
     <ClInclude Include="..\include\tcode\io\ip\udp\operation_write.hpp" />
@@ -47,17 +61,31 @@
     <ClInclude Include="..\include\tcode\io\option.hpp" />
     <ClInclude Include="..\include\tcode\io\timer.hpp" />
     <ClInclude Include="..\include\tcode\io\timer_id.hpp" />
+    <ClInclude Include="..\include\tcode\log\console_writer.hpp" />
+    <ClInclude Include="..\include\tcode\log\file_writer.hpp" />
+    <ClInclude Include="..\include\tcode\log\formatter.hpp" />
+    <ClInclude Include="..\include\tcode\log\log.hpp" />
+    <ClInclude Include="..\include\tcode\log\logger.hpp" />
+    <ClInclude Include="..\include\tcode\log\record.hpp" />
+    <ClInclude Include="..\include\tcode\log\serialize_formatter.hpp" />
+    <ClInclude Include="..\include\tcode\log\writer.hpp" />
     <ClInclude Include="..\include\tcode\operation.hpp" />
     <ClInclude Include="..\include\tcode\slist.hpp" />
+    <ClInclude Include="..\include\tcode\string.hpp" />
     <ClInclude Include="..\include\tcode\tcode.hpp" />
+    <ClInclude Include="..\include\tcode\threading\local_storage.hpp" />
     <ClInclude Include="..\include\tcode\threading\spinlock.hpp" />
     <ClInclude Include="..\include\tcode\time\ctime_adapter.hpp" />
     <ClInclude Include="..\include\tcode\time\timespan.hpp" />
     <ClInclude Include="..\include\tcode\time\timestamp.hpp" />
+    <ClInclude Include="..\include\tcode\tmp\bit.hpp" />
+    <ClInclude Include="..\include\tcode\tmp\compile_time_error.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\active_ref.cpp" />
     <ClCompile Include="..\src\allocator.cpp" />
+    <ClCompile Include="..\src\base64.cpp" />
+    <ClCompile Include="..\src\block.cpp" />
+    <ClCompile Include="..\src\byte_buffer.cpp" />
     <ClCompile Include="..\src\error.cpp" />
     <ClCompile Include="..\src\io\buffer.cpp" />
     <ClCompile Include="..\src\io\completion_port.cpp" />
@@ -65,12 +93,20 @@
     <ClCompile Include="..\src\io\ip\address.cpp" />
     <ClCompile Include="..\src\io\ip\ip.cpp" />
     <ClCompile Include="..\src\io\ip\option.cpp" />
+    <ClCompile Include="..\src\io\ip\raw.cpp" />
     <ClCompile Include="..\src\io\ip\tcp\acceptor.cpp" />
-    <ClCompile Include="..\src\io\ip\tcp\connector.cpp" />
     <ClCompile Include="..\src\io\ip\tcp\operation_accept.cpp" />
     <ClCompile Include="..\src\io\ip\tcp\operation_connect.cpp" />
     <ClCompile Include="..\src\io\ip\tcp\operation_read.cpp" />
     <ClCompile Include="..\src\io\ip\tcp\operation_write.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\acceptor.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\channel.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\connector.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filter.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filters\openssl_filter.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filters\size_filter.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filters\timeout_filter.cpp" />
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\pipeline.cpp" />
     <ClCompile Include="..\src\io\ip\tcp\socket.cpp" />
     <ClCompile Include="..\src\io\ip\udp\operation_read.cpp" />
     <ClCompile Include="..\src\io\ip\udp\operation_write.cpp" />
@@ -79,6 +115,14 @@
     <ClCompile Include="..\src\io\option.cpp" />
     <ClCompile Include="..\src\io\timer.cpp" />
     <ClCompile Include="..\src\io\timer_id.cpp" />
+    <ClCompile Include="..\src\log\console_writer.cpp" />
+    <ClCompile Include="..\src\log\file_writer.cpp" />
+    <ClCompile Include="..\src\log\formatter.cpp" />
+    <ClCompile Include="..\src\log\log.cpp" />
+    <ClCompile Include="..\src\log\logger.cpp" />
+    <ClCompile Include="..\src\log\record.cpp" />
+    <ClCompile Include="..\src\log\serialize_formatter.cpp" />
+    <ClCompile Include="..\src\log\writer.cpp" />
     <ClCompile Include="..\src\operation.cpp" />
     <ClCompile Include="..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -86,7 +130,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\src\string.cpp" />
     <ClCompile Include="..\src\tcode.cpp" />
+    <ClCompile Include="..\src\threading\local_storage.cpp" />
     <ClCompile Include="..\src\threading\spinlock.cpp" />
     <ClCompile Include="..\src\time\ctime_adapter.cpp" />
     <ClCompile Include="..\src\time\timespan.cpp" />

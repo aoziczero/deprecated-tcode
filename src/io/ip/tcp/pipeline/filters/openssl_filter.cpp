@@ -3,7 +3,7 @@
 #include <tcode/io/ip/tcp/pipeline/filters/openssl_filter.hpp>
 #include <tcode/io/ip/tcp/pipeline/channel.hpp>
 #include <tcode/error.hpp>
-
+#if defined ( TCODE_ENABLE_OPENSSL )
 #include <openssl/err.h>
 
 namespace tcode { namespace io { namespace ip { namespace tcp {
@@ -179,3 +179,5 @@ SSL* openssl_filter::ssl( void ) {
 }
 
 }}}}
+
+#endif

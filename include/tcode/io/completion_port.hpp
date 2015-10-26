@@ -74,8 +74,8 @@ namespace ip {
                 , ip::tcp::operation_accept_base* op );
     public:
         //!
-        bool open( descriptor& desc
-                , int af , int type , int proto )
+		bool open(descriptor& desc
+			, int af, int type, int proto);
     
         //! udp bind
         bool bind( descriptor& desc
@@ -94,8 +94,20 @@ namespace ip {
 				, SOCKET& fd
 				, char* address_buf
                 , std::error_code& ec );
+
+		//!
+		int read(descriptor desc
+			, tcode::io::buffer& buf
+			, tcode::io::ip::address& addr
+			, std::error_code& ec);
+
+		//! 
+		int write(descriptor desc
+			, const tcode::io::buffer& buf
+			, const tcode::io::ip::address& addr
+			, std::error_code& ec);
         
-        int native_descriptor( descriptor desc );
+        SOCKET native_descriptor( descriptor desc );
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );

@@ -14,7 +14,7 @@ size_filter::~size_filter( void ){
 
 void size_filter::filter_on_read( tcode::byte_buffer buf )
 {
-	_read_buffer.reserve( _read_buffer.length() + buf.length());
+	_read_buffer.reserve( static_cast<int>(_read_buffer.length() + buf.length()));
 	_read_buffer.write( buf.rd_ptr() , buf.length());
 	
 	while ( _read_buffer.length() > sizeof( size_type ) ){

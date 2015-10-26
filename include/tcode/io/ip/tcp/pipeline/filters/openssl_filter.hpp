@@ -2,7 +2,7 @@
 #define __tcode_io_ip_tcp_openssl_filter_h__
 
 #include <tcode/io/ip/tcp/pipeline/filter.hpp>
-
+#if defined ( TCODE_ENABLE_OPENSSL )
 #include <openssl/ssl.h>
 
 namespace tcode { namespace io { namespace ip { namespace tcp {
@@ -44,4 +44,5 @@ private:
 
 }}}}
 
+#endif
 #endif

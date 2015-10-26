@@ -291,16 +291,16 @@ namespace tcode { namespace io {
     bool completion_port::open( descriptor& desc
                 , int af , int type , int proto )
     {
-        int fd = socket( af , type , proto );
+        SOCKET fd = socket( af , type , proto );
         if ( fd != -1 ) {
             tcode::io::ip::option::non_blocking nb;
             nb.set_option(fd);
-            desc = new epoll::_descriptor( this , fd );
+            desc = new completion_port::_descriptor( this , fd );
             if ( bind(desc))
                 return true;
             delete desc;
             desc = nullptr;
-            ::close(fd);
+			closesocket(fd);
         }
         return false;
     }
@@ -447,6 +447,54 @@ namespace tcode { namespace io {
 		fd = INVALID_SOCKET;
 		return -1;
     }
+
+	//!
+	int completion_port::read(descriptor desc
+		, tcode::io::buffer& buf
+		, tcode::io::ip::address& addr
+		, std::error_code& ec)
+	{
+		if (desc->fd == INVALID_SOCKET ) {
+			ec = tcode::error_invalid;
+		}
+		else {
+			int r = 0;
+			do {
+				r = ::recvfrom(desc->fd, buf.buf(), buf.len(), 0
+					, addr.sockaddr(), addr.sockaddr_length_ptr());
+			} while ((r == -1) && (errno == EINTR));
+			if (r >= 0) return r;
+			if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+				ec = tcode::error_success;
+			else
+				ec = tcode::last_error();
+		}
+		return -1;
+	}
+
+	//! 
+	int completion_port::write(descriptor desc
+		, const tcode::io::buffer& buf
+		, const tcode::io::ip::address& addr
+		, std::error_code& ec)
+	{
+		if (desc->fd == INVALID_SOCKET) {
+			ec = tcode::error_invalid;
+		}
+		else {
+			int r = 0;
+			do {
+				r = ::sendto(desc->fd, buf.buf(), buf.len(), 0
+					, addr.sockaddr(), addr.sockaddr_length());
+			} while ((r == -1) && (errno == EINTR));
+			if (r >= 0) return r;
+			if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+				ec = tcode::error_success;
+			else
+				ec = tcode::last_error();
+		}
+		return -1;
+	}
 
     SOCKET completion_port::native_descriptor( descriptor d ) {
         return d->fd;

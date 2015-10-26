@@ -17,6 +17,7 @@ namespace tcode { namespace io { namespace ip { namespace raw {
 
     TCODE_PACK(
     struct iphdr{
+/*
 #if defined TCODE_BIG_ENDIAN
         unsigned int version:4;
         unsigned int ihl:4;
@@ -24,7 +25,10 @@ namespace tcode { namespace io { namespace ip { namespace raw {
         unsigned int ihl:4;
         unsigned int version:4;
 #endif
-       uint8_t tos;
+*/
+		unsigned int ihl : 4;
+		unsigned int version : 4;
+        uint8_t tos;
         uint16_t tot_len;
         uint16_t id;
         uint16_t frag_off;
@@ -33,7 +37,6 @@ namespace tcode { namespace io { namespace ip { namespace raw {
         uint16_t check;
         uint32_t saddr;
         uint32_t daddr;
-        /*The options start here. */
     });
 
     TCODE_PACK(

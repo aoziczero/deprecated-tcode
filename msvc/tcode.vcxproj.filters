@@ -23,12 +23,21 @@
     <Filter Include="tcode\io\ip\udp">
       <UniqueIdentifier>{9508249c-d3fc-4a4a-89e5-9811c82899e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tcode\io\ip\tcp\pipeline">
+      <UniqueIdentifier>{a47a5b3d-82a2-4c8b-bf75-61c99df98c74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\io\ip\tcp\pipeline\filters">
+      <UniqueIdentifier>{d719083e-f616-461f-914c-608512b3e47f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\log">
+      <UniqueIdentifier>{f796bb9f-6451-4f23-aae9-30dcdac623d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tcode\tmp">
+      <UniqueIdentifier>{7c68c0ac-baa1-403a-91c0-5afc2fbce1db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\tcode\error.hpp">
-      <Filter>tcode</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\tcode\active_ref.hpp">
       <Filter>tcode</Filter>
     </ClInclude>
     <ClInclude Include="..\include\tcode\allocator.hpp">
@@ -94,9 +103,6 @@
     <ClInclude Include="..\include\tcode\io\ip\tcp\acceptor.hpp">
       <Filter>tcode\io\ip\tcp</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\tcode\io\ip\tcp\connector.hpp">
-      <Filter>tcode\io\ip\tcp</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\tcode\io\ip\tcp\operation_accept.hpp">
       <Filter>tcode\io\ip\tcp</Filter>
     </ClInclude>
@@ -126,12 +132,93 @@
     </ClInclude>
     <ClInclude Include="..\include\stdafx.h" />
     <ClInclude Include="..\include\targetver.h" />
+    <ClInclude Include="..\include\tcode\threading\local_storage.hpp">
+      <Filter>tcode\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\base64.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\block.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\byte_buffer.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\crc32.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\fixed_size_allocator.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\string.hpp">
+      <Filter>tcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\raw.hpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\builder.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\channel.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\connector.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filter.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\pipeline.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\pipeline_builder.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\acceptor.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filters\timeout_filter.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline\filters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filters\openssl_filter.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline\filters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\io\ip\tcp\pipeline\filters\size_filter.hpp">
+      <Filter>tcode\io\ip\tcp\pipeline\filters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\record.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\serialize_formatter.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\writer.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\console_writer.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\file_writer.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\formatter.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\log.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\log\logger.hpp">
+      <Filter>tcode\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\tmp\compile_time_error.hpp">
+      <Filter>tcode\tmp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tcode\tmp\bit.hpp">
+      <Filter>tcode\tmp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\error.cpp">
-      <Filter>tcode</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\active_ref.cpp">
       <Filter>tcode</Filter>
     </ClCompile>
     <ClCompile Include="..\src\allocator.cpp">
@@ -185,9 +272,6 @@
     <ClCompile Include="..\src\io\ip\tcp\acceptor.cpp">
       <Filter>tcode\io\ip\tcp</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\io\ip\tcp\connector.cpp">
-      <Filter>tcode\io\ip\tcp</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\io\ip\tcp\operation_accept.cpp">
       <Filter>tcode\io\ip\tcp</Filter>
     </ClCompile>
@@ -216,5 +300,71 @@
       <Filter>tcode\io</Filter>
     </ClCompile>
     <ClCompile Include="..\src\stdafx.cpp" />
+    <ClCompile Include="..\src\threading\local_storage.cpp">
+      <Filter>tcode\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\base64.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\byte_buffer.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\block.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\string.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\raw.cpp">
+      <Filter>tcode\io\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\pipeline.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\acceptor.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\channel.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\connector.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filter.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filters\timeout_filter.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filters\openssl_filter.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\io\ip\tcp\pipeline\filters\size_filter.cpp">
+      <Filter>tcode\io\ip\tcp\pipeline\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\formatter.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\log.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\logger.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\record.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\serialize_formatter.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\writer.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\console_writer.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\file_writer.cpp">
+      <Filter>tcode\log</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

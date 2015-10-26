@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include <tcode/string.hpp>
 #include <vector>
 #include <stdarg.h>

@@ -1,3 +1,7 @@
+#if defined( _WIN32 )
+#pragma warning(disable: 4819)
+#endif
+
 #ifndef __tcode_common_define_h__
 #define __tcode_common_define_h__
 
@@ -48,6 +52,7 @@
     #define TCODE_ALIGN( n ) __declspec(align(n))
     #endif
 
+	#pragma warning(disable: 4819)
 //	#if _MSC_VER >= 1800
 //	#define TCODE_CPP_0x11_SUPPORT	
 //	#endif
@@ -116,7 +121,9 @@
     // It's a little-endian target architecture
     #define TCODE_LITTLE_ENDIAN
 #else
+#if !defined( TCODE_WIN32 )
 #error "I don't know what architecture this is!"
+#endif
 #endif
 
 namespace tcode {
