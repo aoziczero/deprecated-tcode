@@ -1,7 +1,3 @@
-#if defined( _WIN32 )
-#pragma warning(disable: 4819)
-#endif
-
 #ifndef __tcode_common_define_h__
 #define __tcode_common_define_h__
 
@@ -130,7 +126,9 @@ namespace tcode {
 
 bool init( void );
 
-// boost ref
+/*!
+*	@brief	멤버변수의 포인터 오프셋을 알아오는 함수 / boost 에서 참조
+*/
 template<class Parent , class Member >
 std::ptrdiff_t offset_of(const Member Parent::*ptr_to_member)
 {
@@ -142,6 +140,10 @@ std::ptrdiff_t offset_of(const Member Parent::*ptr_to_member)
 	return val;
 }
 
+/*!
+*	@brief		멤버변수로 부모의 pointer 를 알아오는 함수 / boost 에서 참조
+*	@detail		tcode::io::operation* op = tcode::container_of( ov , &tcode::io::operation::ov );
+*/
 template<class Parent, class Member>
 inline Parent* container_of(Member *member, const Member Parent::* ptr_to_member)
 {

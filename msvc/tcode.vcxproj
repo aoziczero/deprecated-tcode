@@ -86,6 +86,7 @@
     <ClCompile Include="..\src\base64.cpp" />
     <ClCompile Include="..\src\block.cpp" />
     <ClCompile Include="..\src\byte_buffer.cpp" />
+    <ClCompile Include="..\src\crc32.cpp" />
     <ClCompile Include="..\src\error.cpp" />
     <ClCompile Include="..\src\io\buffer.cpp" />
     <ClCompile Include="..\src\io\completion_port.cpp" />

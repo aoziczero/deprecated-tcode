@@ -4,6 +4,11 @@
 namespace tcode {
 
 class timestamp;
+/*!
+*	@class timespan
+*	@brief 시간 간격
+*	@author	tk
+*/
 class timespan {
 public:
 	timespan( void );

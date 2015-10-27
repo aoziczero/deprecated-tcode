@@ -140,10 +140,10 @@ int byte_buffer::fit( void ) {
 }
 
 int byte_buffer::shrink_to_fit(void){
-	block::handle new_b = block::alloc( length());
-	memcpy(new_b  , rd_ptr() , length());
+	block::handle block_for_fit = block::alloc( length());
+	memcpy(block_for_fit, rd_ptr() , length());
 	block::free( _block );
-	new_b = _block;
+	_block = block_for_fit;
 	int ret = (int)_pos.read;
 	_pos.write = length();
 	_pos.read = 0;
@@ -178,7 +178,7 @@ void byte_buffer::reserve( const int sz ) {
 
 std::size_t byte_buffer::read(void* dst, const std::size_t sz) {
 	std::size_t cpysize = peak( dst , sz );
-	rd_ptr(cpysize);
+	rd_ptr(static_cast<int>(cpysize));
 	return cpysize;
 }
 
@@ -191,7 +191,7 @@ std::size_t byte_buffer::peak(void* dst, const std::size_t sz){
 std::size_t byte_buffer::write(void* src, const std::size_t sz){
 	std::size_t cpysize = std::min(sz, space());
 	memcpy( wr_ptr() , src , cpysize );
-	return wr_ptr(cpysize);
+	return wr_ptr(static_cast<int>(cpysize));
 }
 
 byte_buffer::position byte_buffer::tell( void ) const {
@@ -209,7 +209,7 @@ std::size_t byte_buffer::write_fmt( const char* msg , ... ) {
 	char fmt_buffer[2048] = { 0 , };
 	va_list args;
 	va_start( args , msg );
-#if defined(TCODE_TARGET_WINDOWS)
+#if defined(TCODE_WIN32)
 	int len = _vsnprintf_s( fmt_buffer , 2048 , msg , args );
 #else
 	int len = vsnprintf( fmt_buffer , 2048 , msg , args );

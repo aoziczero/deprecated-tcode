@@ -5,6 +5,12 @@
 
 namespace tcode { namespace threading {
 
+	/*!
+	*	@class local_storage
+	*	@brief thread local storage wrapper
+	*	@author tk
+	*	@detail	win32 / pthread ¸¸ ±¸Çö
+	*/
     class local_storage {
     public:
         local_storage( void );
@@ -20,7 +26,11 @@ namespace tcode { namespace threading {
 #endif
     };
 
-
+	/*!
+	*	@class local_storage_T
+	*	@brief thread local storage template wrapper
+	*	@author tk
+	*/
     template < typename Object >
     class local_storage_T {
     public:

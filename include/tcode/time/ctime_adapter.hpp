@@ -7,7 +7,8 @@ namespace tcode {
 
     /*!
      *  @class ctime_adapter
-     *
+     *	@brief timestamp 와 ctime 간의 변환 처리
+	 *	@author	tk
      */
     class ctime_adapter {
     public:

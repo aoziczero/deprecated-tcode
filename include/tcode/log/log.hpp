@@ -11,10 +11,8 @@
 #include <tcode/log/serialize_formatter.hpp>
 
 #if defined(TCODE_WIN32)
-#include <crtdefs.h>
-#endif
 
-#if defined(TCODE_WIN32)
+#include <crtdefs.h>
 //! win32 macros
 
 #define LOG_T(tag,msg,... ) do{tcode::log::logger::instance().write(tcode::log::trace,tag,__FILE__,__FUNCTION__,__LINE__,msg,__VA_ARGS__ ); } while(0)

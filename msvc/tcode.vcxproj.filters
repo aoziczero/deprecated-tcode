@@ -366,5 +366,8 @@
     <ClCompile Include="..\src\log\file_writer.cpp">
       <Filter>tcode\log</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\crc32.cpp">
+      <Filter>tcode</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

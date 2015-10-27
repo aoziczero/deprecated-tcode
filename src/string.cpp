@@ -157,4 +157,15 @@ std::string& append_format( std::string& msg , const char* format , ... ) {
 }
 
 #endif
+
+std::string raw_to_hex_string(void* p, int sz) {
+	static const char hex[] = "0123456789ABCDEF";
+	std::string value;
+	unsigned char* data_ptr = static_cast< unsigned char* >(p);
+	for (int i = 0; i < sz; ++i) {
+		value += hex[data_ptr[i] >> 4];
+		value += hex[data_ptr[i] & 0x0f];
+	}
+	return value;
+};
 }}

@@ -27,6 +27,7 @@ struct length< wchar_t > {
 
 }
 
+#if defined( TCODE_WIN32 )
 
 std::string  wcs_to_mbs( const std::wstring& in );
 std::wstring mbs_to_wcs( const std::string&  in );
@@ -37,7 +38,7 @@ std::string  wcs_to_utf_8( const std::wstring& in );
 std::wstring utf_8_to_wcs( const std::string& in );
 std::string  utf_8_to_mbs( const std::string& in );
 
-#if defined(_WIN32) || defined(_WIN64)
+
 template < typename T1 , typename T2 >
 struct converter {
 	static T1 value( const T2& t2 ){
@@ -58,10 +59,32 @@ struct converter< std::wstring , std::string > {
 		return mbs_to_wcs( t2 );
 	}
 };
+
+static bool is_hangul(wchar_t ch);
+
+class hangul {
+public:
+	hangul(const wchar_t cho, const wchar_t jung, const wchar_t jong);
+	~hangul(void);
+
+	wchar_t cho_sung() const;
+	wchar_t jung_sung() const;
+	wchar_t jong_sung() const;
+private:
+	wchar_t _ChoSung;
+	wchar_t _JungSung;
+	wchar_t _JongSung;
+};
+
+static hangul extract_hangul(wchar_t ch);
+
+std::wstring& append_format(std::wstring& msg, const wchar_t* format, ...);
+
 #endif
 
 std::string& append_format( std::string& msg , const char* format , ... );
-std::wstring& append_format( std::wstring& msg , const wchar_t* format , ... );	
+
+std::string raw_to_hex_string(void* p, int sz);
 
 template < typename string_type , typename out >
 static void split( const string_type& message , const string_type& sep , out os ) {
@@ -231,36 +254,6 @@ static String between( const String& src
 	}
 	return "";
 }
-#if defined ( _WIN32 )
-static bool is_hangul( wchar_t ch );
-
-class hangul {
-public:
-	hangul( const wchar_t cho , const wchar_t jung , const wchar_t jong );
-	~hangul( void );
-
-	wchar_t cho_sung() const ;
-	wchar_t jung_sung() const ;
-	wchar_t jong_sung() const ;
-private:
-	wchar_t _ChoSung;
-	wchar_t _JungSung;
-	wchar_t _JongSung;
-};
-
-static hangul extract_hangul( wchar_t ch );
-#endif
-
-static std::string hex_string( void* p , int sz ) {
-	static const char hex[]="0123456789abcdef";
-	std::string value;
-	unsigned char* data_ptr = static_cast< unsigned char* >(p);
-	for ( int i = 0 ; i < sz ; ++i ) {
-		value += hex[ data_ptr[i] >> 4 ];
-		value += hex[ data_ptr[i] & 0x0f ];
-	}
-	return value;
-};
 
 
 }}

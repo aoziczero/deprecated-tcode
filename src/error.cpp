@@ -112,7 +112,7 @@ namespace tcode {
         }
 
         //! \return readable error message­
-        //! \param condition [in] tcode::diagnostics::code
+        //! \param condition [in] 
         virtual std::string message( int condition ) const {
             const size_t buffer_size = 4096;
 			DWORD dwFlags = FORMAT_MESSAGE_FROM_SYSTEM;
