@@ -18,31 +18,7 @@ namespace tcode { namespace io {
     struct completion_port::_descriptor{
         SOCKET fd;
         std::atomic<int> refcount;
-
-        _descriptor( completion_port* mux , SOCKET fd  );
-
-        void add_ref( void );
-        void release( completion_port* mux );
     };
-
-    completion_port::_descriptor::_descriptor( completion_port* mux , SOCKET fd ) {
-        refcount.store(1);
-        mux->_engine.active_inc();
-        this->fd = fd;
-    }
-
-    void completion_port::_descriptor::add_ref( void ) {
-        refcount.fetch_add(1);
-    }
-
-    void completion_port::_descriptor::release( completion_port* mux ){
-        if ( refcount.fetch_sub(1) != 1 ) {
-            return; 
-        }
-        mux->_engine.active_dec();
-        delete this;
-    }
-
 
     completion_port::completion_port( engine& en )
         : _handle( CreateIoCompletionPort( INVALID_HANDLE_VALUE , NULL , 0 , 1 ))
@@ -91,7 +67,7 @@ namespace tcode { namespace io {
 			if (op->post_proc(this, desc)) {
 				(*op)();
 			}
-			desc->release(this);
+			descriptor_release(desc);
 			return 1;
 		}
     }
@@ -122,7 +98,7 @@ namespace tcode { namespace io {
 								closesocket(desc->fd);
                                 desc->fd = INVALID_SOCKET;
                             }
-                            desc->release( this );
+                            descriptor_release( desc );
                         });
             op_add(op);
         }while(0);
@@ -158,7 +134,7 @@ namespace tcode { namespace io {
 			if (func.fn != nullptr) {
 				tcode::io::ip::address addr( tcode::io::ip::address::any(0));
 				if (::bind(fd, addr.sockaddr(), (int)addr.sockaddr_length()) == 0) {
-					desc = new completion_port::_descriptor(this , fd );
+					desc = descriptor_create(fd);
 					if (bind(desc)) {
 						LPOVERLAPPED ov = &(op->ov);
 						memset( ov , 0 , sizeof(*ov));
@@ -194,7 +170,7 @@ namespace tcode { namespace io {
     void completion_port::write( completion_port::descriptor desc 
             , ip::tcp::operation_write_base* op)
     {
-        desc->add_ref();
+        descriptor_add_ref(desc);
 		LPOVERLAPPED ov = &(op->ov);
 		memset( ov , 0 , sizeof(*ov));
 		DWORD flag = 0;
@@ -208,7 +184,7 @@ namespace tcode { namespace io {
 		{
 			if ( WSAGetLastError() != WSA_IO_PENDING ){
 				op->error() = tcode::last_error();
-				desc->release(this);
+				descriptor_release(desc);
 				execute(op);
 			}
 		}
@@ -216,7 +192,7 @@ namespace tcode { namespace io {
 
     void completion_port::read( descriptor desc
             , ip::tcp::operation_read_base* op ){
-        desc->add_ref();
+        descriptor_add_ref(desc);
 		LPOVERLAPPED ov = &(op->ov);
 		memset( ov , 0 , sizeof(*ov));
 		DWORD flag = 0;
@@ -230,7 +206,7 @@ namespace tcode { namespace io {
 		{
 			if ( WSAGetLastError() != WSA_IO_PENDING ){
 				op->error() = tcode::last_error();
-				desc->release(this);
+				descriptor_release(desc);
 				execute(op);
 			}
 		}
@@ -247,7 +223,7 @@ namespace tcode { namespace io {
             reuse.set_option( fd );
             if ((::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0)
                     && (::listen(fd, SOMAXCONN ) == 0 )) {
-                desc = new completion_port::_descriptor(this,fd);
+                desc = descriptor_create(fd);
                 if ( bind( desc ))
                     return true;
                 delete desc;
@@ -261,7 +237,7 @@ namespace tcode { namespace io {
     void completion_port::accept( descriptor desc
 			, int family
             , ip::tcp::operation_accept_base* op ){
-        desc->add_ref();
+        descriptor_add_ref(desc);
 		op->accepted_fd() = WSASocket( family , SOCK_STREAM , IPPROTO_TCP , nullptr , 0 , WSA_FLAG_OVERLAPPED );
         if ( op->accepted_fd() != INVALID_SOCKET ) {
 			tcode::io::ip::option::non_blocking nb;
@@ -284,7 +260,7 @@ namespace tcode { namespace io {
 			op->accepted_fd() = INVALID_SOCKET;
 			op->error() = tcode::last_error();
 		}
-		desc->release(this);
+		descriptor_release(desc);
 		execute(op);
     }
     
@@ -295,7 +271,7 @@ namespace tcode { namespace io {
         if ( fd != -1 ) {
             tcode::io::ip::option::non_blocking nb;
             nb.set_option(fd);
-            desc = new completion_port::_descriptor( this , fd );
+            desc = descriptor_create( fd );
             if ( bind(desc))
                 return true;
             delete desc;
@@ -316,7 +292,7 @@ namespace tcode { namespace io {
             tcode::io::ip::option::reuse_address reuse( true );
             reuse.set_option( fd );
             if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0 ){
-                desc = new completion_port::_descriptor( this , fd );
+				desc = descriptor_create(fd);
                 if ( bind(desc))
                     return true;
                 delete desc;
@@ -333,7 +309,7 @@ namespace tcode { namespace io {
         if ( desc == nullptr ) {
 			SOCKET fd = WSASocket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP  , nullptr , 0 , WSA_FLAG_OVERLAPPED );
 			if ( fd != INVALID_SOCKET ) {
-                desc = new completion_port::_descriptor( this , fd );
+				desc = descriptor_create(fd);
                 if ( !bind( desc )){
                     op->error() = tcode::last_error();
                     delete desc;
@@ -347,7 +323,7 @@ namespace tcode { namespace io {
                 return execute(op);
             }
         }
-        desc->add_ref();
+        descriptor_add_ref(desc);
 		LPOVERLAPPED ov = &(op->ov);
 		memset( ov , 0 , sizeof(*ov));
 		DWORD flag = 0;
@@ -363,7 +339,7 @@ namespace tcode { namespace io {
 		{
 			if ( WSAGetLastError() != WSA_IO_PENDING ){
 				op->error() = tcode::last_error();
-				desc->release(this);
+				descriptor_release(desc);
 				execute(op);
 			}
 		}
@@ -377,7 +353,7 @@ namespace tcode { namespace io {
             op->error() = tcode::error_invalid; 
             return execute(op);
         }
-        desc->add_ref();
+        descriptor_add_ref(desc);
 		LPOVERLAPPED ov = &(op->ov);
 		memset( ov , 0 , sizeof(*ov));
 		DWORD flag = 0;
@@ -393,7 +369,7 @@ namespace tcode { namespace io {
 		{
 			if ( WSAGetLastError() != WSA_IO_PENDING ){
 				op->error() = tcode::last_error();
-				desc->release(this);
+				descriptor_release(desc);
 				execute(op);
 			}
 		}
@@ -402,11 +378,11 @@ namespace tcode { namespace io {
 
     void completion_port::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active_inc();
+        _engine.add_ref();
     }
 
     void completion_port::op_run( tcode::operation* op ){
-        _engine.active_dec();
+        _engine.release();
         (*op)();
     }
 
@@ -421,7 +397,7 @@ namespace tcode { namespace io {
 			ec = tcode::error_invalid;
 		} else {
 			if (!ec) {
-				accepted = new completion_port::_descriptor(this,fd);
+				accepted = descriptor_create(fd);
 				if (bind(accepted)) {
 					struct sockaddr* local ,*remote;
 					INT llen , rlen;
@@ -500,5 +476,23 @@ namespace tcode { namespace io {
         return d->fd;
     }
             
+	descriptor completion_port::descriptor_create(SOCKET fd) {
+		descriptor d = new completion_port::_descriptor();
+		d->fd = fd;
+		d->refcount.store(1);
+		_engine.add_ref();
+		return d;
+	}
 
+	void completion_port::descriptor_add_ref(descriptor d) {
+		d->refcount.fetch_add(1);
+	}
+
+	void completion_port::descriptor_release(descriptor d) {
+		if (d->refcount.fetch_sub(1) != 1) {
+			return;
+		}
+		_engine.release();
+		delete d;
+	}
 }}

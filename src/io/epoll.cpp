@@ -25,73 +25,7 @@ namespace tcode { namespace io {
         int fd;
         tcode::slist::queue< tcode::operation > op_queue[tcode::io::ev_max];
         std::atomic<int> refcount;
-
-        void complete( epoll* ep ,  int ev );
-
-        _descriptor( epoll* ep , int fd  );
-
-        void add_ref( void );
-        void release( epoll* ep );
     };
-
-    epoll::_descriptor::_descriptor( epoll* ep , int fd ) {
-        refcount.store(1);
-        ep->_engine.active_inc();
-        this->fd = fd;
-    }
-
-    void epoll::_descriptor::add_ref( void ) {
-        refcount.fetch_add(1);
-    }
-
-    void epoll::_descriptor::release( epoll* ep ){
-        if ( refcount.fetch_sub(1) != 1 ) {
-            return; 
-        }
-        ep->_engine.active_dec();
-        
-        tcode::slist::queue< tcode::operation > ops;
-        for ( int i = 0 ;i < tcode::io::ev_max ; ++i ) {
-            while ( !op_queue[i].empty()){
-                io::operation* op = op_queue[i].front< io::operation >();
-                op_queue[i].pop_front();
-                op->error() = tcode::error_aborted;
-                ops.push_back(op);
-            }
-        }
-
-        if ( !ops.empty() ) {
-            do {
-                tcode::threading::spinlock::guard guard(ep->_lock);
-                while( !ops.empty()){
-                    tcode::operation* op = ops.front();
-                    ops.pop_front();
-                    ep->op_add(op);
-                }
-            }while(0);
-            ep->wake_up();
-        }
-        delete this;
-    }
-
-    void epoll::_descriptor::complete( epoll* ep , int events ) {
-        static const int epollev[] = {
-            EPOLLIN , EPOLLOUT , EPOLLPRI 
-        };
-        for ( int i = 0 ; i < tcode::io::ev_max ; ++i ) {
-            if ( events & epollev[i] ){
-                while ( !op_queue[i].empty() ) {
-                    io::operation* op = op_queue[i].front<io::operation>();
-                    if ( op->post_proc(ep,this) ) {
-                        op_queue[i].pop_front();
-                        (*op)();
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
-    }
 
     epoll::epoll( engine& en )
         : _handle( epoll_create(epoll_max_event))
@@ -122,7 +56,7 @@ namespace tcode { namespace io {
             epoll::descriptor desc =
                 static_cast< epoll::descriptor >( events[i].data.ptr );
             if ( desc ) {
-                desc->complete( this , events[i].events );
+				descriptor_dispatch(desc, events[i].events);
             } else {
                 char pipe_r[256];
                 ::read( _wake_up.rd_pipe() , pipe_r , 256 );
@@ -173,7 +107,7 @@ namespace tcode { namespace io {
                             ::close( desc->fd );
                             desc->fd = -1;
                         }
-                        desc->release( this );
+						descriptor_release(desc);
                     })
             );
         }while(0);
@@ -203,15 +137,15 @@ namespace tcode { namespace io {
                 r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
             }while((r == -1) && (errno == EINTR));
             if ( (r == 0) || (errno == EINPROGRESS )){
-                desc = new epoll::_descriptor(this , fd );
+                desc = descriptor_create( fd );
                 desc->op_queue[tcode::io::ev_connect].push_back( op );
-                if ( bind( desc ) ){
-                    return;
-                }
-                op->error() = tcode::last_error();
-                desc->op_queue[tcode::io::ev_connect].pop_front();
-                delete desc;
-                desc = nullptr;
+                if ( !bind( desc ) ){
+					::close(fd);
+					op->error() = tcode::last_error();
+					descriptor_release(desc);
+					desc = nullptr;
+				}
+				return;
             }
             ::close(fd);
             op->error() = tcode::last_error();
@@ -222,23 +156,19 @@ namespace tcode { namespace io {
     void epoll::write( epoll::descriptor desc 
             , ip::tcp::operation_write_base* op)
     {
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EPOLLOUT );
-                desc->release(this);
+				descriptor_dispatch_write(desc, op);
             }));
     }
 
     void epoll::read( descriptor desc
             , ip::tcp::operation_read_base* op ){
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EPOLLIN );
-                desc->release(this);
+				descriptor_dispatch_read(desc, op);
             }));
 
     }
@@ -254,10 +184,10 @@ namespace tcode { namespace io {
             reuse.set_option( fd );
             if ((::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0)
                     && (::listen(fd, SOMAXCONN ) == 0 )) {
-                desc = new epoll::_descriptor(this,fd);
+				desc = descriptor_create(fd);
                 if ( bind( desc ))
                     return true;
-                delete desc;
+				descriptor_release(desc);
                 desc = nullptr;
             }
             ::close(fd);
@@ -273,12 +203,10 @@ namespace tcode { namespace io {
             return;
         }
 
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_accept].push_back(op);
-                desc->complete( this , EPOLLIN );
-                desc->release(this);
+				descriptor_dispatch_read(desc, op);
             }));
     }
     
@@ -289,11 +217,11 @@ namespace tcode { namespace io {
         if ( fd != -1 ) {
             tcode::io::ip::option::non_blocking nb;
             nb.set_option(fd);
-            desc = new epoll::_descriptor( this , fd );
+			desc = descriptor_create(fd);
             if ( bind(desc))
                 return true;
-            delete desc;
-            desc = nullptr;
+			descriptor_release(desc);
+			desc = nullptr;
             ::close(fd);
         }
         return false;
@@ -310,11 +238,11 @@ namespace tcode { namespace io {
             tcode::io::ip::option::reuse_address reuse( true );
             reuse.set_option( fd );
             if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0 ){
-                desc = new epoll::_descriptor( this , fd );
+                desc = descriptor_create(fd);
                 if ( bind(desc))
                     return true;
-                delete desc;
-                desc = nullptr;
+				descriptor_release(desc);
+				desc = nullptr;
             }
             ::close(fd);
         }
@@ -327,11 +255,11 @@ namespace tcode { namespace io {
         if ( desc == nullptr ) {
             int fd = socket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP);
             if ( fd != -1 ){
-                desc = new epoll::_descriptor( this , fd );
+                desc = descriptor_create(fd);
                 if ( !bind( desc )){
                     op->error() = tcode::last_error();
-                    delete desc;
-                    desc = nullptr;
+					descriptor_release(desc);
+					desc = nullptr;
                     ::close(fd);
                 }
             }else{
@@ -342,12 +270,10 @@ namespace tcode { namespace io {
             }
         }
         
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EPOLLOUT );
-                desc->release(this);
+				descriptor_dispatch_write(desc, op);
             }));
     }
     
@@ -358,23 +284,21 @@ namespace tcode { namespace io {
             op->error() = tcode::error_invalid; 
             return execute(op);
         }
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EPOLLIN);
-                desc->release(this);
+				descriptor_dispatch_read(desc, op);
             }));
     }
 
 
     void epoll::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active_inc();
+        _engine.add_ref();
     }
 
     void epoll::op_run( tcode::operation* op ){
-        _engine.active_dec();
+        _engine.release();
         (*op)();
     }
 
@@ -440,7 +364,7 @@ namespace tcode { namespace io {
                 tcode::io::ip::option::non_blocking nb;
                 nb.set_option( fd );
 
-                accepted = new epoll::_descriptor( this , fd );
+                accepted = descriptor_create(fd);
                 bind( accepted );
                 return 0;
             }
@@ -499,4 +423,79 @@ namespace tcode { namespace io {
     int epoll::native_descriptor( descriptor desc ) {
         return desc->fd;
     }
+
+	descriptor epoll::descriptor_create(int fd) {
+		descriptor d = new epoll::_descriptor();
+		d->fd = fd;
+		d->refcount.store(1);
+		_engine.add_ref();
+		return d;
+	}
+
+	void epoll::descriptor_add_ref(descriptor d) {
+		d->refcount.fetch_add(1);
+	}
+
+	void epoll::descriptor_release(descriptor d) {
+		if (d->refcount.fetch_sub(1) != 1) {
+			return;
+		}
+		_engine.release();
+
+		tcode::slist::queue< tcode::operation > ops;
+		for (int i = 0; i < tcode::io::ev_max; ++i) {
+			while (!d->op_queue[i].empty()) {
+				io::operation* op = d->op_queue[i].front< io::operation >();
+				op_queue[i].pop_front();
+				if ( !op->error())
+					op->error() = tcode::error_aborted;
+				ops.push_back(op);
+			}
+		}
+
+		if (!ops.empty()) {
+			do {
+				tcode::threading::spinlock::guard guard(_lock);
+				while (!ops.empty()) {
+					tcode::operation* op = ops.front();
+					ops.pop_front();
+					op_add(op);
+				}
+			} while (0);
+			wake_up();
+		}
+		delete d;
+	}
+
+	void epoll::descriptor_dispatch_read(descriptor d, tcode::operation* op) {
+		d->op_queue[tcode::io::ev_read ].push_back(op);
+		descriptor_dispatch(d, EPOLLIN);
+		descriptor_release(d);
+	}
+
+	void epoll::descriptor_dispatch_write(descriptor d, tcode::operation* op) {
+		d->op_queue[tcode::io::ev_write].push_back(op);
+		descriptor_dispatch(d, EPOLLOUT);
+		descriptor_release(d);
+	}
+
+	void epoll::descriptor_dispatch(descriptor d, int events) {
+		static const int epollev[] = {
+			EPOLLIN , EPOLLOUT , EPOLLPRI
+		};
+		for (int i = 0; i < tcode::io::ev_max; ++i) {
+			if (events & epollev[i]) {
+				while (!d->op_queue[i].empty()) {
+					io::operation* op = d->op_queue[i].front<io::operation>();
+					if (op->post_proc(ep, this)) {
+						d->op_queue[i].pop_front();
+						(*op)();
+					}
+					else {
+						break;
+					}
+				}
+			}
+		}
+	}
 }}

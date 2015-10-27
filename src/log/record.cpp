@@ -42,10 +42,10 @@ namespace tcode { namespace log {
         buf << r.type;
         buf << r.line;
         buf << r.tid;
-        short len = strlen( r.tag );    buf << len;     buf.write( const_cast<char*>(r.tag)  , len );
-        len = strlen( r.file );         buf << len;     buf.write( const_cast<char*>(r.file)  , len );
-        len = strlen( r.function );     buf << len;     buf.write( const_cast<char*>(r.function) , len );
-        len = strlen( r.message );      buf << len;     buf.write( const_cast<char*>(r.message)  , len );
+        short len = (short)strlen( r.tag );    buf << len;     buf.write( const_cast<char*>(r.tag)  , len );
+        len = (short)strlen( r.file );         buf << len;     buf.write( const_cast<char*>(r.file)  , len );
+        len = (short)strlen( r.function );     buf << len;     buf.write( const_cast<char*>(r.function) , len );
+        len = (short)strlen( r.message );      buf << len;     buf.write( const_cast<char*>(r.message)  , len );
         return buf;
     }   
 

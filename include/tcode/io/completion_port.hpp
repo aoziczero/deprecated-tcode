@@ -111,6 +111,10 @@ namespace ip {
     private:
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );
+
+		descriptor descriptor_create(SOCKET fd);
+		void descriptor_add_ref(descriptor d);
+		void descriptor_release(descriptor d);
     private:
         engine& _engine;
         HANDLE _handle;

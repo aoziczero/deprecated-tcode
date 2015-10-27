@@ -8,7 +8,7 @@ namespace tcode { namespace io {
     
     engine::engine( void )
         : _mux(*this){
-        _active.store(0);
+		_refcount.store(0);
     } 
 
     engine::~engine( void ){
@@ -16,7 +16,7 @@ namespace tcode { namespace io {
 
     void engine::run( void ) {
         _run_thread_id = std::this_thread::get_id();
-        while ( _active.load() || !_timers.empty() ){
+        while (_refcount.load() || !_timers.empty() ){
             _mux.run( next_wake_up_time());
             timer_drain();
         }
@@ -89,11 +89,11 @@ namespace tcode { namespace io {
         return _mux;
     }
 
-    void engine::active_inc( void ) {
-        _active.fetch_add(1);
+    void engine::add_ref( void ) {
+		_refcount.fetch_add(1);
     }
 
-    void engine::active_dec( void ) {
-        _active.fetch_sub(1);
+    void engine::release( void ) {
+		_refcount.fetch_sub(1);
     }
 }}
