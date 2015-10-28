@@ -17,7 +17,7 @@ formatter::~formatter( void ) {
 void formatter::format( const record& r , tcode::byte_buffer& buf ){
     tcode::time::systemtime st(r.ts);
     buf.reserve( 8192 );
-#if defined( TCODE_TARGET_WINDOWS )
+#if defined( TCODE_WIN32 )
 	int len = _snprintf_s(reinterpret_cast<char*>( buf.wr_ptr()) , buf.space() , _TRUNCATE
 #else
 	int len = snprintf(reinterpret_cast<char*>( buf.wr_ptr()) , buf.space()	
@@ -30,7 +30,7 @@ void formatter::format( const record& r , tcode::byte_buffer& buf ){
 		, r.function
 		, r.file
 		, r.line
-        , (int)r.tid
+        , r.tid
 		);
 	buf.wr_ptr( len );
 }

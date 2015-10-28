@@ -118,6 +118,13 @@ namespace ip {
         void op_add( tcode::operation* op );
         void op_run( tcode::operation* op );
         void _change( int id , int filt , int flag , void* p );
+       
+        descriptor descriptor_create(int fd);
+		void descriptor_add_ref(descriptor d);
+		void descriptor_release(descriptor d);
+		void descriptor_dispatch_read(descriptor d , tcode::operation* op);
+		void descriptor_dispatch_write(descriptor d , tcode::operation* op);
+		void descriptor_dispatch(descriptor d, int events);
     private:
         engine& _engine;
         int _handle;

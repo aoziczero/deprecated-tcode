@@ -446,7 +446,7 @@ namespace tcode { namespace io {
 		for (int i = 0; i < tcode::io::ev_max; ++i) {
 			while (!d->op_queue[i].empty()) {
 				io::operation* op = d->op_queue[i].front< io::operation >();
-				op_queue[i].pop_front();
+				d->op_queue[i].pop_front();
 				if ( !op->error())
 					op->error() = tcode::error_aborted;
 				ops.push_back(op);
@@ -487,7 +487,7 @@ namespace tcode { namespace io {
 			if (events & epollev[i]) {
 				while (!d->op_queue[i].empty()) {
 					io::operation* op = d->op_queue[i].front<io::operation>();
-					if (op->post_proc(ep, this)) {
+					if (op->post_proc(this, d) {
 						d->op_queue[i].pop_front();
 						(*op)();
 					}

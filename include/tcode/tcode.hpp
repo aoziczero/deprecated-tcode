@@ -96,8 +96,12 @@
 #define TCODE_PACK( __DECL__ ) __DECL__ __attribute__((__packed__))
 #endif
 
-#if !defined( TCODE_WIN32 )
+#if defined( TCODE_WIN32 )
+
+#elif defined( TCODE_LINUX) 
 #include <endian.h>
+#elif defined( TCODE_APPLE )
+#include <machine/endian.h>
 #endif
 
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \

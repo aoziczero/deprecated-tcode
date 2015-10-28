@@ -27,79 +27,7 @@ namespace tcode { namespace io {
         int fd;
         tcode::slist::queue< tcode::operation > op_queue[tcode::io::ev_max];
         std::atomic<int> refcount;
-
-        void complete( kqueue* ep ,  int ev );
-
-        _descriptor( kqueue* ep , int fd  );
-
-        void add_ref( void );
-        void release( kqueue* ep );
     };
-
-    kqueue::_descriptor::_descriptor( kqueue* ep , int fd ) {
-        refcount.store(1);
-        ep->_engine.active_inc();
-        this->fd = fd;
-    }
-
-    void kqueue::_descriptor::add_ref( void ) {
-        refcount.fetch_add(1);
-    }
-
-    void kqueue::_descriptor::release( kqueue* ep ){
-        if ( refcount.fetch_sub(1) != 1 ) {
-            return; 
-        }
-        ep->_engine.active_dec();
-        
-        tcode::slist::queue< tcode::operation > ops;
-        for ( int i = 0 ;i < tcode::io::ev_max ; ++i ) {
-            while ( !op_queue[i].empty()){
-                io::operation* op = op_queue[i].front< io::operation >();
-                op_queue[i].pop_front();
-                op->error() = tcode::error_aborted;
-                ops.push_back(op);
-            }
-        }
-
-        if ( !ops.empty() ) {
-            do {
-                tcode::threading::spinlock::guard guard(ep->_lock);
-                while( !ops.empty()){
-                    tcode::operation* op = ops.front();
-                    ops.pop_front();
-                    ep->op_add(op);
-                }
-            }while(0);
-            ep->wake_up();
-        }
-        delete this;
-    }
-
-    void kqueue::_descriptor::complete( kqueue* mux, int events ) {
-        static const int kqueueev[] = {
-            EVFILT_READ, EVFILT_WRITE  
-        };
-        for ( int i = 0 ; i < 2 ; ++i ) {
-            if ( events == kqueueev[i] ){
-                while ( !op_queue[i].empty() ) {
-                    io::operation* op = op_queue[i].front<io::operation>();
-                    if ( op->post_proc(mux,this) ) {
-                        op_queue[i].pop_front();
-                        (*op)();
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
-        mux->_change( fd , EVFILT_READ 
-                , op_queue[tcode::io::ev_read].empty() ?  EV_DISABLE : EV_ENABLE 
-                , this );
-        mux->_change( fd , EVFILT_WRITE 
-                , op_queue[tcode::io::ev_write].empty() ?  EV_DISABLE : EV_ENABLE 
-                , this );
-    }
 
     kqueue::kqueue( engine& en )
         : _handle( ::kqueue() )
@@ -140,7 +68,7 @@ namespace tcode { namespace io {
                 //if ( (events[i].flag & EV_ERROR) || ( events[i].flag & EV_EOF )) {
                 //    desc->complete( this , EVFILT_READ );            
                 //} else {
-                    desc->complete( this , events[i].filter );
+                    descriptor_dispatch(  desc , events[i].filter );
                 //}
             } else {
                 char pipe_r[256];
@@ -189,7 +117,7 @@ namespace tcode { namespace io {
                             ::close( desc->fd );
                             desc->fd = -1;
                         }
-                        desc->release( this );
+						descriptor_release(desc);
                     })
             );
         }while(0);
@@ -219,15 +147,15 @@ namespace tcode { namespace io {
                 r = ::connect( fd , op->address().sockaddr() , op->address().sockaddr_length());
             }while((r == -1) && (errno == EINTR));
             if ( (r == 0) || (errno == EINPROGRESS )){
-                desc = new kqueue::_descriptor(this , fd );
+                desc = descriptor_create( fd );
                 desc->op_queue[tcode::io::ev_connect].push_back( op );
-                if ( bind( desc )){
-                    return;
-                }
-                op->error() = tcode::last_error();
-                desc->op_queue[tcode::io::ev_connect].pop_front();
-                delete desc;
-                desc = nullptr;
+                if ( !bind( desc ) ){
+					::close(fd);
+					op->error() = tcode::last_error();
+					descriptor_release(desc);
+					desc = nullptr;
+				}
+				return;
             }
             ::close(fd);
             op->error() = tcode::last_error();
@@ -236,25 +164,20 @@ namespace tcode { namespace io {
     }
 
     void kqueue::write( kqueue::descriptor desc 
-            , ip::tcp::operation_write_base* op)
-    {
-        desc->add_ref();
+            , ip::tcp::operation_write_base* op) {
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EVFILT_WRITE);
-                desc->release(this);
+				descriptor_dispatch_write(desc, op);
             }));
     }
 
     void kqueue::read( descriptor desc
             , ip::tcp::operation_read_base* op ){
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EVFILT_READ);
-                desc->release(this);
+				descriptor_dispatch_read(desc, op);
             }));
 
     }
@@ -270,10 +193,10 @@ namespace tcode { namespace io {
             reuse.set_option( fd );
             if ((::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0)
                     && (::listen(fd, SOMAXCONN ) == 0 )) {
-                desc = new kqueue::_descriptor(this,fd);
+                desc = descriptor_create(fd);
                 if ( bind( desc ))
                     return true;
-                delete desc;
+				descriptor_release(desc);
                 desc = nullptr;
             }
             ::close(fd);
@@ -288,12 +211,10 @@ namespace tcode { namespace io {
             //todo
             return;
         }
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_accept].push_back(op);
-                desc->complete( this , EVFILT_READ);
-                desc->release(this);
+				descriptor_dispatch_read(desc, op);
             }));
     }
     
@@ -304,11 +225,11 @@ namespace tcode { namespace io {
         if ( fd != -1 ) {
             tcode::io::ip::option::non_blocking nb;
             nb.set_option(fd);
-            desc = new epoll::_descriptor( this , fd );
+			desc = descriptor_create(fd);
             if ( bind(desc))
                 return true;
-            delete desc;
-            desc = nullptr;
+			descriptor_release(desc);
+			desc = nullptr;
             ::close(fd);
         }
         return false;
@@ -324,11 +245,11 @@ namespace tcode { namespace io {
             tcode::io::ip::option::reuse_address reuse( true );
             reuse.set_option( fd );
             if ( ::bind( fd , addr.sockaddr() , addr.sockaddr_length() ) == 0 ){
-                desc = new kqueue::_descriptor( this , fd );
+                desc = descriptor_create(fd);
                 if ( bind(desc))
                     return true;
-                delete desc;
-                desc = nullptr;
+				descriptor_release(desc);
+				desc = nullptr;
             }
             ::close(fd);
         }
@@ -341,11 +262,11 @@ namespace tcode { namespace io {
         if ( desc == nullptr ) {
             int fd = socket( op->address().family() , SOCK_DGRAM , IPPROTO_UDP);
             if ( fd != -1 ){
-                desc = new kqueue::_descriptor( this , fd );
+                desc = descriptor_create(fd);
                 if ( !bind( desc )){
                     op->error() = tcode::last_error();
-                    delete desc;
-                    desc = nullptr;
+					descriptor_release(desc);
+					desc = nullptr;
                     ::close(fd);
                 }
             }else{
@@ -356,12 +277,10 @@ namespace tcode { namespace io {
             }
         }
         
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_write].push_back(op);
-                desc->complete( this , EVFILT_WRITE);
-                desc->release(this);
+				descriptor_dispatch_write(desc, op);
             }));
     }
     
@@ -372,23 +291,21 @@ namespace tcode { namespace io {
             op->error() = tcode::error_invalid; 
             return execute(op);
         }
-        desc->add_ref();
+        descriptor_add_ref(desc);
         execute( tcode::operation::wrap(
             [this,desc,op]{
-                desc->op_queue[tcode::io::ev_read].push_back(op);
-                desc->complete( this , EVFILT_READ);
-                desc->release(this);
+				descriptor_dispatch_read(desc, op);
             }));
     }
 
 
     void kqueue::op_add( tcode::operation* op ){
         _op_queue.push_back( op );
-        _engine.active_inc();
+        _engine.add_ref();
     }
 
     void kqueue::op_run( tcode::operation* op ){
-        _engine.active_dec();
+        _engine.release();
         (*op)();
     }
 
@@ -454,7 +371,7 @@ namespace tcode { namespace io {
                 tcode::io::ip::option::non_blocking nb;
                 nb.set_option(fd);
 
-                accepted = new kqueue::_descriptor( this , fd );
+                accepted = descriptor_create(fd);
                 bind( accepted );
                 return 0;
             }
@@ -527,5 +444,85 @@ namespace tcode { namespace io {
 
     int kqueue::native_descriptor( descriptor d ) {
         return d->fd;
+    }
+
+    descriptor kqueue::descriptor_create(int fd) {
+		descriptor d = new kqueue::_descriptor();
+		d->fd = fd;
+		d->refcount.store(1);
+		_engine.add_ref();
+		return d;
+	}
+
+	void kqueue::descriptor_add_ref(descriptor d) {
+		d->refcount.fetch_add(1);
+	}
+
+	void kqueue::descriptor_release(descriptor d) {
+		if (d->refcount.fetch_sub(1) != 1) {
+			return;
+		}
+		_engine.release();
+
+		tcode::slist::queue< tcode::operation > ops;
+		for (int i = 0; i < tcode::io::ev_max; ++i) {
+			while (!d->op_queue[i].empty()) {
+				io::operation* op = d->op_queue[i].front< io::operation >();
+				d->op_queue[i].pop_front();
+				if ( !op->error())
+					op->error() = tcode::error_aborted;
+				ops.push_back(op);
+			}
+		}
+
+		if (!ops.empty()) {
+			do {
+				tcode::threading::spinlock::guard guard(_lock);
+				while (!ops.empty()) {
+					tcode::operation* op = ops.front();
+					ops.pop_front();
+					op_add(op);
+				}
+			} while (0);
+			wake_up();
+		}
+		delete d;
+	}
+
+	void kqueue::descriptor_dispatch_read(descriptor d, tcode::operation* op) {
+		d->op_queue[tcode::io::ev_read ].push_back(op);
+		descriptor_dispatch(d, EVFILT_READ);
+		descriptor_release(d);
+	}
+
+	void kqueue::descriptor_dispatch_write(descriptor d, tcode::operation* op) {
+		d->op_queue[tcode::io::ev_write].push_back(op);
+		descriptor_dispatch(d, EVFILT_WRITE);
+		descriptor_release(d);
+	}
+
+	void kqueue::descriptor_dispatch(descriptor d, int events) {
+        static const int kqueueev[] = {
+            EVFILT_READ, EVFILT_WRITE  
+        };
+        for ( int i = 0 ; i < 2 ; ++i ) {
+            if ( events == kqueueev[i] ){
+                while ( !d->op_queue[i].empty() ) {
+                    io::operation* op = d->op_queue[i].front<io::operation>();
+					if (op->post_proc(this, d)) {
+                        d->op_queue[i].pop_front();
+                        (*op)();
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        _change( d->fd , EVFILT_READ 
+                , d->op_queue[tcode::io::ev_read].empty() ?  EV_DISABLE : EV_ENABLE 
+                , d );
+        _change( d->fd , EVFILT_WRITE 
+                , d->op_queue[tcode::io::ev_write].empty() ?  EV_DISABLE : EV_ENABLE 
+                , d );
     }
 }}
