@@ -128,7 +128,7 @@
 
 namespace tcode {
 
-bool init( void );
+//bool init( void );
 
 /*!
 *	@brief	멤버변수의 포인터 오프셋을 알아오는 함수 / boost 에서 참조

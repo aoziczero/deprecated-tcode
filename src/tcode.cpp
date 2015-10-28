@@ -3,9 +3,10 @@
 
 namespace tcode {
 
+/*
 bool init( void ){
     return false;        
 }
-
+*/
 
 }
